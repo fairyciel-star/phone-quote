@@ -20,6 +20,76 @@
   gap: var(--space-lg);
 }
 
+/* === Store Section === */
+.storeSection {
+  margin-top: var(--space-xl);
+}
+
+.storeSectionTitle {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: var(--space-md);
+}
+
+.mapWrap {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: var(--space-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.storeInfo {
+  margin-bottom: var(--space-md);
+}
+
+.storeName {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.storeAddress {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.storeActions {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.storeBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px;
+  border-radius: var(--radius-lg);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  border: 2px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.storeBtn:active {
+  transform: scale(0.97);
+}
+
+.storeBtnPrimary {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.storeBtnIcon {
+  font-size: 16px;
+}
+
 .successOverlay {
   position: fixed;
   top: 0;

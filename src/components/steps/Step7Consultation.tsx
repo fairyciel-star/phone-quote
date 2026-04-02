@@ -189,6 +189,45 @@ ${quoteText}
             rows={3}
           />
         </div>
+
+        {/* 매장 위치 */}
+        <div className={styles.storeSection}>
+          <h3 className={styles.storeSectionTitle}>매장 위치</h3>
+          <div className={styles.mapWrap}>
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d793.5!2d126.8033!3d37.5134!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s!2z67aA7LKc7IucIOyYpOyglOq1rCDsgrzsnpHroZwgMzg1LTUgMey4tQ!5e0!3m2!1sko!2skr!4v1700000000000"
+              width="100%"
+              height="200"
+              style={{ border: 0, borderRadius: '12px' }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="매장 위치"
+            />
+          </div>
+          <div className={styles.storeInfo}>
+            <div className={styles.storeName}>휴대폰성지 동네휴대폰마트</div>
+            <div className={styles.storeAddress}>부천시 오정구 삼작로 385호 5호 1층</div>
+          </div>
+          <div className={styles.storeActions}>
+            <a
+              href="tel:01056812956"
+              className={styles.storeBtn}
+            >
+              <span className={styles.storeBtnIcon}>📞</span>
+              전화
+            </a>
+            <a
+              href="https://map.naver.com/v5/search/부천시 오정구 삼작로 385"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${styles.storeBtn} ${styles.storeBtnPrimary}`}
+            >
+              <span className={styles.storeBtnIcon}>📍</span>
+              길찾기
+            </a>
+          </div>
+        </div>
       </div>
 
       <StepNavigation canProceed={canProceed} onSubmit={handleSubmit} />
