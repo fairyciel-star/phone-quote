@@ -58,69 +58,100 @@
 }
 
 .planCard {
-  padding: var(--space-lg) !important;
+  padding: var(--space-md) var(--space-lg) !important;
+  min-height: 120px;
 }
 
-.planTopRow {
+.planLayout {
+  display: flex;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.planLeft {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+
+.planNameRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-sm);
+  gap: 6px;
 }
 
 .planName {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-}
-
-.planBadges {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
 }
 
 .planPriceRow {
   display: flex;
   align-items: baseline;
   gap: 4px;
-  margin-bottom: var(--space-md);
 }
 
 .planPriceLabel {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-text-secondary);
 }
 
 .planPrice {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 800;
-  color: var(--color-text);
+  color: var(--color-primary);
+}
+
+.planRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.planBadges {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 /* === Subsidy Info === */
-.subsidyRow {
+.subsidyColumn {
   display: flex;
-  justify-content: flex-end;
-  gap: var(--space-lg);
-  padding-top: var(--space-sm);
-  border-top: 1px dashed var(--color-border);
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
 }
 
 .subsidyItem {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
+  align-items: center;
+  gap: 6px;
 }
 
 .subsidyLabel {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--color-text);
 }
 
 .subsidyAmount {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.subsidyTotalLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.subsidyTotalAmount {
   font-size: 14px;
   font-weight: 800;
   color: var(--color-primary);

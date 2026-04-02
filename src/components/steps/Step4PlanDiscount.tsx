@@ -155,36 +155,44 @@ export function Step4PlanDiscount() {
             onClick={() => setPlan(premiumPlan.id)}
             className={styles.planCard}
           >
-            {/* 상단: 요금제명 + 뱃지 */}
-            <div className={styles.planTopRow}>
-              <span className={styles.planName}>{premiumPlan.name}</span>
-              <div className={styles.planBadges}>
-                <Badge>{carrierId}</Badge>
-                <Badge>{premiumPlan.data}</Badge>
-                <Badge>5G</Badge>
-                <Badge>6개월 유지</Badge>
-              </div>
-            </div>
-
-            {/* 월 요금 */}
-            <div className={styles.planPriceRow}>
-              <span className={styles.planPriceLabel}>월</span>
-              <span className={styles.planPrice}>{formatWon(premiumPlan.monthlyFee)}</span>
-            </div>
-
-            {/* 하단: 공통지원금 + 매장지원금 */}
-            {discountType === '공통지원금' && (
-              <div className={styles.subsidyRow}>
-                <div className={styles.subsidyItem}>
-                  <span className={styles.subsidyLabel}>공통지원금</span>
-                  <span className={styles.subsidyAmount}>{formatWon(subsidyAmount)}</span>
+            <div className={styles.planLayout}>
+              {/* 왼쪽: 요금제명 + 월요금 */}
+              <div className={styles.planLeft}>
+                <div className={styles.planNameRow}>
+                  <span className={styles.planName}>{premiumPlan.name}</span>
+                  <Badge>{carrierId}</Badge>
                 </div>
-                <div className={styles.subsidyItem}>
-                  <span className={styles.subsidyLabel}>최대 매장지원금</span>
-                  <span className={styles.subsidyAmount}>{formatWon(extraSubsidy)}</span>
+                <div className={styles.planPriceRow}>
+                  <span className={styles.planPriceLabel}>월</span>
+                  <span className={styles.planPrice}>{formatWon(premiumPlan.monthlyFee)}</span>
                 </div>
               </div>
-            )}
+
+              {/* 오른쪽: 뱃지 + 지원금 */}
+              <div className={styles.planRight}>
+                <div className={styles.planBadges}>
+                  <Badge>데이터</Badge>
+                  <Badge>{premiumPlan.data}</Badge>
+                  <Badge>6개월 유지</Badge>
+                </div>
+                {discountType === '공통지원금' && (
+                  <div className={styles.subsidyColumn}>
+                    <div className={styles.subsidyItem}>
+                      <span className={styles.subsidyLabel}>공통지원금</span>
+                      <span className={styles.subsidyAmount}>{formatWon(subsidyAmount)}</span>
+                    </div>
+                    <div className={styles.subsidyItem}>
+                      <span className={styles.subsidyLabel}>최대 매장지원금</span>
+                      <span className={styles.subsidyAmount}>{formatWon(extraSubsidy)}</span>
+                    </div>
+                    <div className={styles.subsidyItem}>
+                      <span className={styles.subsidyTotalLabel}>최대 지원금</span>
+                      <span className={styles.subsidyTotalAmount}>{formatWon(subsidyAmount + extraSubsidy)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </Card>
         )}
 
