@@ -52,16 +52,18 @@ export function Step4PlanDiscount() {
 
   // Get 공통지원금 for selected phone + 가입유형
   const selectedPhone = phones.find((p) => p.id === selectedPhoneId);
-  const getSubsidyAmount = (): number => {
-    if (!selectedPhone || !carrierId || !selectedStorage || !subscriptionType) return 0;
+  const getSubsidyData = (): { 공통지원금: number; 추가지원금: number } => {
+    if (!selectedPhone || !carrierId || !selectedStorage || !subscriptionType) return { 공통지원금: 0, 추가지원금: 0 };
     if (sheetLoaded) {
       const sheet = getSubsidy(selectedPhone.id, carrierId, selectedStorage, subscriptionType);
-      if (sheet.공통지원금 > 0) return sheet.공통지원금;
+      if (sheet.공통지원금 > 0) return { 공통지원금: sheet.공통지원금, 추가지원금: sheet.추가지원금 };
     }
     const jsonSubsidy = selectedPhone.공통지원금[carrierId];
-    return jsonSubsidy?.[selectedStorage] ?? 0;
+    return { 공통지원금: jsonSubsidy?.[selectedStorage] ?? 0, 추가지원금: 0 };
   };
-  const subsidyAmount = getSubsidyAmount();
+  const subsidyData = getSubsidyData();
+  const subsidyAmount = subsidyData.공통지원금;
+  const extraSubsidy = subsidyData.추가지원금;
 
   // Card discounts: sheet first, JSON fallback
   const sheetCardDiscounts = sheetLoaded && carrierId ? getSheetCards(carrierId) : [];
@@ -153,40 +155,34 @@ export function Step4PlanDiscount() {
             onClick={() => setPlan(premiumPlan.id)}
             className={styles.planCard}
           >
-            <div className={styles.planHeader}>
-              <div className={styles.planNameRow}>
-                <span className={styles.planName}>{premiumPlan.name}</span>
-                {premiumPlan.benefits.map((benefit) => (
-                  <Badge key={benefit}>{benefit}</Badge>
-                ))}
-              </div>
-              <div>
-                <span className={styles.planPrice}>
-                  {formatWon(premiumPlan.monthlyFee)}
-                </span>
-                <span className={styles.planPriceUnit}>/월</span>
+            {/* 상단: 요금제명 + 뱃지 */}
+            <div className={styles.planTopRow}>
+              <span className={styles.planName}>{premiumPlan.name}</span>
+              <div className={styles.planBadges}>
+                <Badge>{carrierId}</Badge>
+                <Badge>{premiumPlan.data}</Badge>
+                <Badge>5G</Badge>
+                <Badge>6개월 유지</Badge>
               </div>
             </div>
 
-            <div className={styles.planDetails}>
-              <span className={styles.planDetail}>
-                <span className={styles.planDetailLabel}>데이터</span>
-                {premiumPlan.data}
-              </span>
-              <span className={styles.planDetail}>
-                <span className={styles.planDetailLabel}>통화</span>
-                {premiumPlan.voice}
-              </span>
-              <span className={styles.planDetail}>
-                <span className={styles.planDetailLabel}>문자</span>
-                {premiumPlan.sms}
-              </span>
+            {/* 월 요금 */}
+            <div className={styles.planPriceRow}>
+              <span className={styles.planPriceLabel}>월</span>
+              <span className={styles.planPrice}>{formatWon(premiumPlan.monthlyFee)}</span>
             </div>
 
+            {/* 하단: 공통지원금 + 매장지원금 */}
             {discountType === '공통지원금' && (
-              <div className={styles.subsidyInfo}>
-                공통지원금: <span className={styles.subsidyAmount}>{formatWon(subsidyAmount)}</span>
-                <span className={styles.subsidyExtra}>+매장지원금 적용</span>
+              <div className={styles.subsidyRow}>
+                <div className={styles.subsidyItem}>
+                  <span className={styles.subsidyLabel}>공통지원금</span>
+                  <span className={styles.subsidyAmount}>{formatWon(subsidyAmount)}</span>
+                </div>
+                <div className={styles.subsidyItem}>
+                  <span className={styles.subsidyLabel}>최대 매장지원금</span>
+                  <span className={styles.subsidyAmount}>{formatWon(extraSubsidy)}</span>
+                </div>
               </div>
             )}
           </Card>

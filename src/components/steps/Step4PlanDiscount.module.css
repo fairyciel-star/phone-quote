@@ -58,21 +58,14 @@
 }
 
 .planCard {
-  padding: var(--space-md) var(--space-lg) !important;
+  padding: var(--space-lg) !important;
 }
 
-.planHeader {
+.planTopRow {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
   margin-bottom: var(--space-sm);
-}
-
-.planNameRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  flex-wrap: wrap;
 }
 
 .planName {
@@ -80,55 +73,57 @@
   font-weight: 700;
 }
 
-.planPrice {
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--color-primary);
-}
-
-.planPriceUnit {
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--color-text-secondary);
-}
-
-.planDetails {
+.planBadges {
   display: flex;
-  gap: var(--space-md);
-  margin-bottom: var(--space-sm);
+  gap: 4px;
+  flex-wrap: wrap;
 }
 
-.planDetail {
-  font-size: 13px;
+.planPriceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: var(--space-md);
+}
+
+.planPriceLabel {
+  font-size: 14px;
+  font-weight: 600;
   color: var(--color-text-secondary);
 }
 
-.planDetailLabel {
-  font-weight: 600;
+.planPrice {
+  font-size: 22px;
+  font-weight: 800;
   color: var(--color-text);
-  margin-right: 4px;
 }
 
 /* === Subsidy Info === */
-.subsidyInfo {
-  margin-top: var(--space-sm);
+.subsidyRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-lg);
   padding-top: var(--space-sm);
   border-top: 1px dashed var(--color-border);
-  font-size: 14px;
+}
+
+.subsidyItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.subsidyLabel {
+  font-size: 12px;
+  font-weight: 600;
   color: var(--color-text);
-  font-weight: 700;
 }
 
 .subsidyAmount {
-  color: var(--color-primary);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 800;
-}
-
-.subsidyExtra {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-primary-dark);
+  color: var(--color-primary);
 }
 
 /* === Section Divider === */
