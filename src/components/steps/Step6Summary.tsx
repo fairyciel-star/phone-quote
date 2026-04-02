@@ -180,7 +180,7 @@ export function Step6Summary() {
 
           {loyaltyAmount > 0 && (
             <div className={styles.breakdownRow}>
-              <span className={styles.breakdownLabel}>단골 전용 최대 혜택(대상자 한정)</span>
+              <span className={styles.breakdownLabel}>동네휴대폰마트 특별지원(대상자 한정)</span>
               <span className={`${styles.breakdownValue} ${styles.breakdownDiscount}`}>
                 -{formatWon(loyaltyAmount)}
               </span>
