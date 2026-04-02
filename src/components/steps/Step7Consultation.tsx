@@ -195,7 +195,7 @@ ${quoteText}
           <h3 className={styles.storeSectionTitle}>매장 위치</h3>
           <div className={styles.mapWrap}>
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d793.5!2d126.8033!3d37.5134!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s!2z67aA7LKc7IucIOyYpOyglOq1rCDsgrzsnpHroZwgMzg1LTUgMey4tQ!5e0!3m2!1sko!2skr!4v1700000000000"
+              src={`https://www.google.com/maps/embed/v1/place?key=${import.meta.env.VITE_GOOGLE_MAPS_KEY}&q=부천시+오정구+삼작로+385&zoom=17&language=ko`}
               width="100%"
               height="200"
               style={{ border: 0, borderRadius: '12px' }}
