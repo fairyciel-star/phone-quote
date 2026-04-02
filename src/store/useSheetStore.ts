@@ -5,12 +5,10 @@ import {
   fetchCardDiscounts,
   fetchPlans,
   fetchAddons,
-  fetchLoyalty,
   type SubsidyRow,
   type CardDiscountRow,
   type PlanRow,
   type AddonRow,
-  type LoyaltyRow,
 } from '../utils/sheets';
 
 interface SheetState {
@@ -21,10 +19,8 @@ interface SheetState {
   readonly cardDiscounts: readonly CardDiscountRow[];
   readonly plans: readonly PlanRow[];
   readonly addons: readonly AddonRow[];
-  readonly loyalty: readonly LoyaltyRow[];
   loadFromSheet: (sheetId: string) => Promise<void>;
-  getSubsidy: (모델ID: string, 통신사: CarrierId, 용량: string, 가입유형: SubscriptionType) => { 출고가: number; 공통지원금: number; 추가지원금: number };
-  getLoyalty: (모델ID: string, 통신사: CarrierId, 용량: string, 가입유형: SubscriptionType) => number;
+  getSubsidy: (모델ID: string, 통신사: CarrierId, 용량: string, 가입유형: SubscriptionType) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number };
   getPhoneBadge: (모델ID: string, 통신사: CarrierId) => string;
   getCardDiscountsForCarrier: (통신사: CarrierId) => Discount[];
   getPlansForCarrier: (통신사: CarrierId) => Plan[];
@@ -39,7 +35,6 @@ export const useSheetStore = create<SheetState>((set, get) => ({
   cardDiscounts: [],
   plans: [],
   addons: [],
-  loyalty: [],
 
   loadFromSheet: async (sheetId: string) => {
     set({ loading: true, error: null });
@@ -49,7 +44,6 @@ export const useSheetStore = create<SheetState>((set, get) => ({
         fetchCardDiscounts(sheetId),
         fetchPlans(sheetId),
         fetchAddons(sheetId),
-        fetchLoyalty(sheetId),
       ]);
 
       set({
@@ -57,7 +51,6 @@ export const useSheetStore = create<SheetState>((set, get) => ({
         cardDiscounts: results[1].status === 'fulfilled' ? results[1].value : [],
         plans: results[2].status === 'fulfilled' ? results[2].value : [],
         addons: results[3].status === 'fulfilled' ? results[3].value : [],
-        loyalty: results[4].status === 'fulfilled' ? results[4].value : [],
         loaded: true,
         loading: false,
       });
@@ -75,14 +68,8 @@ export const useSheetStore = create<SheetState>((set, get) => ({
       출고가: row?.출고가 ?? 0,
       공통지원금: row?.공통지원금 ?? 0,
       추가지원금: row?.추가지원금 ?? 0,
+      특별지원: row?.특별지원 ?? 0,
     };
-  },
-
-  getLoyalty: (모델ID, 통신사, 용량, 가입유형) => {
-    const row = get().loyalty.find(
-      (r) => r.모델ID === 모델ID && r.통신사 === 통신사 && r.용량 === 용량 && r.가입유형 === 가입유형
-    );
-    return row?.단골혜택 ?? 0;
   },
 
   getPhoneBadge: (모델ID, 통신사) => {

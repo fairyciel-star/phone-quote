@@ -33,7 +33,6 @@ export function Step4PlanDiscount() {
   const getSheetPlans = useSheetStore((s) => s.getPlansForCarrier);
   const getSheetAddons = useSheetStore((s) => s.getAddonsForCarrier);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
-  const getLoyalty = useSheetStore((s) => s.getLoyalty);
 
   // Plans: sheet first, JSON fallback → pick premium (most expensive)
   const sheetPlans = sheetLoaded && carrierId ? getSheetPlans(carrierId) : [];
@@ -53,21 +52,20 @@ export function Step4PlanDiscount() {
 
   // Get 공통지원금 for selected phone + 가입유형
   const selectedPhone = phones.find((p) => p.id === selectedPhoneId);
-  const getSubsidyData = (): { 공통지원금: number; 추가지원금: number; 단골혜택: number } => {
-    if (!selectedPhone || !carrierId || !selectedStorage || !subscriptionType) return { 공통지원금: 0, 추가지원금: 0, 단골혜택: 0 };
-    const loyalty = sheetLoaded ? getLoyalty(selectedPhone.id, carrierId, selectedStorage, subscriptionType) : 0;
+  const getSubsidyData = (): { 공통지원금: number; 추가지원금: number; 특별지원: number } => {
+    if (!selectedPhone || !carrierId || !selectedStorage || !subscriptionType) return { 공통지원금: 0, 추가지원금: 0, 특별지원: 0 };
     if (sheetLoaded) {
       const sheet = getSubsidy(selectedPhone.id, carrierId, selectedStorage, subscriptionType);
-      if (sheet.공통지원금 > 0) return { 공통지원금: sheet.공통지원금, 추가지원금: sheet.추가지원금, 단골혜택: loyalty };
+      if (sheet.공통지원금 > 0) return { 공통지원금: sheet.공통지원금, 추가지원금: sheet.추가지원금, 특별지원: sheet.특별지원 };
     }
     const jsonSubsidy = selectedPhone.공통지원금[carrierId];
-    return { 공통지원금: jsonSubsidy?.[selectedStorage] ?? 0, 추가지원금: 0, 단골혜택: loyalty };
+    return { 공통지원금: jsonSubsidy?.[selectedStorage] ?? 0, 추가지원금: 0, 특별지원: 0 };
   };
   const subsidyData = getSubsidyData();
   const subsidyAmount = subsidyData.공통지원금;
   const extraSubsidy = subsidyData.추가지원금;
-  const loyaltyAmount = subsidyData.단골혜택;
-  const totalMaxSubsidy = extraSubsidy + loyaltyAmount;
+  const specialSupport = subsidyData.특별지원;
+  const totalMaxSubsidy = extraSubsidy + specialSupport;
 
   // Card discounts: sheet first, JSON fallback
   const sheetCardDiscounts = sheetLoaded && carrierId ? getSheetCards(carrierId) : [];
