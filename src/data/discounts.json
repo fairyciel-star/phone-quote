@@ -1,0 +1,128 @@
+[
+  {
+    "id": "skt-card-shinhan",
+    "carrier": "SKT",
+    "type": "제휴카드",
+    "name": "신한 T카드",
+    "monthlyDiscount": 12100,
+    "conditions": "전월 30만원 이상 결제"
+  },
+  {
+    "id": "skt-card-samsung",
+    "carrier": "SKT",
+    "type": "제휴카드",
+    "name": "삼성 T카드",
+    "monthlyDiscount": 12100,
+    "conditions": "전월 30만원 이상 결제"
+  },
+  {
+    "id": "skt-card-kb",
+    "carrier": "SKT",
+    "type": "제휴카드",
+    "name": "KB국민 T카드",
+    "monthlyDiscount": 12100,
+    "conditions": "전월 30만원 이상 결제"
+  },
+  {
+    "id": "skt-addon-insurance",
+    "carrier": "SKT",
+    "type": "부가서비스",
+    "name": "휴대폰 보험",
+    "monthlyFee": 9900,
+    "description": "파손, 분실, 도난 보장",
+    "추가할인": 30000
+  },
+  {
+    "id": "skt-addon-tworld",
+    "carrier": "SKT",
+    "type": "부가서비스",
+    "name": "T 안심보험 플러스",
+    "monthlyFee": 13200,
+    "description": "파손·침수·도난 완벽 보장",
+    "추가할인": 30000
+  },
+  {
+    "id": "kt-card-shinhan",
+    "carrier": "KT",
+    "type": "제휴카드",
+    "name": "신한 KT 카드",
+    "monthlyDiscount": 12100,
+    "conditions": "전월 30만원 이상 결제"
+  },
+  {
+    "id": "kt-card-hyundai",
+    "carrier": "KT",
+    "type": "제휴카드",
+    "name": "현대 KT 카드",
+    "monthlyDiscount": 12100,
+    "conditions": "전월 30만원 이상 결제"
+  },
+  {
+    "id": "kt-card-kb",
+    "carrier": "KT",
+    "type": "제휴카드",
+    "name": "KB국민 KT 카드",
+    "monthlyDiscount": 12100,
+    "conditions": "전월 30만원 이상 결제"
+  },
+  {
+    "id": "kt-addon-insurance",
+    "carrier": "KT",
+    "type": "부가서비스",
+    "name": "KT 폰케어",
+    "monthlyFee": 9900,
+    "description": "파손, 분실, 도난 보장",
+    "추가할인": 30000
+  },
+  {
+    "id": "kt-addon-security",
+    "carrier": "KT",
+    "type": "부가서비스",
+    "name": "KT 시큐어 플러스",
+    "monthlyFee": 2200,
+    "description": "악성앱, 스미싱 차단",
+    "추가할인": 0
+  },
+  {
+    "id": "lgu-card-shinhan",
+    "carrier": "LGU",
+    "type": "제휴카드",
+    "name": "신한 U+ 카드",
+    "monthlyDiscount": 12100,
+    "conditions": "전월 30만원 이상 결제"
+  },
+  {
+    "id": "lgu-card-hana",
+    "carrier": "LGU",
+    "type": "제휴카드",
+    "name": "하나 U+ 카드",
+    "monthlyDiscount": 12100,
+    "conditions": "전월 30만원 이상 결제"
+  },
+  {
+    "id": "lgu-card-kb",
+    "carrier": "LGU",
+    "type": "제휴카드",
+    "name": "KB국민 U+ 카드",
+    "monthlyDiscount": 12100,
+    "conditions": "전월 30만원 이상 결제"
+  },
+  {
+    "id": "lgu-addon-insurance",
+    "carrier": "LGU",
+    "type": "부가서비스",
+    "name": "U+ 폰케어",
+    "monthlyFee": 9900,
+    "description": "파손, 분실, 도난 보장",
+    "추가할인": 30000
+  },
+  {
+    "id": "lgu-addon-cloud",
+    "carrier": "LGU",
+    "type": "부가서비스",
+    "name": "U+ 클라우드 50GB",
+    "monthlyFee": 2200,
+    "description": "사진·영상 클라우드 백업",
+    "추가할인": 0
+  }
+]

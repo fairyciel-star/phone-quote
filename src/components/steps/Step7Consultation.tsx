@@ -1,0 +1,213 @@
+import { useState } from 'react';
+import { useQuoteStore } from '../../store/useQuoteStore';
+import { Input, Textarea, SelectInput } from '../ui/Input';
+import { Button } from '../ui/Button';
+import { StepNavigation } from '../layout/StepNavigation';
+import { formatPhone, formatWon } from '../../utils/format';
+import { sendTelegramNotification } from '../../utils/telegram';
+import { useSheetStore } from '../../store/useSheetStore';
+import phonesData from '../../data/phones.json';
+import plansData from '../../data/plans.json';
+import carriersData from '../../data/carriers.json';
+import type { Phone, Plan } from '../../types';
+import { calculateFullQuote } from '../../utils/price';
+import discountsData from '../../data/discounts.json';
+import type { Discount } from '../../types';
+import styles from './Step7Consultation.module.css';
+
+const phones = phonesData as unknown as Phone[];
+const plans = plansData as unknown as Plan[];
+const jsonDiscounts = discountsData as unknown as Discount[];
+
+const TIME_OPTIONS = [
+  '상관없음',
+  '오전 10시~12시',
+  '오후 12시~3시',
+  '오후 3시~6시',
+  '오후 6시~9시',
+];
+
+export function Step7Consultation() {
+  const consultation = useQuoteStore((s) => s.consultation);
+  const setConsultation = useQuoteStore((s) => s.setConsultation);
+  const reset = useQuoteStore((s) => s.reset);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitted, setSubmitted] = useState(false);
+
+  const validate = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!consultation.name.trim()) {
+      newErrors.name = '이름을 입력해주세요';
+    }
+
+    const phoneDigits = consultation.phone.replace(/\D/g, '');
+    if (!phoneDigits) {
+      newErrors.phone = '연락처를 입력해주세요';
+    } else if (!/^01[016789]\d{7,8}$/.test(phoneDigits)) {
+      newErrors.phone = '올바른 휴대폰 번호를 입력해주세요';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const [sending, setSending] = useState(false);
+
+  const sheetLoaded = useSheetStore((s) => s.loaded);
+  const getSubsidy = useSheetStore((s) => s.getSubsidy);
+  const getSheetPlans = useSheetStore((s) => s.getPlansForCarrier);
+  const getSheetCards = useSheetStore((s) => s.getCardDiscountsForCarrier);
+  const getSheetAddons = useSheetStore((s) => s.getAddonsForCarrier);
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    setSending(true);
+
+    const state = useQuoteStore.getState();
+    const { selectedPhoneId, selectedStorage, carrierId, selectedPlanId, discountType, selectedDiscountIds, 할부개월, subscriptionType } = state;
+
+    // 견적 데이터 조합
+    const phone = phones.find((p) => p.id === selectedPhoneId);
+    const carrier = carriersData.find((c) => c.id === carrierId);
+
+    const sheetPlans = sheetLoaded && carrierId ? getSheetPlans(carrierId) : [];
+    const allPlans = sheetPlans.length > 0 ? sheetPlans : plans;
+    const plan = allPlans.find((p) => p.id === selectedPlanId);
+
+    const sheetCards = sheetLoaded && carrierId ? getSheetCards(carrierId) : [];
+    const sheetAddons = sheetLoaded && carrierId ? getSheetAddons(carrierId) : [];
+    const allDiscounts = [
+      ...(sheetCards.length > 0 ? sheetCards : jsonDiscounts.filter((d) => d.type === '제휴카드')),
+      ...(sheetAddons.length > 0 ? sheetAddons : jsonDiscounts.filter((d) => d.type === '부가서비스')),
+    ];
+    const selectedDiscounts = allDiscounts.filter((d) => selectedDiscountIds.includes(d.id));
+
+    const sheetSubsidy = sheetLoaded && selectedPhoneId && carrierId && selectedStorage && subscriptionType
+      ? getSubsidy(selectedPhoneId, carrierId, selectedStorage, subscriptionType)
+      : null;
+
+    let quoteText = '';
+    if (phone && plan && selectedStorage && carrierId) {
+      const quote = calculateFullQuote({
+        phone, storage: selectedStorage, carrierId, plan, discountType, selectedDiscounts, 할부개월,
+        출고가Override: sheetSubsidy?.출고가,
+        공통지원금Override: sheetSubsidy?.공통지원금,
+        추가지원금Override: sheetSubsidy?.추가지원금,
+      });
+      quoteText = `
+<b>📱 견적 정보</b>
+• 출고가: ${formatWon(quote.출고가)}
+• 공통지원금: -${formatWon(quote.공통지원금)}
+• 매장지원금: -${formatWon(quote.추가지원금)}
+• 할부원금: <b>${formatWon(quote.할부원금)}</b>
+• 월 할부금 (${할부개월}개월): <b>${formatWon(quote.월할부금)}</b>
+• 월 요금제: ${formatWon(quote.월요금제)}
+• 월 납입금 합계: <b>${formatWon(quote.월납입금총액)}</b>`;
+    }
+
+    const now = new Date();
+    const timeStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    const message = `🔔 <b>새 상담 신청</b>
+
+<b>👤 고객 정보</b>
+• 이름: ${consultation.name}
+• 연락처: ${consultation.phone}
+• 희망시간: ${consultation.preferredTime}
+${consultation.memo ? `• 메모: ${consultation.memo}` : ''}
+
+<b>📋 선택 정보</b>
+• 가입유형: ${subscriptionType ?? '-'}
+• 통신사: ${carrier?.name ?? '-'}
+• 모델: ${phone?.name ?? '-'} ${selectedStorage ?? ''}
+• 요금제: ${plan?.name ?? '-'}
+• 할인방식: ${discountType}
+• 할부: ${할부개월}개월
+${quoteText}
+
+🕐 접수시간: ${timeStr}`;
+
+    await sendTelegramNotification(message);
+
+    const quoteData = { ...state, submittedAt: now.toISOString() };
+    const existing = JSON.parse(localStorage.getItem('phone-quotes') || '[]');
+    localStorage.setItem('phone-quotes', JSON.stringify([...existing, quoteData]));
+
+    setSending(false);
+    setSubmitted(true);
+  };
+
+  const handlePhoneChange = (value: string) => {
+    setConsultation({ phone: formatPhone(value) });
+  };
+
+  const canProceed = !sending && consultation.name.trim() !== '' && consultation.phone.replace(/\D/g, '').length >= 10;
+
+  return (
+    <>
+      <div className={styles.container}>
+        <h2 className={styles.title}>상담 신청</h2>
+        <p className={styles.subtitle}>연락 정보를 입력해주시면 빠르게 연락드릴게요</p>
+
+        <div className={styles.form}>
+          <Input
+            label="이름"
+            required
+            placeholder="홍길동"
+            value={consultation.name}
+            onChange={(e) => setConsultation({ name: e.target.value })}
+            error={errors.name}
+          />
+
+          <Input
+            label="연락처"
+            required
+            type="tel"
+            placeholder="010-0000-0000"
+            value={consultation.phone}
+            onChange={(e) => handlePhoneChange(e.target.value)}
+            error={errors.phone}
+            maxLength={13}
+          />
+
+          <SelectInput
+            label="희망 연락 시간"
+            value={consultation.preferredTime}
+            onChange={(e) => setConsultation({ preferredTime: e.target.value })}
+          >
+            {TIME_OPTIONS.map((time) => (
+              <option key={time} value={time}>{time}</option>
+            ))}
+          </SelectInput>
+
+          <Textarea
+            label="메모 (선택사항)"
+            placeholder="문의사항이 있으시면 남겨주세요"
+            value={consultation.memo}
+            onChange={(e) => setConsultation({ memo: e.target.value })}
+            rows={3}
+          />
+        </div>
+      </div>
+
+      <StepNavigation canProceed={canProceed} onSubmit={handleSubmit} />
+
+      {submitted && (
+        <div className={styles.successOverlay} onClick={() => { setSubmitted(false); reset(); }}>
+          <div className={styles.successModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.successIcon}>🎉</div>
+            <h3 className={styles.successTitle}>상담 신청이 완료되었습니다!</h3>
+            <p className={styles.successMessage}>
+              빠른 시간 내에 연락드리겠습니다.<br />
+              감사합니다.
+            </p>
+            <Button fullWidth onClick={() => { setSubmitted(false); reset(); }}>
+              처음으로 돌아가기
+            </Button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

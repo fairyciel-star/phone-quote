@@ -1,0 +1,149 @@
+[
+  {
+    "id": "skt-5g-premium",
+    "carrier": "SKT",
+    "name": "5GX 프리미엄",
+    "monthlyFee": 109000,
+    "data": "무제한",
+    "voice": "무제한",
+    "sms": "무제한",
+    "선택약정할인율": 0.25,
+    "benefits": [
+      "넷플릭스",
+      "T우주"
+    ]
+  },
+  {
+    "id": "skt-5g-standard",
+    "carrier": "SKT",
+    "name": "5GX 레귤러",
+    "monthlyFee": 69000,
+    "data": "150GB",
+    "voice": "무제한",
+    "sms": "무제한",
+    "선택약정할인율": 0.25,
+    "benefits": [
+      "T멤버십 골드"
+    ]
+  },
+  {
+    "id": "skt-5g-light",
+    "carrier": "SKT",
+    "name": "5GX 라이트",
+    "monthlyFee": 55000,
+    "data": "50GB",
+    "voice": "무제한",
+    "sms": "무제한",
+    "선택약정할인율": 0.25,
+    "benefits": []
+  },
+  {
+    "id": "skt-lte-standard",
+    "carrier": "SKT",
+    "name": "LTE 스탠다드",
+    "monthlyFee": 45000,
+    "data": "10GB",
+    "voice": "무제한",
+    "sms": "무제한",
+    "선택약정할인율": 0.25,
+    "benefits": []
+  },
+  {
+    "id": "kt-5g-super",
+    "carrier": "KT",
+    "name": "5G 초이스 스페셜",
+    "monthlyFee": 110000,
+    "data": "무제한",
+    "voice": "무제한",
+    "sms": "무제한",
+    "선택약정할인율": 0.25,
+    "benefits": [
+      "디즈니+",
+      "지니뮤직"
+    ]
+  },
+  {
+    "id": "kt-5g-special",
+    "carrier": "KT",
+    "name": "5G 슈퍼플랜 스페셜",
+    "monthlyFee": 69000,
+    "data": "200GB",
+    "voice": "무제한",
+    "sms": "무제한",
+    "선택약정할인율": 0.25,
+    "benefits": [
+      "지니뮤직"
+    ]
+  },
+  {
+    "id": "kt-5g-regular",
+    "carrier": "KT",
+    "name": "5G 슈퍼플랜 레귤러",
+    "monthlyFee": 55000,
+    "data": "80GB",
+    "voice": "무제한",
+    "sms": "무제한",
+    "선택약정할인율": 0.25,
+    "benefits": []
+  },
+  {
+    "id": "kt-lte-standard",
+    "carrier": "KT",
+    "name": "LTE 스탠다드",
+    "monthlyFee": 45000,
+    "data": "10GB",
+    "voice": "무제한",
+    "sms": "무제한",
+    "선택약정할인율": 0.25,
+    "benefits": []
+  },
+  {
+    "id": "lgu-5g-premium",
+    "carrier": "LGU",
+    "name": "5G 프리미어 슈퍼",
+    "monthlyFee": 115000,
+    "data": "무제한",
+    "voice": "무제한",
+    "sms": "무제한",
+    "선택약정할인율": 0.25,
+    "benefits": [
+      "티빙",
+      "멀티팩"
+    ]
+  },
+  {
+    "id": "lgu-5g-special",
+    "carrier": "LGU",
+    "name": "5G 스페셜",
+    "monthlyFee": 69000,
+    "data": "150GB",
+    "voice": "무제한",
+    "sms": "무제한",
+    "선택약정할인율": 0.25,
+    "benefits": [
+      "U+멤버십 골드"
+    ]
+  },
+  {
+    "id": "lgu-5g-standard",
+    "carrier": "LGU",
+    "name": "5G 스탠다드",
+    "monthlyFee": 55000,
+    "data": "50GB",
+    "voice": "무제한",
+    "sms": "무제한",
+    "선택약정할인율": 0.25,
+    "benefits": []
+  },
+  {
+    "id": "lgu-lte-standard",
+    "carrier": "LGU",
+    "name": "LTE 스탠다드",
+    "monthlyFee": 45000,
+    "data": "10GB",
+    "voice": "무제한",
+    "sms": "무제한",
+    "선택약정할인율": 0.25,
+    "benefits": []
+  }
+]

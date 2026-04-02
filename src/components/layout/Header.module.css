@@ -1,0 +1,27 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  background: #c92819;
+  border-bottom: none;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.resetBtn {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 6px 10px;
+}
+
+.resetBtn:active {
+  color: #ffffff;
+}

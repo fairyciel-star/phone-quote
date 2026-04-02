@@ -1,0 +1,122 @@
+[
+  {
+    "id": "galaxy-s26-ultra",
+    "name": "갤럭시 S26 Ultra",
+    "brand": "삼성",
+    "image": "/images/phones/galaxy-s26-ultra.webp",
+    "carriers": ["SKT", "KT", "LGU"],
+    "storage": [
+      { "size": "256GB", "price": 1797400 }
+    ],
+    "colors": [
+      { "name": "티타늄 블랙", "hex": "#2B2B2B" },
+      { "name": "티타늄 실버블루", "hex": "#A8B5C7" },
+      { "name": "티타늄 그레이", "hex": "#8E8E8E" }
+    ],
+    "공통지원금": {
+      "SKT": { "256GB": 500000 },
+      "KT": { "256GB": 500000 },
+      "LGU": { "256GB": 500000 }
+    }
+  },
+  {
+    "id": "galaxy-s26-plus",
+    "name": "갤럭시 S26+",
+    "brand": "삼성",
+    "image": "/images/phones/galaxy-s26-plus.webp",
+    "carriers": ["SKT", "KT", "LGU"],
+    "storage": [
+      { "size": "256GB", "price": 1452000 }
+    ],
+    "colors": [
+      { "name": "네이비", "hex": "#1B2A4A" },
+      { "name": "민트", "hex": "#A8D8CB" },
+      { "name": "실버", "hex": "#C0C0C0" }
+    ],
+    "공통지원금": {
+      "SKT": { "256GB": 500000 },
+      "KT": { "256GB": 500000 },
+      "LGU": { "256GB": 500000 }
+    }
+  },
+  {
+    "id": "galaxy-s26",
+    "name": "갤럭시 S26",
+    "brand": "삼성",
+    "image": "/images/phones/galaxy-s26.webp",
+    "carriers": ["SKT", "KT", "LGU"],
+    "storage": [
+      { "size": "256GB", "price": 1254000 }
+    ],
+    "colors": [
+      { "name": "네이비", "hex": "#1B2A4A" },
+      { "name": "민트", "hex": "#A8D8CB" },
+      { "name": "실버", "hex": "#C0C0C0" }
+    ],
+    "공통지원금": {
+      "SKT": { "256GB": 500000 },
+      "KT": { "256GB": 500000 },
+      "LGU": { "256GB": 500000 }
+    }
+  },
+  {
+    "id": "iphone-17-pro",
+    "name": "iPhone 17 Pro",
+    "brand": "Apple",
+    "image": "/images/phones/iphone-17-pro.webp",
+    "carriers": ["SKT", "KT", "LGU"],
+    "storage": [
+      { "size": "256GB", "price": 1782000 }
+    ],
+    "colors": [
+      { "name": "블랙 티타늄", "hex": "#3C3C3C" },
+      { "name": "화이트 티타늄", "hex": "#F5F5F0" },
+      { "name": "내추럴 티타늄", "hex": "#C2B8A3" }
+    ],
+    "공통지원금": {
+      "SKT": { "256GB": 450000 },
+      "KT": { "256GB": 450000 },
+      "LGU": { "256GB": 450000 }
+    }
+  },
+  {
+    "id": "iphone-17-air",
+    "name": "iPhone 17 Air",
+    "brand": "Apple",
+    "image": "/images/phones/iphone-17-air.webp",
+    "carriers": ["SKT", "KT", "LGU"],
+    "storage": [
+      { "size": "256GB", "price": 1584000 }
+    ],
+    "colors": [
+      { "name": "블랙", "hex": "#3C3C3C" },
+      { "name": "화이트", "hex": "#F5F5F0" },
+      { "name": "그린", "hex": "#A8C8A8" }
+    ],
+    "공통지원금": {
+      "SKT": { "256GB": 450000 },
+      "KT": { "256GB": 450000 },
+      "LGU": { "256GB": 450000 }
+    }
+  },
+  {
+    "id": "iphone-17",
+    "name": "iPhone 17",
+    "brand": "Apple",
+    "image": "/images/phones/iphone-17.webp",
+    "carriers": ["SKT", "KT", "LGU"],
+    "storage": [
+      { "size": "256GB", "price": 1287000 }
+    ],
+    "colors": [
+      { "name": "블랙", "hex": "#3C3C3C" },
+      { "name": "화이트", "hex": "#F5F5F0" },
+      { "name": "그린", "hex": "#A8C8A8" }
+    ],
+    "공통지원금": {
+      "SKT": { "256GB": 450000 },
+      "KT": { "256GB": 450000 },
+      "LGU": { "256GB": 450000 }
+    }
+  }
+]

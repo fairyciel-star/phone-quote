@@ -1,0 +1,20 @@
+[
+  {
+    "id": "SKT",
+    "name": "SK텔레콤",
+    "color": "#E4002B",
+    "logo": "📱"
+  },
+  {
+    "id": "KT",
+    "name": "KT",
+    "color": "#000000",
+    "logo": "📱"
+  },
+  {
+    "id": "LGU",
+    "name": "LG U+",
+    "color": "#E6007E",
+    "logo": "📱"
+  }
+]

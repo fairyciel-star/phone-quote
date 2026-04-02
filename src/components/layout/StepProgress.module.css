@@ -1,0 +1,79 @@
+.wrapper {
+  padding: var(--space-md) var(--space-lg);
+  background: var(--color-surface);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-width: max-content;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  white-space: nowrap;
+}
+
+.stepNumber {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  background: var(--color-border);
+  color: var(--color-text-tertiary);
+  transition: all 0.3s ease;
+}
+
+.stepNumber.active {
+  background: var(--color-primary);
+  color: white;
+}
+
+.stepNumber.completed {
+  background: var(--color-success);
+  color: white;
+}
+
+.stepLabel {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.stepLabel.active {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.stepLabel.completed {
+  color: var(--color-success);
+}
+
+.connector {
+  width: 16px;
+  height: 2px;
+  background: var(--color-border);
+  flex-shrink: 0;
+  margin: 0 4px;
+  transition: background 0.3s ease;
+}
+
+.connector.completed {
+  background: var(--color-success);
+}

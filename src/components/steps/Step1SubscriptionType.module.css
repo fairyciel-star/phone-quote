@@ -1,0 +1,142 @@
+.container {
+  padding: var(--space-lg);
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-lg);
+}
+
+/* === Slider === */
+.slider {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: var(--space-xl);
+  position: relative;
+  background: var(--color-bg);
+  height: 215px;
+}
+
+.slideTrack {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.4s ease;
+}
+
+.slide {
+  min-width: 100%;
+  height: 100%;
+}
+
+.slideImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dots {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dot.dotActive {
+  background: #ffffff;
+}
+
+.sliderPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.placeholderText {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.placeholderSub {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  opacity: 0.6;
+}
+
+/* === Type Buttons === */
+.buttons {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.typeBtn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 120px;
+  justify-content: center;
+  padding: 0 var(--space-md);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.typeBtn:active {
+  transform: scale(0.97);
+}
+
+.typeBtnActive {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.typeIcon {
+  font-size: 28px;
+}
+
+.typeLabel {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.typeDesc {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.typeBtnActive .typeDesc {
+  color: var(--color-primary-dark);
+}

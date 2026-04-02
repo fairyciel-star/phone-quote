@@ -1,0 +1,216 @@
+.container {
+  padding: var(--space-lg);
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: var(--space-lg);
+}
+
+/* === Phone Section === */
+.phoneSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+  position: relative;
+}
+
+.phoneName {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: var(--space-md);
+}
+
+.phoneImageWrap {
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.phoneImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.carrierLogo {
+  position: absolute;
+  bottom: 0;
+  left: var(--space-md);
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+  background: var(--color-surface);
+  padding: 4px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* === 총 할부 원금 Box === */
+.installmentBox {
+  background: linear-gradient(135deg, #FF6B6B 0%, #E53935 100%);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  text-align: center;
+  color: white;
+  margin-bottom: var(--space-lg);
+}
+
+.installmentBoxLabel {
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.9;
+  margin-bottom: var(--space-xs);
+}
+
+.installmentBoxAmount {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #FFD600;
+}
+
+/* === 할부 개월 선택 === */
+.installmentSelector {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.installmentBtn {
+  padding: 8px 20px;
+  border-radius: 100px;
+  border: 1px solid var(--color-border);
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  transition: all 0.2s;
+}
+
+.installmentBtn.active {
+  background: var(--color-text);
+  color: white;
+  border-color: var(--color-text);
+}
+
+/* === 월 예상 납입금 (inline) === */
+.monthlyTotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.monthlyTotalLabel {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.monthlyTotalAmount {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.monthlyTotalUnit {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+/* === Summary Cards === */
+.summaryCard {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-md);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.selectedInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.infoLabel {
+  color: var(--color-text-secondary);
+}
+
+.infoValue {
+  font-weight: 600;
+}
+
+.divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--space-md) 0;
+}
+
+/* === Breakdown === */
+.breakdownRow {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-sm) 0;
+  font-size: 14px;
+}
+
+.breakdownLabel {
+  color: var(--color-text-secondary);
+}
+
+.breakdownValue {
+  font-weight: 600;
+}
+
+.breakdownDiscount {
+  color: var(--color-primary);
+}
+
+.breakdownAdd {
+  color: var(--color-danger);
+}
+
+.breakdownHighlight {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+  margin-top: var(--space-xs);
+}
+
+.breakdownTotal {
+  font-size: 16px;
+  font-weight: 700;
+  border-top: 2px solid var(--color-text);
+  padding-top: var(--space-md);
+  margin-top: var(--space-sm);
+}

@@ -1,0 +1,189 @@
+.container {
+  padding: var(--space-lg);
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-md);
+}
+
+.brandFilter {
+  display: flex;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  margin-bottom: var(--space-lg);
+}
+
+.brandBtn {
+  flex: 1;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--color-text-secondary);
+  transition: all 0.2s;
+}
+
+.brandBtnActive {
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 1열 세로 리스트 */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.phoneCard {
+  padding: var(--space-md) var(--space-lg) !important;
+}
+
+.phoneRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.phoneImage {
+  width: 64px;
+  height: 64px;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.phoneImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.phoneInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.phoneBrand {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.phoneNameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0 4px;
+}
+
+.phoneName {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.badgeNew {
+  background: #e53e3e;
+  color: #fff;
+}
+
+.badgeEvent {
+  background: #f6ad55;
+  color: #fff;
+}
+
+.phonePrice {
+  font-size: 13px;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* 용량 선택 패널 - 선택된 모델 바로 아래 */
+.storagePanel {
+  background: var(--color-primary-light);
+  border: 2px solid var(--color-primary);
+  border-top: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  padding: var(--space-md) var(--space-lg);
+  margin-top: -2px;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.storageLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  margin-bottom: var(--space-sm);
+}
+
+.storageOptions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.storagePill {
+  padding: 10px 18px;
+  border-radius: 100px;
+  border: 1px solid var(--color-border);
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.storagePill:active {
+  transform: scale(0.96);
+}
+
+.selectedStorage {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.storagePrice {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  margin-top: 2px;
+  opacity: 0.8;
+}
