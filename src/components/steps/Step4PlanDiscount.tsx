@@ -33,6 +33,7 @@ export function Step4PlanDiscount() {
   const getSheetPlans = useSheetStore((s) => s.getPlansForCarrier);
   const getSheetAddons = useSheetStore((s) => s.getAddonsForCarrier);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
+  const getLoyalty = useSheetStore((s) => s.getLoyalty);
 
   // Plans: sheet first, JSON fallback → pick premium (most expensive)
   const sheetPlans = sheetLoaded && carrierId ? getSheetPlans(carrierId) : [];
@@ -52,18 +53,21 @@ export function Step4PlanDiscount() {
 
   // Get 공통지원금 for selected phone + 가입유형
   const selectedPhone = phones.find((p) => p.id === selectedPhoneId);
-  const getSubsidyData = (): { 공통지원금: number; 추가지원금: number } => {
-    if (!selectedPhone || !carrierId || !selectedStorage || !subscriptionType) return { 공통지원금: 0, 추가지원금: 0 };
+  const getSubsidyData = (): { 공통지원금: number; 추가지원금: number; 단골혜택: number } => {
+    if (!selectedPhone || !carrierId || !selectedStorage || !subscriptionType) return { 공통지원금: 0, 추가지원금: 0, 단골혜택: 0 };
+    const loyalty = sheetLoaded ? getLoyalty(selectedPhone.id, carrierId, selectedStorage, subscriptionType) : 0;
     if (sheetLoaded) {
       const sheet = getSubsidy(selectedPhone.id, carrierId, selectedStorage, subscriptionType);
-      if (sheet.공통지원금 > 0) return { 공통지원금: sheet.공통지원금, 추가지원금: sheet.추가지원금 };
+      if (sheet.공통지원금 > 0) return { 공통지원금: sheet.공통지원금, 추가지원금: sheet.추가지원금, 단골혜택: loyalty };
     }
     const jsonSubsidy = selectedPhone.공통지원금[carrierId];
-    return { 공통지원금: jsonSubsidy?.[selectedStorage] ?? 0, 추가지원금: 0 };
+    return { 공통지원금: jsonSubsidy?.[selectedStorage] ?? 0, 추가지원금: 0, 단골혜택: loyalty };
   };
   const subsidyData = getSubsidyData();
   const subsidyAmount = subsidyData.공통지원금;
   const extraSubsidy = subsidyData.추가지원금;
+  const loyaltyAmount = subsidyData.단골혜택;
+  const totalMaxSubsidy = extraSubsidy + loyaltyAmount;
 
   // Card discounts: sheet first, JSON fallback
   const sheetCardDiscounts = sheetLoaded && carrierId ? getSheetCards(carrierId) : [];
@@ -182,11 +186,11 @@ export function Step4PlanDiscount() {
                     </div>
                     <div className={styles.subsidyItem}>
                       <span className={styles.subsidyLabel}>최대 매장지원금</span>
-                      <span className={styles.subsidyAmount}>{formatWon(extraSubsidy)}</span>
+                      <span className={styles.subsidyAmount}>{formatWon(totalMaxSubsidy)}</span>
                     </div>
                     <div className={styles.subsidyItem}>
                       <span className={styles.subsidyTotalLabel}>최대 지원금</span>
-                      <span className={styles.subsidyTotalAmount}>{formatWon(subsidyAmount + extraSubsidy)}</span>
+                      <span className={styles.subsidyTotalAmount}>{formatWon(subsidyAmount + totalMaxSubsidy)}</span>
                     </div>
                   </div>
                 )}

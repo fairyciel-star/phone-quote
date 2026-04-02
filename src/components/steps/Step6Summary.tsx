@@ -24,6 +24,7 @@ export function Step6Summary() {
   const getSheetCards = useSheetStore((s) => s.getCardDiscountsForCarrier);
   const getSheetPlans = useSheetStore((s) => s.getPlansForCarrier);
   const getSheetAddons = useSheetStore((s) => s.getAddonsForCarrier);
+  const getLoyalty = useSheetStore((s) => s.getLoyalty);
 
   const phone = phones.find((p) => p.id === selectedPhoneId);
   const carrier = carriersData.find((c) => c.id === carrierId);
@@ -46,6 +47,10 @@ export function Step6Summary() {
   const sheetSubsidy = sheetLoaded && selectedPhoneId && carrierId && selectedStorage && subscriptionType
     ? getSubsidy(selectedPhoneId, carrierId, selectedStorage, subscriptionType)
     : null;
+
+  const loyaltyAmount = sheetLoaded && selectedPhoneId && carrierId && selectedStorage && subscriptionType
+    ? getLoyalty(selectedPhoneId, carrierId, selectedStorage, subscriptionType)
+    : 0;
 
   const quote = useMemo(() => {
     if (!phone || !plan || !selectedStorage || !carrierId) return null;
@@ -166,9 +171,18 @@ export function Step6Summary() {
 
           {quote.추가지원금 > 0 && (
             <div className={styles.breakdownRow}>
-              <span className={styles.breakdownLabel}>매장지원금</span>
+              <span className={styles.breakdownLabel}>최대 매장지원금</span>
               <span className={`${styles.breakdownValue} ${styles.breakdownDiscount}`}>
                 -{formatWon(quote.추가지원금)}
+              </span>
+            </div>
+          )}
+
+          {loyaltyAmount > 0 && (
+            <div className={styles.breakdownRow}>
+              <span className={styles.breakdownLabel}>단골 전용 최대 혜택(대상자 한정)</span>
+              <span className={`${styles.breakdownValue} ${styles.breakdownDiscount}`}>
+                -{formatWon(loyaltyAmount)}
               </span>
             </div>
           )}
