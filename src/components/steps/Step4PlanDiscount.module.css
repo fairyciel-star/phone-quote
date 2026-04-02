@@ -72,18 +72,21 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .planNameRow {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  white-space: nowrap;
 }
 
 .planName {
   font-size: 15px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .planPriceRow {
