@@ -160,7 +160,6 @@ export function Step4PlanDiscount() {
               <div className={styles.planLeft}>
                 <div className={styles.planNameRow}>
                   <span className={styles.planName}>{premiumPlan.name}</span>
-                  <Badge>{carrierId}</Badge>
                 </div>
                 <div className={styles.planPriceRow}>
                   <span className={styles.planPriceLabel}>월</span>
