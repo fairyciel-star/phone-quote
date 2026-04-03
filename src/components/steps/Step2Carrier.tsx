@@ -12,7 +12,7 @@ export function Step2Carrier() {
   return (
     <>
       <div className={styles.container}>
-        <h2 className={styles.title}>통신사 선택</h2>
+        <h2 className={styles.title}>현재 통신사 어디세요?</h2>
         <p className={styles.subtitle}>이용하실 통신사를 선택해주세요</p>
         <div className={styles.cards}>
           {carriersData.map((carrier) => (
