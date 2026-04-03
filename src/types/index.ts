@@ -87,6 +87,7 @@ export interface ConsultationForm {
 
 export interface QuoteState {
   readonly currentStep: number;
+  readonly selectedBrand: string | null;
   readonly subscriptionType: SubscriptionType | null;
   readonly carrierId: CarrierId | null;
   readonly selectedPhoneId: string | null;

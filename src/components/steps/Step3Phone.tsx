@@ -24,7 +24,10 @@ export function Step3Phone() {
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
   const getPhoneBadge = useSheetStore((s) => s.getPhoneBadge);
 
-  const [brandFilter, setBrandFilter] = useState<BrandFilter>('전체');
+  const selectedBrand = useQuoteStore((s) => s.selectedBrand);
+  const [brandFilter, setBrandFilter] = useState<BrandFilter>(
+    selectedBrand === '삼성' ? '삼성' : selectedBrand === 'Apple' ? 'Apple' : '전체'
+  );
 
   const carrierPhones = phones.filter((p) => p.carriers.includes(carrierId!));
   const filteredPhones = brandFilter === '전체'

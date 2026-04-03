@@ -1,0 +1,68 @@
+.container {
+  padding: var(--space-lg);
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: var(--space-xl);
+  color: var(--color-text);
+}
+
+.brandList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.brandCard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 80px;
+  padding: var(--space-lg) var(--space-xl);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.brandCard:active {
+  transform: scale(0.98);
+}
+
+.brandCard.active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+  box-shadow: var(--shadow-md);
+}
+
+.brandSvg {
+  width: 160px;
+  height: 28px;
+}
+
+.brandSvgApple {
+  width: 40px;
+  height: 40px;
+}
+
+.brandSvgKids {
+  width: 40px;
+  height: 40px;
+}
+
+.kidsIcon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.kidsLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4A3AFF;
+}

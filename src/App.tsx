@@ -4,6 +4,7 @@ import { useSheetStore } from './store/useSheetStore';
 import { Landing } from './components/Landing';
 import { Header } from './components/layout/Header';
 import { StepProgress } from './components/layout/StepProgress';
+import { Step1Brand } from './components/steps/Step1Brand';
 import { Step1SubscriptionType } from './components/steps/Step1SubscriptionType';
 import { Step2Carrier } from './components/steps/Step2Carrier';
 import { Step3Phone } from './components/steps/Step3Phone';
@@ -19,13 +20,14 @@ function StepContent() {
   const currentStep = useQuoteStore((s) => s.currentStep);
 
   switch (currentStep) {
-    case 1: return <Step1SubscriptionType />;
-    case 2: return <Step2Carrier />;
-    case 3: return <Step3Phone />;
-    case 4: return <Step4PlanDiscount />;
-    case 5: return <Step6Summary />;
-    case 6: return <Step7Consultation />;
-    default: return <Step1SubscriptionType />;
+    case 1: return <Step1Brand />;
+    case 2: return <Step1SubscriptionType />;
+    case 3: return <Step2Carrier />;
+    case 4: return <Step3Phone />;
+    case 5: return <Step4PlanDiscount />;
+    case 6: return <Step6Summary />;
+    case 7: return <Step7Consultation />;
+    default: return <Step1Brand />;
   }
 }
 

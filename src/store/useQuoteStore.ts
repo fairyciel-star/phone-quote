@@ -5,6 +5,7 @@ interface QuoteActions {
   showLanding: boolean;
   enterQuote: () => void;
   setStep: (step: number) => void;
+  setBrand: (brand: string) => void;
   setSubscriptionType: (type: SubscriptionType) => void;
   setCarrier: (carrier: CarrierId) => void;
   setPhone: (phoneId: string) => void;
@@ -27,6 +28,7 @@ const initialConsultation: ConsultationForm = {
 
 const initialState: QuoteState = {
   currentStep: 1,
+  selectedBrand: null,
   subscriptionType: null,
   carrierId: null,
   selectedPhoneId: null,
@@ -46,6 +48,17 @@ export const useQuoteStore = create<QuoteState & QuoteActions>((set) => ({
   enterQuote: () => set({ showLanding: false }),
 
   setStep: (step) => set({ currentStep: step }),
+
+  setBrand: (brand) =>
+    set({
+      selectedBrand: brand,
+      carrierId: null,
+      selectedPhoneId: null,
+      selectedStorage: null,
+      selectedColor: null,
+      selectedPlanId: null,
+      selectedDiscountIds: [],
+    }),
 
   setSubscriptionType: (type) => set({ subscriptionType: type }),
 
