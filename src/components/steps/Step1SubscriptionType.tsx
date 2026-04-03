@@ -1,57 +1,25 @@
-import { useState, useEffect, useCallback } from 'react';
-import type { SubscriptionType } from '../../types';
+import type { SubscriptionType, CarrierId } from '../../types';
 import { useQuoteStore } from '../../store/useQuoteStore';
 import { StepNavigation } from '../layout/StepNavigation';
+import carriersData from '../../data/carriers.json';
 import styles from './Step1SubscriptionType.module.css';
 
 const OPTIONS: readonly { type: SubscriptionType; icon: string; label: string; desc: string }[] = [
-  { type: '번호이동', icon: '🔄', label: '번호이동', desc: '기존 번호 그대로 통신사를 바꿔요' },
+  { type: '번호이동', icon: '🔄', label: '통신사변경', desc: '다른 통신사로 변경해요' },
   { type: '기기변경', icon: '📱', label: '기기변경', desc: '같은 통신사에서 기기만 바꿔요' },
-];
-
-// 슬라이드 광고 배너 이미지 (public/images/banners/ 폴더에 추가)
-const BANNER_IMAGES = [
-  '/images/banners/배너1.webp',
-  '/images/banners/배너2.webp',
 ];
 
 export function Step1SubscriptionType() {
   const selected = useQuoteStore((s) => s.subscriptionType);
   const setType = useQuoteStore((s) => s.setSubscriptionType);
+  const carrierId = useQuoteStore((s) => s.carrierId);
+  const previousCarrier = useQuoteStore((s) => s.previousCarrier);
+  const setPreviousCarrier = useQuoteStore((s) => s.setPreviousCarrier);
 
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [validBanners, setValidBanners] = useState<string[]>([]);
+  // 통신사변경 시 기존 통신사를 제외한 목록
+  const otherCarriers = carriersData.filter((c) => c.id !== carrierId);
 
-  // 존재하는 배너 이미지만 필터링
-  useEffect(() => {
-    const checkImages = async () => {
-      const results = await Promise.all(
-        BANNER_IMAGES.map(async (src) => {
-          try {
-            const res = await fetch(src, { method: 'HEAD' });
-            return res.ok ? src : null;
-          } catch {
-            return null;
-          }
-        })
-      );
-      setValidBanners(results.filter((s): s is string => s !== null));
-    };
-    checkImages();
-  }, []);
-
-  const nextSlide = useCallback(() => {
-    if (validBanners.length > 1) {
-      setCurrentSlide((prev) => (prev + 1) % validBanners.length);
-    }
-  }, [validBanners.length]);
-
-  // 자동 슬라이드 (4초)
-  useEffect(() => {
-    if (validBanners.length <= 1) return;
-    const timer = setInterval(nextSlide, 4000);
-    return () => clearInterval(timer);
-  }, [nextSlide, validBanners.length]);
+  const canProceed = selected !== null && (selected !== '번호이동' || previousCarrier !== null);
 
   return (
     <>
@@ -59,38 +27,6 @@ export function Step1SubscriptionType() {
         <h2 className={styles.title}>가입유형 선택</h2>
         <p className={styles.subtitle}>원하시는 가입 유형을 선택해주세요</p>
 
-        {/* 슬라이드 광고 영역 */}
-        <div className={styles.slider}>
-          {validBanners.length > 0 ? (
-            <>
-              <div className={styles.slideTrack} style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
-                {validBanners.map((src, i) => (
-                  <div key={src} className={styles.slide}>
-                    <img src={src} alt={`배너 ${i + 1}`} className={styles.slideImage} />
-                  </div>
-                ))}
-              </div>
-              {validBanners.length > 1 && (
-                <div className={styles.dots}>
-                  {validBanners.map((_, i) => (
-                    <button
-                      key={i}
-                      className={`${styles.dot} ${currentSlide === i ? styles.dotActive : ''}`}
-                      onClick={() => setCurrentSlide(i)}
-                    />
-                  ))}
-                </div>
-              )}
-            </>
-          ) : (
-            <div className={styles.sliderPlaceholder}>
-              <span className={styles.placeholderText}>광고 배너 영역</span>
-              <span className={styles.placeholderSub}>public/images/banners/ 에 이미지를 추가하세요</span>
-            </div>
-          )}
-        </div>
-
-        {/* 가입유형 버튼 */}
         <div className={styles.buttons}>
           {OPTIONS.map((opt) => (
             <button
@@ -104,8 +40,30 @@ export function Step1SubscriptionType() {
             </button>
           ))}
         </div>
+
+        {selected === '번호이동' && (
+          <div className={styles.previousCarrier}>
+            <div className={styles.previousCarrierTitle}>현재 사용 중인 통신사</div>
+            <div className={styles.carrierOptions}>
+              {otherCarriers.map((carrier) => (
+                <button
+                  key={carrier.id}
+                  className={`${styles.carrierBtn} ${previousCarrier === carrier.id ? styles.carrierBtnActive : ''}`}
+                  onClick={() => setPreviousCarrier(carrier.id as CarrierId)}
+                >
+                  <img
+                    src={`/images/${carrier.id}.png`}
+                    alt={carrier.name}
+                    className={styles.carrierLogo}
+                  />
+                  <span className={styles.carrierName}>{carrier.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-      <StepNavigation canProceed={selected !== null} />
+      <StepNavigation canProceed={canProceed} />
     </>
   );
 }

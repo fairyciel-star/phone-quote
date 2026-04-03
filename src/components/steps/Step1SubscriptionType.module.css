@@ -14,81 +14,6 @@
   margin-bottom: var(--space-lg);
 }
 
-/* === Slider === */
-.slider {
-  width: 100%;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  margin-bottom: var(--space-xl);
-  position: relative;
-  background: var(--color-bg);
-  height: 215px;
-}
-
-.slideTrack {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  transition: transform 0.4s ease;
-}
-
-.slide {
-  min-width: 100%;
-  height: 100%;
-}
-
-.slideImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.dots {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 6px;
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.dot.dotActive {
-  background: #ffffff;
-}
-
-.sliderPlaceholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
-.placeholderText {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-}
-
-.placeholderSub {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  opacity: 0.6;
-}
-
 /* === Type Buttons === */
 .buttons {
   display: flex;
@@ -139,4 +64,56 @@
 
 .typeBtnActive .typeDesc {
   color: var(--color-primary-dark);
+}
+
+/* === Previous Carrier === */
+.previousCarrier {
+  margin-top: var(--space-xl);
+}
+
+.previousCarrierTitle {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: var(--space-md);
+}
+
+.carrierOptions {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.carrierBtn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: var(--space-md);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.carrierBtn:active {
+  transform: scale(0.97);
+}
+
+.carrierBtnActive {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.carrierLogo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.carrierName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
 }

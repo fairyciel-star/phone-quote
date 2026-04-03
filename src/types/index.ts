@@ -89,6 +89,7 @@ export interface QuoteState {
   readonly currentStep: number;
   readonly selectedBrand: string | null;
   readonly subscriptionType: SubscriptionType | null;
+  readonly previousCarrier: CarrierId | null;
   readonly carrierId: CarrierId | null;
   readonly selectedPhoneId: string | null;
   readonly selectedStorage: string | null;
