@@ -15,11 +15,24 @@ export function Step1SubscriptionType() {
   const carrierId = useQuoteStore((s) => s.carrierId);
   const previousCarrier = useQuoteStore((s) => s.previousCarrier);
   const setPreviousCarrier = useQuoteStore((s) => s.setPreviousCarrier);
+  const setCarrier = useQuoteStore((s) => s.setCarrier);
 
-  // 통신사변경 시: 현재 사용 중인 통신사 (변경할 통신사 제외)
-  const otherCarriers = carriersData.filter((c) => c.id !== carrierId);
+  // Step3에서 선택한 통신사 = 현재 통신사, 여기서 변경할 통신사 선택
+  const originalCarrier = previousCarrier ?? carrierId;
+  const otherCarriers = carriersData.filter((c) => c.id !== originalCarrier);
 
-  const canProceed = selected !== null && (selected !== '번호이동' || previousCarrier !== null);
+  const handleSelectNewCarrier = (newCarrierId: CarrierId) => {
+    // 최초 선택 시 원래 통신사를 previousCarrier에 저장
+    if (!previousCarrier && carrierId) {
+      setPreviousCarrier(carrierId);
+    }
+    // carrierId를 새 통신사로 변경
+    setCarrier(newCarrierId);
+  };
+
+  // 통신사변경: carrierId가 originalCarrier와 다르면 진행 가능
+  const newCarrierSelected = carrierId !== null && carrierId !== originalCarrier;
+  const canProceed = selected !== null && (selected !== '번호이동' || newCarrierSelected);
 
   return (
     <>
@@ -43,13 +56,13 @@ export function Step1SubscriptionType() {
 
         {selected === '번호이동' && (
           <div className={styles.previousCarrier}>
-            <div className={styles.previousCarrierTitle}>현재 사용 중인 통신사</div>
+            <div className={styles.previousCarrierTitle}>변경할 통신사 선택</div>
             <div className={styles.carrierOptions}>
               {otherCarriers.map((carrier) => (
                 <button
                   key={carrier.id}
-                  className={`${styles.carrierBtn} ${previousCarrier === carrier.id ? styles.carrierBtnActive : ''}`}
-                  onClick={() => setPreviousCarrier(carrier.id as CarrierId)}
+                  className={`${styles.carrierBtn} ${carrierId === carrier.id ? styles.carrierBtnActive : ''}`}
+                  onClick={() => handleSelectNewCarrier(carrier.id as CarrierId)}
                 >
                   <img
                     src={`/images/${carrier.id}.png`}
