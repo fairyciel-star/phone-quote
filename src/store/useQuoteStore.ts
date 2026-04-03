@@ -62,7 +62,20 @@ export const useQuoteStore = create<QuoteState & QuoteActions>((set) => ({
       selectedDiscountIds: [],
     }),
 
-  setSubscriptionType: (type) => set({ subscriptionType: type, previousCarrier: null }),
+  setSubscriptionType: (type) =>
+    set((state) => {
+      // 기기변경 선택 시: previousCarrier가 있으면 원래 통신사로 복원
+      if (type === '기기변경' && state.previousCarrier) {
+        return {
+          subscriptionType: type,
+          carrierId: state.previousCarrier,
+          previousCarrier: null,
+          selectedPlanId: null,
+          selectedDiscountIds: [],
+        };
+      }
+      return { subscriptionType: type, previousCarrier: null };
+    }),
 
   setPreviousCarrier: (carrier) => set({ previousCarrier: carrier }),
 
