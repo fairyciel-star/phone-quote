@@ -65,7 +65,19 @@ export function Step6Summary() {
     });
   }, [phone, plan, selectedStorage, carrierId, discountType, selectedDiscounts, 할부개월, sheetSubsidy]);
 
-  if (!quote || !phone || !plan) return null;
+  if (!quote || !phone || !plan) {
+    return (
+      <>
+        <div className={styles.container}>
+          <h2 className={styles.title}>견적 확인</h2>
+          <p style={{ color: 'var(--color-text-secondary)', textAlign: 'center', marginTop: '40px' }}>
+            선택 정보가 부족합니다. 이전 단계를 확인해주세요.
+          </p>
+        </div>
+        <StepNavigation canProceed={false} />
+      </>
+    );
+  }
 
   return (
     <>
