@@ -16,7 +16,7 @@ export function Step1SubscriptionType() {
   const previousCarrier = useQuoteStore((s) => s.previousCarrier);
   const setPreviousCarrier = useQuoteStore((s) => s.setPreviousCarrier);
 
-  // 통신사변경 시 기존 통신사를 제외한 목록
+  // 통신사변경 시: 현재 사용 중인 통신사 (변경할 통신사 제외)
   const otherCarriers = carriersData.filter((c) => c.id !== carrierId);
 
   const canProceed = selected !== null && (selected !== '번호이동' || previousCarrier !== null);
