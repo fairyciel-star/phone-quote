@@ -1,7 +1,7 @@
 import { useQuoteStore } from '../../store/useQuoteStore';
 import styles from './StepProgress.module.css';
 
-const STEP_LABELS = ['제조사', '가입유형', '통신사', '모델', '요금제·할인', '가격확인', '상담신청'];
+const STEP_LABELS = ['제조사', '모델', '가입유형', '통신사', '요금제·할인', '가격확인', '상담신청'];
 
 export function StepProgress() {
   const currentStep = useQuoteStore((s) => s.currentStep);

@@ -29,10 +29,13 @@ export function Step3Phone() {
     selectedBrand === '삼성' ? '삼성' : selectedBrand === 'Apple' ? 'Apple' : '전체'
   );
 
-  const carrierPhones = phones.filter((p) => p.carriers.includes(carrierId!));
+  // 통신사 선택 전이면 브랜드로만 필터, 선택 후면 통신사+브랜드로 필터
+  const basePhones = carrierId
+    ? phones.filter((p) => p.carriers.includes(carrierId))
+    : phones;
   const filteredPhones = brandFilter === '전체'
-    ? carrierPhones
-    : carrierPhones.filter((p) => p.brand === brandFilter);
+    ? basePhones
+    : basePhones.filter((p) => p.brand === brandFilter);
 
   // 시트에서 출고가 가져오기 (첫번째 용량 기준 최저가 표시)
   const getSheetPrice = (phone: Phone, storageSize: string): number => {
@@ -53,20 +56,21 @@ export function Step3Phone() {
   return (
     <>
       <div className={styles.container}>
-        <h2 className={styles.title}>모델 선택</h2>
-        <p className={styles.subtitle}>원하시는 기기를 선택해주세요</p>
+        <h2 className={styles.title}>원하시는 기기를 선택해주세요!</h2>
 
-        <div className={styles.brandFilter}>
-          {(['전체', '삼성', 'Apple'] as const).map((brand) => (
-            <button
-              key={brand}
-              className={`${styles.brandBtn} ${brandFilter === brand ? styles.brandBtnActive : ''}`}
-              onClick={() => setBrandFilter(brand)}
-            >
-              {brand}
-            </button>
-          ))}
-        </div>
+        {!selectedBrand && (
+          <div className={styles.brandFilter}>
+            {(['전체', '삼성', 'Apple'] as const).map((brand) => (
+              <button
+                key={brand}
+                className={`${styles.brandBtn} ${brandFilter === brand ? styles.brandBtnActive : ''}`}
+                onClick={() => setBrandFilter(brand)}
+              >
+                {brand}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className={styles.list}>
           {filteredPhones.map((phone) => {

@@ -52,7 +52,7 @@ export function Step1Brand() {
   return (
     <>
       <div className={styles.container}>
-        <h2 className={styles.title}>찾으시는 기종 있으세요?</h2>
+        <h2 className={styles.title}>제조사를 선택해주세요!</h2>
 
         <div className={styles.brandList}>
           {BRANDS.map((brand) => (

@@ -21,9 +21,9 @@ function StepContent() {
 
   switch (currentStep) {
     case 1: return <Step1Brand />;
-    case 2: return <Step1SubscriptionType />;
-    case 3: return <Step2Carrier />;
-    case 4: return <Step3Phone />;
+    case 2: return <Step3Phone />;
+    case 3: return <Step1SubscriptionType />;
+    case 4: return <Step2Carrier />;
     case 5: return <Step4PlanDiscount />;
     case 6: return <Step6Summary />;
     case 7: return <Step7Consultation />;
