@@ -1,14 +1,20 @@
 .wrapper {
   padding: var(--space-sm) var(--space-md);
   background: var(--color-surface);
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.wrapper::-webkit-scrollbar {
+  display: none;
 }
 
 .steps {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
+  gap: 0;
+  min-width: max-content;
 }
 
 .step {
