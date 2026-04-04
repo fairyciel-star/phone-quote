@@ -1,37 +1,31 @@
 .wrapper {
-  padding: var(--space-sm) var(--space-md);
+  padding: 8px 12px;
   background: var(--color-surface);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.wrapper::-webkit-scrollbar {
-  display: none;
+  overflow: hidden;
 }
 
 .steps {
   display: flex;
   align-items: center;
-  gap: 0;
-  min-width: max-content;
+  justify-content: center;
+  width: 100%;
 }
 
 .step {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
   white-space: nowrap;
 }
 
 .stepNumber {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   flex-shrink: 0;
   background: var(--color-border);
@@ -50,7 +44,7 @@
 }
 
 .stepLabel {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--color-text-tertiary);
   font-weight: 500;
   transition: color 0.3s ease;
@@ -66,8 +60,8 @@
 }
 
 .connector {
-  width: 8px;
-  height: 2px;
+  width: 6px;
+  height: 1.5px;
   background: var(--color-border);
   flex-shrink: 0;
   margin: 0 1px;
