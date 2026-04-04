@@ -90,9 +90,6 @@ export const useQuoteStore = create<QuoteState & QuoteActions>((set) => ({
   setCarrier: (carrier) =>
     set({
       carrierId: carrier,
-      selectedPhoneId: null,
-      selectedStorage: null,
-      selectedColor: null,
       selectedPlanId: null,
       selectedDiscountIds: [],
     }),
