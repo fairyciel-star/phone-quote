@@ -15,19 +15,20 @@ export function Step1SubscriptionType() {
   const carrierId = useQuoteStore((s) => s.carrierId);
   const previousCarrier = useQuoteStore((s) => s.previousCarrier);
   const setPreviousCarrier = useQuoteStore((s) => s.setPreviousCarrier);
-  const setCarrier = useQuoteStore((s) => s.setCarrier);
 
   // Step3에서 선택한 통신사 = 현재 통신사, 여기서 변경할 통신사 선택
   const originalCarrier = previousCarrier ?? carrierId;
   const otherCarriers = carriersData.filter((c) => c.id !== originalCarrier);
+
+  const switchCarrier = useQuoteStore((s) => s.switchCarrier);
 
   const handleSelectNewCarrier = (newCarrierId: CarrierId) => {
     // 최초 선택 시 원래 통신사를 previousCarrier에 저장
     if (!previousCarrier && carrierId) {
       setPreviousCarrier(carrierId);
     }
-    // carrierId를 새 통신사로 변경
-    setCarrier(newCarrierId);
+    // carrierId만 변경 (phone 유지, plan/discount만 리셋)
+    switchCarrier(newCarrierId);
   };
 
   // 통신사변경: carrierId가 originalCarrier와 다르면 진행 가능

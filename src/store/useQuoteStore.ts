@@ -8,6 +8,7 @@ interface QuoteActions {
   setBrand: (brand: string) => void;
   setSubscriptionType: (type: SubscriptionType) => void;
   setPreviousCarrier: (carrier: CarrierId) => void;
+  switchCarrier: (carrier: CarrierId) => void;
   setCarrier: (carrier: CarrierId) => void;
   setPhone: (phoneId: string) => void;
   setStorage: (storage: string) => void;
@@ -78,6 +79,13 @@ export const useQuoteStore = create<QuoteState & QuoteActions>((set) => ({
     }),
 
   setPreviousCarrier: (carrier) => set({ previousCarrier: carrier }),
+
+  switchCarrier: (carrier) =>
+    set({
+      carrierId: carrier,
+      selectedPlanId: null,
+      selectedDiscountIds: [],
+    }),
 
   setCarrier: (carrier) =>
     set({
