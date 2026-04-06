@@ -331,6 +331,133 @@ export function Step4PlanDiscount() {
             })}
           </div>
         </div>
+
+        {/* ===== 상세 내역 ===== */}
+        {quote && plan && carrier && (
+          <>
+            {/* 선택 정보 */}
+            <div className={summaryStyles.summaryCard}>
+              <div className={summaryStyles.sectionTitle}>선택 정보</div>
+              <div className={summaryStyles.selectedInfo}>
+                <div className={summaryStyles.infoRow}>
+                  <span className={summaryStyles.infoLabel}>가입유형</span>
+                  <span className={summaryStyles.infoValue}>{subscriptionType}</span>
+                </div>
+                <div className={summaryStyles.infoRow}>
+                  <span className={summaryStyles.infoLabel}>통신사</span>
+                  <span className={summaryStyles.infoValue}>{carrier.name}</span>
+                </div>
+                <div className={summaryStyles.infoRow}>
+                  <span className={summaryStyles.infoLabel}>모델</span>
+                  <span className={summaryStyles.infoValue}>{selectedPhone?.name} {selectedStorage}</span>
+                </div>
+                <div className={summaryStyles.infoRow}>
+                  <span className={summaryStyles.infoLabel}>요금제</span>
+                  <span className={summaryStyles.infoValue}>{plan.name}</span>
+                </div>
+                <div className={summaryStyles.infoRow}>
+                  <span className={summaryStyles.infoLabel}>할인방식</span>
+                  <span className={summaryStyles.infoValue}>{discountType}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 가격 상세 */}
+            <div className={summaryStyles.summaryCard}>
+              <div className={summaryStyles.sectionTitle}>가격 상세</div>
+
+              <div className={summaryStyles.breakdownRow}>
+                <span className={summaryStyles.breakdownLabel}>출고가</span>
+                <span className={summaryStyles.breakdownValue}>{formatWon(quote.출고가)}</span>
+              </div>
+
+              {quote.공통지원금 > 0 && (
+                <div className={summaryStyles.breakdownRow}>
+                  <span className={summaryStyles.breakdownLabel}>공통지원금</span>
+                  <span className={`${summaryStyles.breakdownValue} ${summaryStyles.breakdownDiscount}`}>
+                    -{formatWon(quote.공통지원금)}
+                  </span>
+                </div>
+              )}
+
+              {quote.추가지원금 > 0 && (
+                <div className={summaryStyles.breakdownRow}>
+                  <span className={summaryStyles.breakdownLabel}>최대 매장지원금</span>
+                  <span className={`${summaryStyles.breakdownValue} ${summaryStyles.breakdownDiscount}`}>
+                    -{formatWon(quote.추가지원금)}
+                  </span>
+                </div>
+              )}
+
+              {specialSupport > 0 && (
+                <div className={summaryStyles.breakdownRow}>
+                  <span className={summaryStyles.breakdownLabel}>동네휴대폰마트 특별지원(대상자 한정)</span>
+                  <span className={`${summaryStyles.breakdownValue} ${summaryStyles.breakdownDiscount}`}>
+                    -{formatWon(specialSupport)}
+                  </span>
+                </div>
+              )}
+
+              {quote.제휴카드24개월할인 > 0 && (
+                <div className={summaryStyles.breakdownRow}>
+                  <span className={summaryStyles.breakdownLabel}>제휴카드 할인 (24개월)</span>
+                  <span className={`${summaryStyles.breakdownValue} ${summaryStyles.breakdownDiscount}`}>
+                    -{formatWon(quote.제휴카드24개월할인)}
+                  </span>
+                </div>
+              )}
+
+              {quote.부가서비스추가할인 > 0 && (
+                <div className={summaryStyles.breakdownRow}>
+                  <span className={summaryStyles.breakdownLabel}>부가서비스 추가할인</span>
+                  <span className={`${summaryStyles.breakdownValue} ${summaryStyles.breakdownDiscount}`}>
+                    -{formatWon(quote.부가서비스추가할인)}
+                  </span>
+                </div>
+              )}
+
+              <div className={`${summaryStyles.breakdownRow} ${summaryStyles.breakdownHighlight}`}>
+                <span>할부원금</span>
+                <span>{formatWon(quote.할부원금)}</span>
+              </div>
+
+              <div className={summaryStyles.divider} />
+
+              <div className={summaryStyles.breakdownRow}>
+                <span className={summaryStyles.breakdownLabel}>월 할부금 ({할부개월}개월)</span>
+                <span className={summaryStyles.breakdownValue}>{formatWon(quote.월할부금)}</span>
+              </div>
+
+              <div className={summaryStyles.breakdownRow}>
+                <span className={summaryStyles.breakdownLabel}>월 요금제</span>
+                <span className={summaryStyles.breakdownValue}>{formatWon(quote.월요금제)}</span>
+              </div>
+
+              {quote.선택약정할인 > 0 && (
+                <div className={summaryStyles.breakdownRow}>
+                  <span className={summaryStyles.breakdownLabel}>선택약정할인</span>
+                  <span className={`${summaryStyles.breakdownValue} ${summaryStyles.breakdownDiscount}`}>
+                    -{formatWon(quote.선택약정할인)}/월
+                  </span>
+                </div>
+              )}
+
+              {quote.월부가서비스료 > 0 && (
+                <div className={summaryStyles.breakdownRow}>
+                  <span className={summaryStyles.breakdownLabel}>부가서비스</span>
+                  <span className={`${summaryStyles.breakdownValue} ${summaryStyles.breakdownAdd}`}>
+                    +{formatWon(quote.월부가서비스료)}
+                  </span>
+                </div>
+              )}
+
+              <div className={`${summaryStyles.breakdownRow} ${summaryStyles.breakdownTotal}`}>
+                <span>월 납입금 합계</span>
+                <span>{formatWon(quote.월납입금총액)}</span>
+              </div>
+            </div>
+          </>
+        )}
       </div>
       <StepNavigation canProceed={selectedPlanId !== null} />
     </>
