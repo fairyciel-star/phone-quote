@@ -30,6 +30,7 @@ export function Step4PlanDiscount() {
   const getSheetPlans = useSheetStore((s) => s.getPlansForCarrier);
   const getSheetAddons = useSheetStore((s) => s.getAddonsForCarrier);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
+  const getUsedPhoneList = useSheetStore((s) => s.getUsedPhoneList);
 
   const selectedPhone = phones.find((p) => p.id === selectedPhoneId);
   const carrier = carriersData.find((c) => c.id === carrierId);
@@ -79,6 +80,13 @@ export function Step4PlanDiscount() {
   const [cardEnabled, setCardEnabled] = useState(false);
   const [addonEnabled, setAddonEnabled] = useState(false);
   const [condReturn, setCondReturn] = useState(false);
+  const [selectedUsedPhone, setSelectedUsedPhone] = useState<string | null>(null);
+  const [showGrades, setShowGrades] = useState(false);
+
+  // 중고폰 시세 목록
+  const usedPhoneList = sheetLoaded ? getUsedPhoneList() : [];
+  const selectedUsedPhoneData = usedPhoneList.find((p) => p.모델ID === selectedUsedPhone);
+  const usedPhoneMaxPrice = selectedUsedPhoneData?.A등급 ?? 0;
 
   const sortedCardDiscounts = [...cardDiscounts].sort(
     (a, b) => (b.monthlyDiscount ?? 0) - (a.monthlyDiscount ?? 0)
@@ -349,11 +357,84 @@ export function Step4PlanDiscount() {
             </div>
             <button
               className={`${styles.conditionToggle} ${condReturn ? styles.conditionYes : styles.conditionNo}`}
-              onClick={() => setCondReturn(!condReturn)}
+              onClick={() => {
+                setCondReturn(!condReturn);
+                if (condReturn) {
+                  setSelectedUsedPhone(null);
+                  setShowGrades(false);
+                }
+              }}
             >
               {condReturn ? '✅ 있음' : '🟢 없음'}
             </button>
           </div>
+          {condReturn && (
+            <div className={styles.conditionDetail}>
+              {usedPhoneList.length === 0 ? (
+                <div className={styles.usedPhoneEmpty}>중고폰 시세 데이터가 없습니다</div>
+              ) : (
+                <>
+                  <div className={styles.usedPhoneSelect}>
+                    <span className={styles.usedPhoneSelectLabel}>현재 사용 중인 기종 선택</span>
+                    <div className={styles.usedPhoneList}>
+                      {usedPhoneList.map((p) => (
+                        <button
+                          key={`${p.모델ID}-${p.용량}`}
+                          className={`${styles.usedPhoneBtn} ${selectedUsedPhone === p.모델ID ? styles.usedPhoneBtnActive : ''}`}
+                          onClick={() => {
+                            setSelectedUsedPhone(p.모델ID === selectedUsedPhone ? null : p.모델ID);
+                            setShowGrades(false);
+                          }}
+                        >
+                          <span className={styles.usedPhoneName}>{p.모델명}</span>
+                          <span className={styles.usedPhoneStorage}>{p.용량}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {selectedUsedPhoneData && (
+                    <div className={styles.usedPhoneResult}>
+                      <div className={styles.usedPhoneMax}>
+                        <span>최대 반납 시세</span>
+                        <span className={styles.usedPhoneMaxPrice}>최대 {formatWon(usedPhoneMaxPrice)}</span>
+                      </div>
+                      <button
+                        className={styles.gradeToggleBtn}
+                        onClick={() => setShowGrades(!showGrades)}
+                      >
+                        {showGrades ? '등급별 시세 접기 ▲' : '등급별 시세 보기 ▼'}
+                      </button>
+                      {showGrades && (
+                        <div className={styles.gradeTable}>
+                          <div className={styles.gradeRow}>
+                            <span className={styles.gradeLabel}>A등급</span>
+                            <span className={styles.gradeDesc}>거의 새것</span>
+                            <span className={styles.gradePrice}>{formatWon(selectedUsedPhoneData.A등급)}</span>
+                          </div>
+                          <div className={styles.gradeRow}>
+                            <span className={styles.gradeLabel}>B등급</span>
+                            <span className={styles.gradeDesc}>사용감 있음</span>
+                            <span className={styles.gradePrice}>{formatWon(selectedUsedPhoneData.B등급)}</span>
+                          </div>
+                          <div className={styles.gradeRow}>
+                            <span className={styles.gradeLabel}>C등급</span>
+                            <span className={styles.gradeDesc}>흠집 있음</span>
+                            <span className={styles.gradePrice}>{formatWon(selectedUsedPhoneData.C등급)}</span>
+                          </div>
+                          <div className={styles.gradeRow}>
+                            <span className={styles.gradeLabel}>E등급</span>
+                            <span className={styles.gradeDesc}>파손/고장</span>
+                            <span className={styles.gradePrice}>{formatWon(selectedUsedPhoneData.E등급)}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
 
         </div>
 

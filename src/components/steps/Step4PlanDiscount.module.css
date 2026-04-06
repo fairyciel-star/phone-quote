@@ -389,3 +389,134 @@
   border-bottom: 1px solid var(--color-border);
   animation: panelSlide 0.2s ease;
 }
+
+/* === Used Phone (기기 반납) === */
+.usedPhoneEmpty {
+  padding: var(--space-md) var(--space-lg);
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.usedPhoneSelect {
+  padding: var(--space-md) var(--space-lg);
+}
+
+.usedPhoneSelectLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  display: block;
+  margin-bottom: var(--space-sm);
+}
+
+.usedPhoneList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.usedPhoneBtn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 10px var(--space-md);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+
+.usedPhoneBtn:active {
+  transform: scale(0.98);
+}
+
+.usedPhoneBtnActive {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.usedPhoneName {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.usedPhoneStorage {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.usedPhoneResult {
+  padding: 0 var(--space-lg) var(--space-md);
+}
+
+.usedPhoneMax {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-md);
+  background: linear-gradient(135deg, #FF6B6B 0%, #E53935 100%);
+  border-radius: var(--radius-md);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: var(--space-sm);
+}
+
+.usedPhoneMaxPrice {
+  font-size: 18px;
+  font-weight: 800;
+  color: #FFD600;
+}
+
+.gradeToggleBtn {
+  width: 100%;
+  padding: 8px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: var(--color-bg);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  margin-bottom: var(--space-sm);
+}
+
+.gradeTable {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: panelSlide 0.2s ease;
+}
+
+.gradeRow {
+  display: flex;
+  align-items: center;
+  padding: 8px var(--space-md);
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+}
+
+.gradeLabel {
+  font-size: 13px;
+  font-weight: 700;
+  width: 50px;
+  flex-shrink: 0;
+}
+
+.gradeDesc {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  flex: 1;
+}
+
+.gradePrice {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}

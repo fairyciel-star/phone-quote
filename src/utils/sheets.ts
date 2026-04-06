@@ -23,6 +23,7 @@ const SHEET_GIDS = {
   제휴카드할인: '465133020',
   요금제: '882540890',
   부가서비스: '528526412',
+  중고폰시세: '1666746914',
 } as const;
 
 function parseCsvLine(line: string): string[] {
@@ -168,6 +169,35 @@ export interface AddonRow {
   readonly 추가할인: number;
   readonly 설명: string;
 }
+
+// ── 중고폰 시세 ──
+
+export interface UsedPhoneRow {
+  readonly 모델ID: string;
+  readonly 모델명: string;
+  readonly 용량: string;
+  readonly A등급: number;
+  readonly B등급: number;
+  readonly C등급: number;
+  readonly E등급: number;
+}
+
+export async function fetchUsedPhones(sheetIdOrUrl: string): Promise<UsedPhoneRow[]> {
+  const pubKey = extractPubKey(sheetIdOrUrl);
+  const rows = await fetchCsv(pubKey, SHEET_GIDS.중고폰시세);
+
+  return rows.map((row) => ({
+    모델ID: row['모델ID'] ?? '',
+    모델명: row['모델명'] ?? '',
+    용량: row['용량'] ?? '',
+    A등급: Number(row['A등급']) || 0,
+    B등급: Number(row['B등급']) || 0,
+    C등급: Number(row['C등급']) || 0,
+    E등급: Number(row['E등급']) || 0,
+  }));
+}
+
+// ── 부가서비스 ──
 
 export async function fetchAddons(sheetIdOrUrl: string): Promise<AddonRow[]> {
   const pubKey = extractPubKey(sheetIdOrUrl);

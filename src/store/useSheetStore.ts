@@ -5,10 +5,12 @@ import {
   fetchCardDiscounts,
   fetchPlans,
   fetchAddons,
+  fetchUsedPhones,
   type SubsidyRow,
   type CardDiscountRow,
   type PlanRow,
   type AddonRow,
+  type UsedPhoneRow,
 } from '../utils/sheets';
 
 interface SheetState {
@@ -19,12 +21,15 @@ interface SheetState {
   readonly cardDiscounts: readonly CardDiscountRow[];
   readonly plans: readonly PlanRow[];
   readonly addons: readonly AddonRow[];
+  readonly usedPhones: readonly UsedPhoneRow[];
   loadFromSheet: (sheetId: string) => Promise<void>;
   getSubsidy: (모델ID: string, 통신사: CarrierId, 용량: string, 가입유형: SubscriptionType) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number };
   getPhoneBadge: (모델ID: string, 통신사: CarrierId) => string;
   getCardDiscountsForCarrier: (통신사: CarrierId) => Discount[];
   getPlansForCarrier: (통신사: CarrierId) => Plan[];
   getAddonsForCarrier: (통신사: CarrierId) => Discount[];
+  getUsedPhonePrice: (모델ID: string, 용량: string) => UsedPhoneRow | null;
+  getUsedPhoneList: () => UsedPhoneRow[];
 }
 
 export const useSheetStore = create<SheetState>((set, get) => ({
@@ -35,6 +40,7 @@ export const useSheetStore = create<SheetState>((set, get) => ({
   cardDiscounts: [],
   plans: [],
   addons: [],
+  usedPhones: [],
 
   loadFromSheet: async (sheetId: string) => {
     set({ loading: true, error: null });
@@ -44,6 +50,7 @@ export const useSheetStore = create<SheetState>((set, get) => ({
         fetchCardDiscounts(sheetId),
         fetchPlans(sheetId),
         fetchAddons(sheetId),
+        fetchUsedPhones(sheetId),
       ]);
 
       set({
@@ -51,6 +58,7 @@ export const useSheetStore = create<SheetState>((set, get) => ({
         cardDiscounts: results[1].status === 'fulfilled' ? results[1].value : [],
         plans: results[2].status === 'fulfilled' ? results[2].value : [],
         addons: results[3].status === 'fulfilled' ? results[3].value : [],
+        usedPhones: results[4].status === 'fulfilled' ? results[4].value : [],
         loaded: true,
         loading: false,
       });
@@ -106,6 +114,16 @@ export const useSheetStore = create<SheetState>((set, get) => ({
         선택약정할인율: r.선택약정할인율,
         benefits: r.혜택 ? r.혜택.split(',').map((s) => s.trim()).filter(Boolean) : [],
       }));
+  },
+
+  getUsedPhonePrice: (모델ID, 용량) => {
+    return get().usedPhones.find(
+      (r) => r.모델ID === 모델ID && r.용량 === 용량
+    ) ?? null;
+  },
+
+  getUsedPhoneList: () => {
+    return [...get().usedPhones];
   },
 
   getAddonsForCarrier: (통신사) => {
