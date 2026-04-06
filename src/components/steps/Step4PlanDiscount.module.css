@@ -328,13 +328,64 @@
   display: block;
 }
 
-/* === Skip Note === */
-.skipNote {
-  text-align: center;
-  padding: var(--space-md);
-  color: var(--color-text-secondary);
-  font-size: 13px;
+/* === Condition Section === */
+.conditionSection {
+  margin-top: var(--space-xl);
   background: var(--color-surface);
-  border-radius: var(--radius-md);
-  margin-top: var(--space-lg);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.conditionRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.conditionRow:last-child {
+  border-bottom: none;
+}
+
+.conditionLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.conditionIcon {
+  font-size: 18px;
+}
+
+.conditionLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.conditionToggle {
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.conditionNo {
+  background: #E8FAF0;
+  color: #00C471;
+}
+
+.conditionYes {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.conditionDetail {
+  border-bottom: 1px solid var(--color-border);
+  animation: panelSlide 0.2s ease;
 }

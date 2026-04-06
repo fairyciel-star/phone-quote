@@ -76,7 +76,11 @@ export function Step4PlanDiscount() {
   const jsonAddons = jsonCarrierDiscounts.filter((d) => d.type === '부가서비스');
   const addons = sheetAddons.length > 0 ? sheetAddons : jsonAddons;
 
-  const [cardExpanded, setCardExpanded] = useState(true);
+  const [cardEnabled, setCardEnabled] = useState(true);
+  const [addonEnabled, setAddonEnabled] = useState(true);
+  const [condInternet, setCondInternet] = useState(false);
+  const [condReturn, setCondReturn] = useState(false);
+  const [condPlan, setCondPlan] = useState(false);
 
   const sortedCardDiscounts = [...cardDiscounts].sort(
     (a, b) => (b.monthlyDiscount ?? 0) - (a.monthlyDiscount ?? 0)
@@ -110,10 +114,22 @@ export function Step4PlanDiscount() {
   };
 
   const handleCardToggle = () => {
-    if (cardExpanded && selectedCardId) {
+    if (cardEnabled && selectedCardId) {
       toggleDiscount(selectedCardId);
     }
-    setCardExpanded(!cardExpanded);
+    setCardEnabled(!cardEnabled);
+  };
+
+  const handleAddonToggle = () => {
+    if (addonEnabled) {
+      // 끌 때: 선택된 부가서비스 모두 해제
+      for (const addon of addons) {
+        if (selectedIds.includes(addon.id)) {
+          toggleDiscount(addon.id);
+        }
+      }
+    }
+    setAddonEnabled(!addonEnabled);
   };
 
   // Quote calculation
@@ -248,36 +264,75 @@ export function Step4PlanDiscount() {
           </Card>
         )}
 
-        {/* Card Discount */}
-        <div className={styles.section}>
-          <div className={styles.sectionTitle}>
-            <span className={styles.sectionIcon}>💳</span>
-            제휴카드 할인
+        {/* ===== 조건 항목 ===== */}
+        <div className={styles.conditionSection}>
+          {/* 부가서비스 조건 */}
+          <div className={styles.conditionRow}>
+            <div className={styles.conditionLeft}>
+              <span className={styles.conditionIcon}>📦</span>
+              <span className={styles.conditionLabel}>부가서비스 조건</span>
+            </div>
+            <button
+              className={`${styles.conditionToggle} ${addonEnabled ? styles.conditionYes : styles.conditionNo}`}
+              onClick={handleAddonToggle}
+            >
+              {addonEnabled ? '✅ 있음' : '🟢 없음'}
+            </button>
           </div>
-          {sortedCardDiscounts.length > 0 && (() => {
-            const best = sortedCardDiscounts[0];
-            const bestMonthly = best.monthlyDiscount ?? 0;
-            const bestTotal = bestMonthly * 24;
-            return (
-              <Card selected={cardExpanded} onClick={handleCardToggle} className={styles.discountCard}>
-                <div className={styles.cardRow}>
-                  <div>
-                    <span className={styles.discountName}>제휴카드 할인 적용</span>
-                    <div className={styles.conditions}>
-                      {cardExpanded ? '카드사를 선택해주세요' : '터치하여 카드사 선택'}
+          {addonEnabled && addons.length > 0 && (
+            <div className={styles.conditionDetail}>
+              {addons.map((addon) => {
+                const fee = addon.monthlyFee ?? 0;
+                const bonus = addon.추가할인 ?? 0;
+                return (
+                  <button
+                    key={addon.id}
+                    className={`${styles.cardOption} ${selectedIds.includes(addon.id) ? styles.cardOptionActive : ''}`}
+                    onClick={() => toggleDiscount(addon.id)}
+                  >
+                    <div className={styles.cardOptionLeft}>
+                      <span className={styles.cardOptionName}>{addon.name}</span>
+                      {addon.description && <span className={styles.cardOptionCond}>{addon.description}</span>}
                     </div>
-                  </div>
-                  <div className={styles.discountRight}>
-                    <span className={styles.discountTotal24}>-{formatWon(bestTotal)}</span>
-                    <span className={styles.discountMonthly}>월 -{formatWon(bestMonthly)}</span>
-                  </div>
-                </div>
-              </Card>
-            );
-          })()}
+                    <div className={styles.cardOptionRight}>
+                      <span className={styles.cardOptionTotal}>+{formatWon(fee)}/월</span>
+                      {bonus > 0 && <span className={styles.cardOptionMonthly}>{formatWon(bonus)} 추가할인</span>}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
-          {cardExpanded && (
-            <div className={styles.cardPanel}>
+          {/* 인터넷/TV 가입 조건 */}
+          <div className={styles.conditionRow}>
+            <div className={styles.conditionLeft}>
+              <span className={styles.conditionIcon}>📺</span>
+              <span className={styles.conditionLabel}>인터넷/TV 가입 조건</span>
+            </div>
+            <button
+              className={`${styles.conditionToggle} ${condInternet ? styles.conditionYes : styles.conditionNo}`}
+              onClick={() => setCondInternet(!condInternet)}
+            >
+              {condInternet ? '✅ 있음' : '🟢 없음'}
+            </button>
+          </div>
+
+          {/* 카드 발급 조건 */}
+          <div className={styles.conditionRow}>
+            <div className={styles.conditionLeft}>
+              <span className={styles.conditionIcon}>💳</span>
+              <span className={styles.conditionLabel}>카드 발급 조건</span>
+            </div>
+            <button
+              className={`${styles.conditionToggle} ${cardEnabled ? styles.conditionYes : styles.conditionNo}`}
+              onClick={handleCardToggle}
+            >
+              {cardEnabled ? '✅ 있음' : '🟢 없음'}
+            </button>
+          </div>
+          {cardEnabled && sortedCardDiscounts.length > 0 && (
+            <div className={styles.conditionDetail}>
               {sortedCardDiscounts.map((discount) => {
                 const monthly = discount.monthlyDiscount ?? 0;
                 const total24 = monthly * 24;
@@ -289,9 +344,7 @@ export function Step4PlanDiscount() {
                   >
                     <div className={styles.cardOptionLeft}>
                       <span className={styles.cardOptionName}>{discount.name}</span>
-                      {discount.conditions && (
-                        <span className={styles.cardOptionCond}>{discount.conditions}</span>
-                      )}
+                      {discount.conditions && <span className={styles.cardOptionCond}>{discount.conditions}</span>}
                     </div>
                     <div className={styles.cardOptionRight}>
                       <span className={styles.cardOptionTotal}>-{formatWon(total24)}</span>
@@ -302,33 +355,33 @@ export function Step4PlanDiscount() {
               })}
             </div>
           )}
-        </div>
 
-        {/* Addons */}
-        <div className={styles.section}>
-          <div className={styles.sectionTitle}>
-            <span className={styles.sectionIcon}>📦</span>
-            부가서비스
+          {/* 기기 반납 조건 */}
+          <div className={styles.conditionRow}>
+            <div className={styles.conditionLeft}>
+              <span className={styles.conditionIcon}>🔄</span>
+              <span className={styles.conditionLabel}>기기 반납 조건</span>
+            </div>
+            <button
+              className={`${styles.conditionToggle} ${condReturn ? styles.conditionYes : styles.conditionNo}`}
+              onClick={() => setCondReturn(!condReturn)}
+            >
+              {condReturn ? '✅ 있음' : '🟢 없음'}
+            </button>
           </div>
-          <div className={styles.discountCards}>
-            {addons.map((addon) => {
-              const fee = addon.monthlyFee ?? 0;
-              const bonus = addon.추가할인 ?? 0;
-              return (
-                <Card key={addon.id} selected={selectedIds.includes(addon.id)} onClick={() => toggleDiscount(addon.id)} className={styles.discountCard}>
-                  <div className={styles.cardRow}>
-                    <div>
-                      <div className={styles.discountName}>{addon.name}</div>
-                      {addon.description && <div className={styles.conditions}>{addon.description}</div>}
-                    </div>
-                    <div className={styles.addonRight}>
-                      <span className={styles.addonFee}>+{formatWon(fee)}/월</span>
-                      {bonus > 0 && <span className={styles.addonBonus}>{formatWon(bonus)} 추가할인</span>}
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
+
+          {/* 비싼 요금제 필수 조건 */}
+          <div className={styles.conditionRow}>
+            <div className={styles.conditionLeft}>
+              <span className={styles.conditionIcon}>📈</span>
+              <span className={styles.conditionLabel}>비싼 요금제 필수 조건</span>
+            </div>
+            <button
+              className={`${styles.conditionToggle} ${condPlan ? styles.conditionYes : styles.conditionNo}`}
+              onClick={() => setCondPlan(!condPlan)}
+            >
+              {condPlan ? '✅ 있음' : '🟢 없음'}
+            </button>
           </div>
         </div>
 
