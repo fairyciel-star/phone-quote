@@ -76,11 +76,9 @@ export function Step4PlanDiscount() {
   const jsonAddons = jsonCarrierDiscounts.filter((d) => d.type === '부가서비스');
   const addons = sheetAddons.length > 0 ? sheetAddons : jsonAddons;
 
-  const [cardEnabled, setCardEnabled] = useState(true);
-  const [addonEnabled, setAddonEnabled] = useState(true);
-  const [condInternet, setCondInternet] = useState(false);
+  const [cardEnabled, setCardEnabled] = useState(false);
+  const [addonEnabled, setAddonEnabled] = useState(false);
   const [condReturn, setCondReturn] = useState(false);
-  const [condPlan, setCondPlan] = useState(false);
 
   const sortedCardDiscounts = [...cardDiscounts].sort(
     (a, b) => (b.monthlyDiscount ?? 0) - (a.monthlyDiscount ?? 0)
@@ -90,21 +88,22 @@ export function Step4PlanDiscount() {
     cardDiscounts.some((d) => d.id === id)
   );
 
+  // 카드/부가서비스 자동 선택은 "있음" 상태일 때만
   useEffect(() => {
-    if (sortedCardDiscounts.length > 0 && !selectedCardId) {
+    if (cardEnabled && sortedCardDiscounts.length > 0 && !selectedCardId) {
       toggleDiscount(sortedCardDiscounts[0].id);
     }
-  }, [sortedCardDiscounts.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [cardEnabled, sortedCardDiscounts.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (addons.length > 0) {
+    if (addonEnabled && addons.length > 0) {
       for (const addon of addons) {
         if (!selectedIds.includes(addon.id)) {
           toggleDiscount(addon.id);
         }
       }
     }
-  }, [addons.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [addonEnabled, addons.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCardSelect = (discountId: string) => {
     if (selectedCardId && selectedCardId !== discountId) {
@@ -304,20 +303,6 @@ export function Step4PlanDiscount() {
             </div>
           )}
 
-          {/* 인터넷/TV 가입 조건 */}
-          <div className={styles.conditionRow}>
-            <div className={styles.conditionLeft}>
-              <span className={styles.conditionIcon}>📺</span>
-              <span className={styles.conditionLabel}>인터넷/TV 가입 조건</span>
-            </div>
-            <button
-              className={`${styles.conditionToggle} ${condInternet ? styles.conditionYes : styles.conditionNo}`}
-              onClick={() => setCondInternet(!condInternet)}
-            >
-              {condInternet ? '✅ 있음' : '🟢 없음'}
-            </button>
-          </div>
-
           {/* 카드 발급 조건 */}
           <div className={styles.conditionRow}>
             <div className={styles.conditionLeft}>
@@ -370,19 +355,6 @@ export function Step4PlanDiscount() {
             </button>
           </div>
 
-          {/* 비싼 요금제 필수 조건 */}
-          <div className={styles.conditionRow}>
-            <div className={styles.conditionLeft}>
-              <span className={styles.conditionIcon}>📈</span>
-              <span className={styles.conditionLabel}>비싼 요금제 필수 조건</span>
-            </div>
-            <button
-              className={`${styles.conditionToggle} ${condPlan ? styles.conditionYes : styles.conditionNo}`}
-              onClick={() => setCondPlan(!condPlan)}
-            >
-              {condPlan ? '✅ 있음' : '🟢 없음'}
-            </button>
-          </div>
         </div>
 
         {/* ===== 상세 내역 ===== */}
