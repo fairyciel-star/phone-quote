@@ -9,7 +9,6 @@ import { Step1SubscriptionType } from './components/steps/Step1SubscriptionType'
 import { Step2Carrier } from './components/steps/Step2Carrier';
 import { Step3Phone } from './components/steps/Step3Phone';
 import { Step4PlanDiscount } from './components/steps/Step4PlanDiscount';
-import { Step6Summary } from './components/steps/Step6Summary';
 import { Step7Consultation } from './components/steps/Step7Consultation';
 
 // ★ 여기에 Google Sheets ID를 넣으세요
@@ -25,8 +24,7 @@ function StepContent() {
     case 3: return <Step2Carrier />;
     case 4: return <Step1SubscriptionType />;
     case 5: return <Step4PlanDiscount />;
-    case 6: return <Step6Summary />;
-    case 7: return <Step7Consultation />;
+    case 6: return <Step7Consultation />;
     default: return <Step1Brand />;
   }
 }

@@ -13,7 +13,7 @@ export function StepNavigation({ canProceed, onNext, onSubmit }: StepNavigationP
   const setStep = useQuoteStore((s) => s.setStep);
 
   const isFirst = currentStep === 1;
-  const isLast = currentStep === 7;
+  const isLast = currentStep === 6;
 
   const handlePrev = () => {
     if (!isFirst) setStep(currentStep - 1);

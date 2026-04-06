@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Discount, DiscountType, Phone, Plan } from '../../types';
 import { useQuoteStore } from '../../store/useQuoteStore';
 import { useSheetStore } from '../../store/useSheetStore';
@@ -8,25 +8,22 @@ import { StepNavigation } from '../layout/StepNavigation';
 import plansData from '../../data/plans.json';
 import phonesData from '../../data/phones.json';
 import discountsData from '../../data/discounts.json';
+import carriersData from '../../data/carriers.json';
+import { calculateFullQuote } from '../../utils/price';
 import { formatWon } from '../../utils/format';
 import styles from './Step4PlanDiscount.module.css';
+import summaryStyles from './Step6Summary.module.css';
 
 const plans = plansData as unknown as Plan[];
 const phones = phonesData as unknown as Phone[];
 const jsonDiscounts = discountsData as unknown as Discount[];
 
 export function Step4PlanDiscount() {
-  const carrierId = useQuoteStore((s) => s.carrierId);
-  const selectedPhoneId = useQuoteStore((s) => s.selectedPhoneId);
-  const selectedStorage = useQuoteStore((s) => s.selectedStorage);
-  const selectedPlanId = useQuoteStore((s) => s.selectedPlanId);
-  const discountType = useQuoteStore((s) => s.discountType);
-  const selectedIds = useQuoteStore((s) => s.selectedDiscountIds);
+  const state = useQuoteStore();
+  const { carrierId, selectedPhoneId, selectedStorage, selectedPlanId, discountType, selectedDiscountIds: selectedIds, 할부개월, subscriptionType } = state;
   const setPlan = useQuoteStore((s) => s.setPlan);
   const setDiscountType = useQuoteStore((s) => s.setDiscountType);
   const toggleDiscount = useQuoteStore((s) => s.toggleDiscount);
-
-  const subscriptionType = useQuoteStore((s) => s.subscriptionType);
 
   const sheetLoaded = useSheetStore((s) => s.loaded);
   const getSheetCards = useSheetStore((s) => s.getCardDiscountsForCarrier);
@@ -34,7 +31,10 @@ export function Step4PlanDiscount() {
   const getSheetAddons = useSheetStore((s) => s.getAddonsForCarrier);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
 
-  // Plans: sheet first, JSON fallback → pick premium (most expensive)
+  const selectedPhone = phones.find((p) => p.id === selectedPhoneId);
+  const carrier = carriersData.find((c) => c.id === carrierId);
+
+  // Plans
   const sheetPlans = sheetLoaded && carrierId ? getSheetPlans(carrierId) : [];
   const jsonPlans = plans.filter((p) => p.carrier === carrierId);
   const carrierPlans = sheetPlans.length > 0 ? sheetPlans : jsonPlans;
@@ -43,15 +43,13 @@ export function Step4PlanDiscount() {
     null
   );
 
-  // Auto-select the premium plan
   useEffect(() => {
     if (premiumPlan && selectedPlanId !== premiumPlan.id) {
       setPlan(premiumPlan.id);
     }
   }, [premiumPlan, selectedPlanId, setPlan]);
 
-  // Get 공통지원금 for selected phone + 가입유형
-  const selectedPhone = phones.find((p) => p.id === selectedPhoneId);
+  // Subsidy
   const getSubsidyData = (): { 공통지원금: number; 추가지원금: number; 특별지원: number } => {
     if (!selectedPhone || !carrierId || !selectedStorage || !subscriptionType) return { 공통지원금: 0, 추가지원금: 0, 특별지원: 0 };
     if (sheetLoaded) {
@@ -67,20 +65,19 @@ export function Step4PlanDiscount() {
   const specialSupport = subsidyData.특별지원;
   const totalMaxSubsidy = extraSubsidy + specialSupport;
 
-  // Card discounts: sheet first, JSON fallback
+  // Card discounts
   const sheetCardDiscounts = sheetLoaded && carrierId ? getSheetCards(carrierId) : [];
   const jsonCarrierDiscounts = jsonDiscounts.filter((d) => d.carrier === carrierId);
   const jsonCardDiscounts = jsonCarrierDiscounts.filter((d) => d.type === '제휴카드');
   const cardDiscounts = sheetCardDiscounts.length > 0 ? sheetCardDiscounts : jsonCardDiscounts;
 
-  // Addons: sheet first, JSON fallback
+  // Addons
   const sheetAddons = sheetLoaded && carrierId ? getSheetAddons(carrierId) : [];
   const jsonAddons = jsonCarrierDiscounts.filter((d) => d.type === '부가서비스');
   const addons = sheetAddons.length > 0 ? sheetAddons : jsonAddons;
 
   const [cardExpanded, setCardExpanded] = useState(true);
 
-  // 할인율 높은 순 정렬
   const sortedCardDiscounts = [...cardDiscounts].sort(
     (a, b) => (b.monthlyDiscount ?? 0) - (a.monthlyDiscount ?? 0)
   );
@@ -89,14 +86,12 @@ export function Step4PlanDiscount() {
     cardDiscounts.some((d) => d.id === id)
   );
 
-  // 제휴카드 첫 번째(할인율 최고) 자동 선택
   useEffect(() => {
     if (sortedCardDiscounts.length > 0 && !selectedCardId) {
       toggleDiscount(sortedCardDiscounts[0].id);
     }
   }, [sortedCardDiscounts.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 부가서비스 전체 자동 선택
   useEffect(() => {
     if (addons.length > 0) {
       for (const addon of addons) {
@@ -116,19 +111,83 @@ export function Step4PlanDiscount() {
 
   const handleCardToggle = () => {
     if (cardExpanded && selectedCardId) {
-      // 닫을 때 선택 해제
       toggleDiscount(selectedCardId);
     }
     setCardExpanded(!cardExpanded);
   };
 
+  // Quote calculation
+  const allDiscounts = [
+    ...(sheetCardDiscounts.length > 0 ? sheetCardDiscounts : jsonCardDiscounts),
+    ...(sheetAddons.length > 0 ? sheetAddons : jsonAddons),
+  ];
+  const selectedDiscounts = allDiscounts.filter((d) => selectedIds.includes(d.id));
+
+  const sheetSubsidy = sheetLoaded && selectedPhoneId && carrierId && selectedStorage && subscriptionType
+    ? getSubsidy(selectedPhoneId, carrierId, selectedStorage, subscriptionType)
+    : null;
+
+  const plan = carrierPlans.find((p) => p.id === selectedPlanId) ?? premiumPlan;
+
+  const quote = useMemo(() => {
+    if (!selectedPhone || !plan || !selectedStorage || !carrierId) return null;
+    return calculateFullQuote({
+      phone: selectedPhone,
+      storage: selectedStorage,
+      carrierId,
+      plan,
+      discountType,
+      selectedDiscounts,
+      할부개월,
+      출고가Override: sheetSubsidy?.출고가,
+      공통지원금Override: sheetSubsidy?.공통지원금,
+      추가지원금Override: sheetSubsidy?.추가지원금,
+    });
+  }, [selectedPhone, plan, selectedStorage, carrierId, discountType, selectedDiscounts, 할부개월, sheetSubsidy]);
+
   return (
     <>
       <div className={styles.container}>
+        {/* ===== 상단: 폰 이미지 + 할부원금 ===== */}
+        {selectedPhone && (
+          <div className={summaryStyles.phoneSection}>
+            <div className={summaryStyles.phoneName}>{selectedPhone.name}</div>
+            <div className={summaryStyles.phoneImageWrap}>
+              <img className={summaryStyles.phoneImage} src={selectedPhone.image} alt={selectedPhone.name} />
+            </div>
+            {carrier && (
+              <img className={summaryStyles.carrierLogo} src={`/images/${carrier.id}.png`} alt={carrier.name} />
+            )}
+          </div>
+        )}
+
+        {quote && (
+          <>
+            <div className={summaryStyles.installmentBox}>
+              <div className={summaryStyles.installmentBoxLabel}>총 할부 원금</div>
+              <div className={summaryStyles.installmentBoxAmount}>
+                할부원금: {formatWon(quote.할부원금)}
+              </div>
+            </div>
+
+            <div className={summaryStyles.installmentSelector}>
+              {[12, 24, 36].map((m) => (
+                <button
+                  key={m}
+                  className={`${summaryStyles.installmentBtn} ${할부개월 === m ? summaryStyles.active : ''}`}
+                  onClick={() => state.set할부개월(m)}
+                >
+                  {m}개월
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* ===== 요금제 & 할인 선택 ===== */}
         <h2 className={styles.title}>요금제 & 할인 선택</h2>
         <p className={styles.subtitle}>요금제와 할인 방식을 선택해주세요</p>
 
-        {/* Discount Type Toggle */}
         <div className={styles.discountToggle}>
           <button
             className={`${styles.toggleBtn} ${discountType === '공통지원금' ? styles.active : ''}`}
@@ -150,15 +209,9 @@ export function Step4PlanDiscount() {
             : '선택약정: 요금제를 25% 할인받는 대신, 기기값 할인(공통지원금)은 받지 못합니다.'}
         </div>
 
-        {/* Premium Plan */}
         {premiumPlan && (
-          <Card
-            selected={true}
-            onClick={() => setPlan(premiumPlan.id)}
-            className={styles.planCard}
-          >
+          <Card selected={true} onClick={() => setPlan(premiumPlan.id)} className={styles.planCard}>
             <div className={styles.planLayout}>
-              {/* 왼쪽: 요금제명 + 월요금 */}
               <div className={styles.planLeft}>
                 <div className={styles.planNameRow}>
                   <span className={styles.planName}>{premiumPlan.name}</span>
@@ -168,8 +221,6 @@ export function Step4PlanDiscount() {
                   <span className={styles.planPrice}>{formatWon(premiumPlan.monthlyFee)}</span>
                 </div>
               </div>
-
-              {/* 오른쪽: 뱃지 + 지원금 */}
               <div className={styles.planRight}>
                 <div className={styles.planBadges}>
                   <Badge>데이터</Badge>
@@ -197,24 +248,18 @@ export function Step4PlanDiscount() {
           </Card>
         )}
 
-        {/* Card Discount Section */}
+        {/* Card Discount */}
         <div className={styles.section}>
           <div className={styles.sectionTitle}>
             <span className={styles.sectionIcon}>💳</span>
             제휴카드 할인
           </div>
-
-          {/* 메인 토글 버튼 */}
           {sortedCardDiscounts.length > 0 && (() => {
             const best = sortedCardDiscounts[0];
             const bestMonthly = best.monthlyDiscount ?? 0;
             const bestTotal = bestMonthly * 24;
             return (
-              <Card
-                selected={cardExpanded}
-                onClick={handleCardToggle}
-                className={styles.discountCard}
-              >
+              <Card selected={cardExpanded} onClick={handleCardToggle} className={styles.discountCard}>
                 <div className={styles.cardRow}>
                   <div>
                     <span className={styles.discountName}>제휴카드 할인 적용</span>
@@ -223,19 +268,14 @@ export function Step4PlanDiscount() {
                     </div>
                   </div>
                   <div className={styles.discountRight}>
-                    <span className={styles.discountTotal24}>
-                      -{formatWon(bestTotal)}
-                    </span>
-                    <span className={styles.discountMonthly}>
-                      월 -{formatWon(bestMonthly)}
-                    </span>
+                    <span className={styles.discountTotal24}>-{formatWon(bestTotal)}</span>
+                    <span className={styles.discountMonthly}>월 -{formatWon(bestMonthly)}</span>
                   </div>
                 </div>
               </Card>
             );
           })()}
 
-          {/* 카드사 선택 패널 */}
           {cardExpanded && (
             <div className={styles.cardPanel}>
               {sortedCardDiscounts.map((discount) => {
@@ -264,7 +304,7 @@ export function Step4PlanDiscount() {
           )}
         </div>
 
-        {/* Addon Section */}
+        {/* Addons */}
         <div className={styles.section}>
           <div className={styles.sectionTitle}>
             <span className={styles.sectionIcon}>📦</span>
@@ -275,38 +315,21 @@ export function Step4PlanDiscount() {
               const fee = addon.monthlyFee ?? 0;
               const bonus = addon.추가할인 ?? 0;
               return (
-                <Card
-                  key={addon.id}
-                  selected={selectedIds.includes(addon.id)}
-                  onClick={() => toggleDiscount(addon.id)}
-                  className={styles.discountCard}
-                >
+                <Card key={addon.id} selected={selectedIds.includes(addon.id)} onClick={() => toggleDiscount(addon.id)} className={styles.discountCard}>
                   <div className={styles.cardRow}>
                     <div>
                       <div className={styles.discountName}>{addon.name}</div>
-                      {addon.description && (
-                        <div className={styles.conditions}>{addon.description}</div>
-                      )}
+                      {addon.description && <div className={styles.conditions}>{addon.description}</div>}
                     </div>
                     <div className={styles.addonRight}>
-                      <span className={styles.addonFee}>
-                        +{formatWon(fee)}/월
-                      </span>
-                      {bonus > 0 && (
-                        <span className={styles.addonBonus}>
-                          {formatWon(bonus)} 추가할인
-                        </span>
-                      )}
+                      <span className={styles.addonFee}>+{formatWon(fee)}/월</span>
+                      {bonus > 0 && <span className={styles.addonBonus}>{formatWon(bonus)} 추가할인</span>}
                     </div>
                   </div>
                 </Card>
               );
             })}
           </div>
-        </div>
-
-        <div className={styles.skipNote}>
-          할인 항목은 선택하지 않아도 다음 단계로 진행할 수 있어요
         </div>
       </div>
       <StepNavigation canProceed={selectedPlanId !== null} />
