@@ -1,5 +1,4 @@
 import { useQuoteStore } from '../../store/useQuoteStore';
-import { StepNavigation } from '../layout/StepNavigation';
 import styles from './Step1Brand.module.css';
 
 const BRANDS = [
@@ -48,25 +47,29 @@ const BRANDS = [
 export function Step1Brand() {
   const selectedBrand = useQuoteStore((s) => s.selectedBrand);
   const setBrand = useQuoteStore((s) => s.setBrand);
+  const setStep = useQuoteStore((s) => s.setStep);
+  const currentStep = useQuoteStore((s) => s.currentStep);
+
+  const handleSelect = (filter: string) => {
+    setBrand(filter);
+    setStep(currentStep + 1);
+  };
 
   return (
-    <>
-      <div className={styles.container}>
-        <h2 className={styles.title}>제조사를 선택해주세요!</h2>
+    <div className={styles.container}>
+      <h2 className={styles.title}>제조사를 선택해주세요!</h2>
 
-        <div className={styles.brandList}>
-          {BRANDS.map((brand) => (
-            <button
-              key={brand.id}
-              className={`${styles.brandCard} ${selectedBrand === brand.filter ? styles.active : ''}`}
-              onClick={() => setBrand(brand.filter)}
-            >
-              {brand.logo}
-            </button>
-          ))}
-        </div>
+      <div className={styles.brandList}>
+        {BRANDS.map((brand) => (
+          <button
+            key={brand.id}
+            className={`${styles.brandCard} ${selectedBrand === brand.filter ? styles.active : ''}`}
+            onClick={() => handleSelect(brand.filter)}
+          >
+            {brand.logo}
+          </button>
+        ))}
       </div>
-      <StepNavigation canProceed={selectedBrand !== null} />
-    </>
+    </div>
   );
 }
