@@ -390,6 +390,34 @@
   animation: panelSlide 0.2s ease;
 }
 
+/* === 자동 감지 결과 === */
+.detectedDevice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  margin: 8px 12px 4px;
+  background: #f0f7ff;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #333;
+  flex-wrap: wrap;
+}
+
+.detectedIcon {
+  font-size: 16px;
+}
+
+.detectedMatch {
+  color: #16a34a;
+  font-size: 12px;
+}
+
+.detectedNoMatch {
+  color: #dc2626;
+  font-size: 12px;
+}
+
 /* === Used Phone (기기 반납) === */
 .usedPhoneEmpty {
   padding: var(--space-md) var(--space-lg);

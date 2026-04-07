@@ -10,6 +10,7 @@ import phonesData from '../../data/phones.json';
 import discountsData from '../../data/discounts.json';
 import carriersData from '../../data/carriers.json';
 import { calculateFullQuote } from '../../utils/price';
+import { detectDevice, findMatchingUsedPhone } from '../../utils/detectDevice';
 import { formatWon } from '../../utils/format';
 import styles from './Step4PlanDiscount.module.css';
 import summaryStyles from './Step6Summary.module.css';
@@ -82,6 +83,8 @@ export function Step4PlanDiscount() {
   const [condReturn, setCondReturn] = useState(false);
   const [selectedUsedPhone, setSelectedUsedPhone] = useState<string | null>(null);
   const [showGrades, setShowGrades] = useState(false);
+  const [detectedModel, setDetectedModel] = useState<string>('');
+  const [isMobileDevice, setIsMobileDevice] = useState<boolean | null>(null);
 
   // 중고폰 시세 목록
   const usedPhoneList = sheetLoaded ? getUsedPhoneList() : [];
@@ -357,9 +360,22 @@ export function Step4PlanDiscount() {
             </div>
             <button
               className={`${styles.conditionToggle} ${condReturn ? styles.conditionYes : styles.conditionNo}`}
-              onClick={() => {
-                setCondReturn(!condReturn);
-                if (condReturn) {
+              onClick={async () => {
+                const nextVal = !condReturn;
+                setCondReturn(nextVal);
+                if (nextVal) {
+                  // "있음" 활성화 시 자동 기기 감지
+                  const detected = await detectDevice();
+                  setIsMobileDevice(detected.isMobile);
+                  setDetectedModel(detected.matchKeyword || detected.raw);
+                  if (detected.matchKeyword) {
+                    const matchId = findMatchingUsedPhone(detected.matchKeyword, usedPhoneList);
+                    if (matchId) {
+                      setSelectedUsedPhone(matchId);
+                    }
+                  }
+                } else {
+                  setDetectedModel('');
                   setSelectedUsedPhone(null);
                   setShowGrades(false);
                 }
@@ -370,6 +386,29 @@ export function Step4PlanDiscount() {
           </div>
           {condReturn && (
             <div className={styles.conditionDetail}>
+              {/* 자동 감지 결과 표시 */}
+              {isMobileDevice === false ? (
+                <div className={styles.detectedDevice}>
+                  <span className={styles.detectedIcon}>💻</span>
+                  <span>PC에서는 기기 자동 인식이 불가합니다. 아래에서 직접 선택해주세요.</span>
+                </div>
+              ) : detectedModel ? (
+                <div className={styles.detectedDevice}>
+                  <span className={styles.detectedIcon}>📱</span>
+                  <span>감지된 기기: <strong>{detectedModel}</strong></span>
+                  {selectedUsedPhone ? (
+                    <span className={styles.detectedMatch}> (시세 자동 조회 완료)</span>
+                  ) : (
+                    <span className={styles.detectedNoMatch}> (시세 데이터 없음 - 아래에서 직접 선택)</span>
+                  )}
+                </div>
+              ) : isMobileDevice === true ? (
+                <div className={styles.detectedDevice}>
+                  <span className={styles.detectedIcon}>📱</span>
+                  <span>기기를 자동으로 인식할 수 없습니다. 아래에서 직접 선택해주세요.</span>
+                </div>
+              ) : null}
+
               {usedPhoneList.length === 0 ? (
                 <div className={styles.usedPhoneEmpty}>중고폰 시세 데이터가 없습니다</div>
               ) : (
