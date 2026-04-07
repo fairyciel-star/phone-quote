@@ -22,10 +22,10 @@ const SAMSUNG_MODEL_MAP: readonly { pattern: RegExp; keyword: string }[] = [
   { pattern: /SM-S916/i, keyword: 'S23+' },
   { pattern: /SM-S911/i, keyword: 'S23' },
   // Z 폴드/플립 시리즈
-  { pattern: /SM-F956/i, keyword: 'Z 폴드6' },
-  { pattern: /SM-F741/i, keyword: 'Z 플립6' },
-  { pattern: /SM-F946/i, keyword: 'Z 폴드5' },
-  { pattern: /SM-F731/i, keyword: 'Z 플립5' },
+  { pattern: /SM-F956/i, keyword: 'Z폴드6' },
+  { pattern: /SM-F741/i, keyword: 'Z플립6' },
+  { pattern: /SM-F946/i, keyword: 'Z폴드5' },
+  { pattern: /SM-F731/i, keyword: 'Z플립5' },
   // A 시리즈
   { pattern: /SM-A556/i, keyword: 'A55' },
   { pattern: /SM-A356/i, keyword: 'A35' },
@@ -106,15 +106,17 @@ export async function detectDevice(): Promise<DetectedDevice> {
   return { ...detectFromUA(), isMobile: true };
 }
 
-// 시트의 모델명에서 키워드로 매칭
+// 시트의 모델명에서 키워드로 매칭 (공백 무시)
 export function findMatchingUsedPhone(
   keyword: string,
   usedPhones: readonly { 모델ID: string; 모델명: string }[]
 ): string | null {
   if (!keyword) return null;
 
+  const normalized = keyword.replace(/\s/g, '').toLowerCase();
+
   const match = usedPhones.find((p) =>
-    p.모델명.includes(keyword)
+    p.모델명.replace(/\s/g, '').toLowerCase().includes(normalized)
   );
 
   return match?.모델ID ?? null;
