@@ -74,6 +74,12 @@
   color: #FFD600;
 }
 
+.installmentBoxSub {
+  font-size: 12px;
+  color: #a5d6a7;
+  margin-top: 4px;
+}
+
 /* === 할부 개월 선택 === */
 .installmentSelector {
   display: flex;

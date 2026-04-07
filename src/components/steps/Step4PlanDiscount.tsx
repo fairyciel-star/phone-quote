@@ -206,8 +206,13 @@ export function Step4PlanDiscount() {
             <div className={summaryStyles.installmentBox}>
               <div className={summaryStyles.installmentBoxLabel}>총 할부 원금</div>
               <div className={summaryStyles.installmentBoxAmount}>
-                할부원금: {formatWon(quote.할부원금)}
+                할부원금: {formatWon(Math.max(0, quote.할부원금 - gradePrice))}
               </div>
+              {gradePrice > 0 && (
+                <div className={summaryStyles.installmentBoxSub}>
+                  기기 반납 적용: -{formatWon(gradePrice)}
+                </div>
+              )}
             </div>
 
             <div className={summaryStyles.installmentSelector}>
@@ -486,61 +491,26 @@ export function Step4PlanDiscount() {
                   <div className={styles.gradeSelectTitle}>기존 사용 기기를 판매하시겠어요?</div>
                   <div className={styles.gradeSelectSub}>판매할 휴대폰의 상태는 어떤가요?</div>
 
-                  <button
-                    className={`${styles.gradeCard} ${selectedGrade === 'S' ? styles.gradeCardActive : ''}`}
-                    onClick={() => setSelectedGrade(selectedGrade === 'S' ? null : 'S')}
-                  >
-                    <div className={styles.gradeCardHeader}>최상(S)</div>
-                    <div className={styles.gradeCardBody}>
-                      <div>화면: 기스 거의 없음</div>
-                      <div>외관: 스크래치·찍힘 없음</div>
-                      <div>기능: 모든 기능 100% 정상</div>
-                      <div>배터리: 90% 이상(교체 이력 없음)</div>
-                    </div>
-                    {selectedGrade === 'S' && <div className={styles.gradeCardPrice}>{formatWon(selectedUsedPhoneData.A등급)}</div>}
-                  </button>
-
-                  <button
-                    className={`${styles.gradeCard} ${selectedGrade === 'A' ? styles.gradeCardActive : ''}`}
-                    onClick={() => setSelectedGrade(selectedGrade === 'A' ? null : 'A')}
-                  >
-                    <div className={styles.gradeCardHeader}>상(A~B)</div>
-                    <div className={styles.gradeCardBody}>
-                      <div>화면: 미세한 잔기스</div>
-                      <div>외관: 작은 기스·아주 작은 찍힘 1~2개</div>
-                      <div>기능: 기능 이상 없음</div>
-                      <div>배터리: 80~90% 이상(혹은 1회 교체)</div>
-                    </div>
-                    {selectedGrade === 'A' && <div className={styles.gradeCardPrice}>{formatWon(selectedUsedPhoneData.B등급)}</div>}
-                  </button>
-
-                  <button
-                    className={`${styles.gradeCard} ${selectedGrade === 'C' ? styles.gradeCardActive : ''}`}
-                    onClick={() => setSelectedGrade(selectedGrade === 'C' ? null : 'C')}
-                  >
-                    <div className={styles.gradeCardHeader}>중(C)</div>
-                    <div className={styles.gradeCardBody}>
-                      <div>화면: 눈에 띄는 기스 있음</div>
-                      <div>외관: 다수의 잔기스, 여러 개의 찍힘</div>
-                      <div>기능: 경미한 기능 문제 가능</div>
-                      <div>배터리: 75~85%</div>
-                    </div>
-                    {selectedGrade === 'C' && <div className={styles.gradeCardPrice}>{formatWon(selectedUsedPhoneData.C등급)}</div>}
-                  </button>
-
-                  <button
-                    className={`${styles.gradeCard} ${selectedGrade === 'D' ? styles.gradeCardActive : ''}`}
-                    onClick={() => setSelectedGrade(selectedGrade === 'D' ? null : 'D')}
-                  >
-                    <div className={styles.gradeCardHeader}>하(D)</div>
-                    <div className={styles.gradeCardBody}>
-                      <div>화면: 깨짐, 화면줄, 터치 불량 등</div>
-                      <div>외관: 심한 파손, 휘어짐</div>
-                      <div>기능: 주요 기능 고장</div>
-                      <div>배터리: 75%↓ 또는 성능저하 경고</div>
-                    </div>
-                    {selectedGrade === 'D' && <div className={styles.gradeCardPrice}>{formatWon(selectedUsedPhoneData.E등급)}</div>}
-                  </button>
+                  {([
+                    { grade: 'S', label: '최상(S)', lines: ['화면: 기스 거의 없음', '외관: 스크래치·찍힘 없음', '기능: 모든 기능 100% 정상', '배터리: 90% 이상(교체 이력 없음)'] },
+                    { grade: 'A', label: '상(A~B)', lines: ['화면: 미세한 잔기스', '외관: 작은 기스·아주 작은 찍힘 1~2개', '기능: 기능 이상 없음', '배터리: 80~90% 이상(혹은 1회 교체)'] },
+                    { grade: 'C', label: '중(C)', lines: ['화면: 눈에 띄는 기스 있음', '외관: 다수의 잔기스, 여러 개의 찍힘', '기능: 경미한 기능 문제 가능', '배터리: 75~85%'] },
+                    { grade: 'D', label: '하(D)', lines: ['화면: 깨짐, 화면줄, 터치 불량 등', '외관: 심한 파손, 휘어짐', '기능: 주요 기능 고장', '배터리: 75%↓ 또는 성능저하 경고'] },
+                  ] as const).map(({ grade, label, lines }) => (
+                    <button
+                      key={grade}
+                      className={`${styles.gradeCard} ${selectedGrade === grade ? styles.gradeCardActive : ''}`}
+                      onClick={() => {
+                        setSelectedGrade(grade);
+                        setShowGradeSelect(false);
+                      }}
+                    >
+                      <div className={styles.gradeCardHeader}>{label}</div>
+                      <div className={styles.gradeCardBody}>
+                        {lines.map((line) => <div key={line}>{line}</div>)}
+                      </div>
+                    </button>
+                  ))}
 
                   <div className={styles.gradeNotice}>
                     <span className={styles.gradeNoticeIcon}>ℹ️</span>
@@ -637,16 +607,25 @@ export function Step4PlanDiscount() {
                 </div>
               )}
 
+              {gradePrice > 0 && (
+                <div className={summaryStyles.breakdownRow}>
+                  <span className={summaryStyles.breakdownLabel}>기기 반납 예상금액</span>
+                  <span className={`${summaryStyles.breakdownValue} ${summaryStyles.breakdownDiscount}`}>
+                    -{formatWon(gradePrice)}
+                  </span>
+                </div>
+              )}
+
               <div className={`${summaryStyles.breakdownRow} ${summaryStyles.breakdownHighlight}`}>
                 <span>할부원금</span>
-                <span>{formatWon(quote.할부원금)}</span>
+                <span>{formatWon(Math.max(0, quote.할부원금 - gradePrice))}</span>
               </div>
 
               <div className={summaryStyles.divider} />
 
               <div className={summaryStyles.breakdownRow}>
                 <span className={summaryStyles.breakdownLabel}>월 할부금 ({할부개월}개월)</span>
-                <span className={summaryStyles.breakdownValue}>{formatWon(quote.월할부금)}</span>
+                <span className={summaryStyles.breakdownValue}>{formatWon(Math.max(0, Math.round((quote.할부원금 - gradePrice) / 할부개월)))}</span>
               </div>
 
               <div className={summaryStyles.breakdownRow}>
@@ -674,7 +653,7 @@ export function Step4PlanDiscount() {
 
               <div className={`${summaryStyles.breakdownRow} ${summaryStyles.breakdownTotal}`}>
                 <span>월 납입금 합계</span>
-                <span>{formatWon(quote.월납입금총액)}</span>
+                <span>{formatWon(quote.월납입금총액 - (gradePrice > 0 ? quote.월할부금 - Math.max(0, Math.round((quote.할부원금 - gradePrice) / 할부개월)) : 0))}</span>
               </div>
             </div>
           </>
