@@ -418,6 +418,138 @@
   font-size: 12px;
 }
 
+.selectMyDeviceBtn {
+  margin-left: auto;
+  padding: 6px 14px;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.showPhoneListBtn {
+  display: block;
+  width: calc(100% - 24px);
+  margin: 4px 12px 8px;
+  padding: 10px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: var(--color-bg);
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.returnPriceBadge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 0 0;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: var(--radius-md);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.returnPriceValue {
+  font-size: 18px;
+  font-weight: 800;
+  color: #FFD600;
+}
+
+/* === 등급 선택 패널 === */
+.gradeSelectPanel {
+  padding: 16px 12px 12px;
+  animation: panelSlide 0.2s ease;
+}
+
+.gradeSelectTitle {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.gradeSelectSub {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: 12px;
+}
+
+.gradeCard {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.gradeCard:active {
+  transform: scale(0.98);
+}
+
+.gradeCardActive {
+  border-color: #5b21b6;
+  background: #f5f0ff;
+  box-shadow: 0 0 0 2px rgba(91, 33, 182, 0.15);
+}
+
+.gradeCardHeader {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 6px;
+}
+
+.gradeCardActive .gradeCardHeader {
+  color: #5b21b6;
+}
+
+.gradeCardBody {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.gradeCardPrice {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+  font-size: 16px;
+  font-weight: 800;
+  color: #5b21b6;
+  text-align: right;
+}
+
+.gradeNotice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  margin-top: 4px;
+  background: #f8f9fa;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.gradeNoticeIcon {
+  font-size: 14px;
+}
+
 /* === Used Phone (기기 반납) === */
 .usedPhoneEmpty {
   padding: var(--space-md) var(--space-lg);
