@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useQuoteStore } from './store/useQuoteStore';
 import { useSheetStore } from './store/useSheetStore';
 import { Landing } from './components/Landing';
@@ -11,14 +11,10 @@ import { Step3Phone } from './components/steps/Step3Phone';
 import { Step4PlanDiscount } from './components/steps/Step4PlanDiscount';
 import { Step7Consultation } from './components/steps/Step7Consultation';
 
-// ★ 여기에 Google Sheets ID를 넣으세요
-// URL이 https://docs.google.com/spreadsheets/d/XXXXX/edit 이면 XXXXX 부분
 const SHEET_ID = import.meta.env.VITE_GOOGLE_SHEET_ID || '';
 
-function StepContent() {
-  const currentStep = useQuoteStore((s) => s.currentStep);
-
-  switch (currentStep) {
+function getStepComponent(step: number) {
+  switch (step) {
     case 1: return <Step1Brand />;
     case 2: return <Step3Phone />;
     case 3: return <Step2Carrier />;
@@ -27,6 +23,32 @@ function StepContent() {
     case 6: return <Step7Consultation />;
     default: return <Step1Brand />;
   }
+}
+
+function StepContent() {
+  const currentStep = useQuoteStore((s) => s.currentStep);
+  const [displayedStep, setDisplayedStep] = useState(currentStep);
+  const [fadeClass, setFadeClass] = useState('step-fade-in');
+  const prevStep = useRef(currentStep);
+
+  useEffect(() => {
+    if (currentStep !== prevStep.current) {
+      // fade out
+      setFadeClass('step-fade-out');
+      const timer = setTimeout(() => {
+        setDisplayedStep(currentStep);
+        setFadeClass('step-fade-in');
+        prevStep.current = currentStep;
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [currentStep]);
+
+  return (
+    <div className={fadeClass}>
+      {getStepComponent(displayedStep)}
+    </div>
+  );
 }
 
 function App() {
