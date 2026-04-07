@@ -87,7 +87,7 @@ img {
   display: block;
 }
 
-/* 페이지 전환 페이드 */
+/* 페이지 전환 페이드 (transform 미사용 — fixed 하위요소 보호) */
 .step-fade-in {
   animation: stepFadeIn 0.25s ease-out both;
 }
@@ -98,12 +98,6 @@ img {
 }
 
 @keyframes stepFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
