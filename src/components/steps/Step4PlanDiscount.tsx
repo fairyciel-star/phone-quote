@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Discount, DiscountType, Phone, Plan } from '../../types';
 import { useQuoteStore } from '../../store/useQuoteStore';
 import { useSheetStore } from '../../store/useSheetStore';
@@ -20,6 +20,9 @@ const phones = phonesData as unknown as Phone[];
 const jsonDiscounts = discountsData as unknown as Discount[];
 
 export function Step4PlanDiscount() {
+  const topRef = useRef<HTMLDivElement>(null);
+  const scrollToTop = () => topRef.current?.scrollIntoView({ behavior: 'smooth' });
+
   const state = useQuoteStore();
   const { carrierId, selectedPhoneId, selectedStorage, selectedColor, selectedPlanId, discountType, selectedDiscountIds: selectedIds, 할부개월, subscriptionType } = state;
   const setPlan = useQuoteStore((s) => s.setPlan);
@@ -142,7 +145,11 @@ export function Step4PlanDiscount() {
     if (cardEnabled && selectedCardId) {
       toggleDiscount(selectedCardId);
     }
-    setCardEnabled(!cardEnabled);
+    const nextEnabled = !cardEnabled;
+    setCardEnabled(nextEnabled);
+    if (nextEnabled) {
+      setTimeout(scrollToTop, 100);
+    }
   };
 
   const handleAddonToggle = () => {
@@ -188,7 +195,7 @@ export function Step4PlanDiscount() {
 
   return (
     <>
-      <div className={styles.container}>
+      <div className={styles.container} ref={topRef}>
         {/* ===== 상단: 폰 이미지 + 가격 + 색상 ===== */}
         {selectedPhone && (
           <div className={styles.phoneHero}>
@@ -208,9 +215,17 @@ export function Step4PlanDiscount() {
                       <img className={styles.phoneHeroCarrier} src={`/images/${carrier.id}.png`} alt={carrier.name} />
                     )}
                   </div>
-                  {subsidyAmount > 0 && (
-                    <div className={styles.phoneHeroBadge}>구매지원금 {formatWon(subsidyAmount + extraSubsidy + specialSupport)}</div>
-                  )}
+                  <div className={styles.phoneHeroBadges}>
+                    {subsidyAmount > 0 && (
+                      <div className={styles.phoneHeroBadge}>구매지원금 {formatWon(subsidyAmount + extraSubsidy + specialSupport)}</div>
+                    )}
+                    {gradePrice > 0 && (
+                      <div className={`${styles.phoneHeroBadge} ${styles.badgeTrade}`}>중고폰 판매 {formatWon(gradePrice)}</div>
+                    )}
+                    {cardEnabled && quote.제휴카드24개월할인 > 0 && (
+                      <div className={`${styles.phoneHeroBadge} ${styles.badgeCard}`}>카드 발급 할인 {formatWon(quote.제휴카드24개월할인)}</div>
+                    )}
+                  </div>
                 </>
               )}
               {/* 색상 선택 */}
@@ -542,6 +557,7 @@ export function Step4PlanDiscount() {
                       onClick={() => {
                         setSelectedGrade(grade);
                         setShowGradeSelect(false);
+                        scrollToTop();
                       }}
                     >
                       <div className={styles.gradeCardHeader}>{label}</div>

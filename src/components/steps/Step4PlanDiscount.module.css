@@ -62,6 +62,13 @@
   object-fit: contain;
 }
 
+.phoneHeroBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
 .phoneHeroBadge {
   display: inline-block;
   padding: 4px 10px;
@@ -70,7 +77,16 @@
   font-size: 13px;
   font-weight: 700;
   border-radius: 4px;
-  margin-bottom: 12px;
+}
+
+.badgeTrade {
+  background: #f0f0ff;
+  color: #5b21b6;
+}
+
+.badgeCard {
+  background: #f0fff4;
+  color: #16a34a;
 }
 
 /* 색상 선택 */
