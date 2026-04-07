@@ -86,6 +86,7 @@ export function Step4PlanDiscount() {
   const [addonEnabled, setAddonEnabled] = useState(false);
   const [condReturn, setCondReturn] = useState(false);
   const [selectedUsedPhone, setSelectedUsedPhone] = useState<string | null>(null);
+  const [selectedUsedStorage, setSelectedUsedStorage] = useState<string | null>(null);
   const [detectedModel, setDetectedModel] = useState<string>('');
   const [isMobileDevice, setIsMobileDevice] = useState<boolean | null>(null);
   const [showPhoneList, setShowPhoneList] = useState(false);
@@ -94,7 +95,18 @@ export function Step4PlanDiscount() {
 
   // 중고폰 시세 목록
   const usedPhoneList = sheetLoaded ? getUsedPhoneList() : [];
-  const selectedUsedPhoneData = usedPhoneList.find((p) => p.모델ID === selectedUsedPhone);
+  // 모델별 고유 목록 (중복 모델ID 제거)
+  const uniqueModels = usedPhoneList.filter((p, i, arr) =>
+    arr.findIndex((q) => q.모델ID === p.모델ID) === i
+  );
+  // 선택된 모델의 용량 목록
+  const storageOptions = selectedUsedPhone
+    ? usedPhoneList.filter((p) => p.모델ID === selectedUsedPhone)
+    : [];
+  // 모델ID + 용량으로 정확히 매칭
+  const selectedUsedPhoneData = usedPhoneList.find(
+    (p) => p.모델ID === selectedUsedPhone && p.용량 === selectedUsedStorage
+  );
 
   // 선택된 등급의 가격
   const getGradePrice = (): number => {
@@ -445,11 +457,13 @@ export function Step4PlanDiscount() {
                     const matchId = findMatchingUsedPhone(detected.matchKeyword, usedPhoneList);
                     if (matchId) {
                       setSelectedUsedPhone(matchId);
+                      setSelectedUsedStorage(null);
                     }
                   }
                 } else {
                   setDetectedModel('');
                   setSelectedUsedPhone(null);
+                  setSelectedUsedStorage(null);
                   setShowPhoneList(false);
                   setShowGradeSelect(false);
                   setSelectedGrade(null);
@@ -484,12 +498,14 @@ export function Step4PlanDiscount() {
                 <div className={styles.detectedDevice}>
                   <span className={styles.detectedIcon}>📱</span>
                   <span>감지된 기기: <strong>{detectedModel}</strong></span>
-                  <button
-                    className={styles.selectMyDeviceBtn}
-                    onClick={() => setShowGradeSelect(!showGradeSelect)}
-                  >
-                    {showGradeSelect ? '접기' : '내 기기 선택'}
-                  </button>
+                  {!selectedUsedStorage && (
+                    <button
+                      className={styles.selectMyDeviceBtn}
+                      onClick={() => setShowGradeSelect(!showGradeSelect)}
+                    >
+                      용량 선택
+                    </button>
+                  )}
                 </div>
               ) : detectedModel && !selectedUsedPhone ? (
                 <>
@@ -518,18 +534,37 @@ export function Step4PlanDiscount() {
                 <div className={styles.usedPhoneSelect}>
                   <span className={styles.usedPhoneSelectLabel}>기종을 선택해주세요</span>
                   <div className={styles.usedPhoneList}>
-                    {usedPhoneList.map((p) => (
+                    {uniqueModels.map((p) => (
                       <button
-                        key={`${p.모델ID}-${p.용량}`}
+                        key={p.모델ID}
                         className={`${styles.usedPhoneBtn} ${selectedUsedPhone === p.모델ID ? styles.usedPhoneBtnActive : ''}`}
                         onClick={() => {
                           setSelectedUsedPhone(p.모델ID === selectedUsedPhone ? null : p.모델ID);
+                          setSelectedUsedStorage(null);
                           setSelectedGrade(null);
                           if (p.모델ID !== selectedUsedPhone) {
                             setShowGradeSelect(true);
                             setShowPhoneList(false);
                           }
                         }}
+                      >
+                        <span className={styles.usedPhoneName}>{p.모델명}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 용량 선택 */}
+              {showGradeSelect && selectedUsedPhone && storageOptions.length > 0 && !selectedUsedStorage && (
+                <div className={styles.usedPhoneSelect}>
+                  <span className={styles.usedPhoneSelectLabel}>용량을 선택해주세요</span>
+                  <div className={styles.usedPhoneList}>
+                    {storageOptions.map((p) => (
+                      <button
+                        key={`${p.모델ID}-${p.용량}`}
+                        className={styles.usedPhoneBtn}
+                        onClick={() => setSelectedUsedStorage(p.용량)}
                       >
                         <span className={styles.usedPhoneName}>{p.모델명}</span>
                         <span className={styles.usedPhoneStorage}>{p.용량}</span>
@@ -539,7 +574,7 @@ export function Step4PlanDiscount() {
                 </div>
               )}
 
-              {/* 2단계: 등급 선택 화면 */}
+              {/* 등급 선택 화면 */}
               {showGradeSelect && selectedUsedPhoneData && (
                 <div className={styles.gradeSelectPanel}>
                   <div className={styles.gradeSelectTitle}>기존 사용 기기를 판매하시겠어요?</div>
