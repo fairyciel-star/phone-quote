@@ -2,6 +2,136 @@
   padding: var(--space-lg);
 }
 
+/* === Phone Hero (캡처본 스타일) === */
+.phoneHero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+}
+
+.phoneHeroImageWrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.phoneHeroImage {
+  max-height: 200px;
+  object-fit: contain;
+}
+
+.phoneHeroInfo {
+  width: 100%;
+}
+
+.phoneHeroName {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.phoneHeroOriginal {
+  margin-bottom: 2px;
+}
+
+.phoneHeroStrike {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  text-decoration: line-through;
+}
+
+.phoneHeroPriceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.phoneHeroPrice {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.5px;
+}
+
+.phoneHeroCarrier {
+  height: 28px;
+  object-fit: contain;
+}
+
+.phoneHeroBadge {
+  display: inline-block;
+  padding: 4px 10px;
+  background: #fff0f0;
+  color: #E53935;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+/* 색상 선택 */
+.colorSelector {
+  margin-top: 12px;
+  padding: 14px 16px;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+}
+
+.colorDots {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.colorDot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+}
+
+.colorDot:hover {
+  transform: scale(1.1);
+}
+
+.colorDotActive {
+  border-color: var(--color-text);
+  box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-text);
+}
+
+.colorInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.colorName {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.colorStorage {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.colorChevron {
+  margin-left: auto;
+  font-size: 18px;
+  color: var(--color-text-secondary);
+}
+
 .title {
   font-size: 22px;
   font-weight: 700;

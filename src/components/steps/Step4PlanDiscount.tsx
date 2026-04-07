@@ -21,10 +21,11 @@ const jsonDiscounts = discountsData as unknown as Discount[];
 
 export function Step4PlanDiscount() {
   const state = useQuoteStore();
-  const { carrierId, selectedPhoneId, selectedStorage, selectedPlanId, discountType, selectedDiscountIds: selectedIds, 할부개월, subscriptionType } = state;
+  const { carrierId, selectedPhoneId, selectedStorage, selectedColor, selectedPlanId, discountType, selectedDiscountIds: selectedIds, 할부개월, subscriptionType } = state;
   const setPlan = useQuoteStore((s) => s.setPlan);
   const setDiscountType = useQuoteStore((s) => s.setDiscountType);
   const toggleDiscount = useQuoteStore((s) => s.toggleDiscount);
+  const setColor = useQuoteStore((s) => s.setColor);
 
   const sheetLoaded = useSheetStore((s) => s.loaded);
   const getSheetCards = useSheetStore((s) => s.getCardDiscountsForCarrier);
@@ -188,16 +189,54 @@ export function Step4PlanDiscount() {
   return (
     <>
       <div className={styles.container}>
-        {/* ===== 상단: 폰 이미지 + 할부원금 ===== */}
+        {/* ===== 상단: 폰 이미지 + 가격 + 색상 ===== */}
         {selectedPhone && (
-          <div className={summaryStyles.phoneSection}>
-            <div className={summaryStyles.phoneName}>{selectedPhone.name}</div>
-            <div className={summaryStyles.phoneImageWrap}>
-              <img className={summaryStyles.phoneImage} src={selectedPhone.image} alt={selectedPhone.name} />
+          <div className={styles.phoneHero}>
+            <div className={styles.phoneHeroImageWrap}>
+              <img className={styles.phoneHeroImage} src={selectedPhone.image} alt={selectedPhone.name} />
             </div>
-            {carrier && (
-              <img className={summaryStyles.carrierLogo} src={`/images/${carrier.id}.png`} alt={carrier.name} />
-            )}
+            <div className={styles.phoneHeroInfo}>
+              <div className={styles.phoneHeroName}>{selectedPhone.name}</div>
+              {quote && (
+                <>
+                  <div className={styles.phoneHeroOriginal}>
+                    <span className={styles.phoneHeroStrike}>{formatWon(quote.출고가)}</span>
+                  </div>
+                  <div className={styles.phoneHeroPriceRow}>
+                    <span className={styles.phoneHeroPrice}>{formatWon(Math.max(0, quote.할부원금 - gradePrice))}</span>
+                    {carrier && (
+                      <img className={styles.phoneHeroCarrier} src={`/images/${carrier.id}.png`} alt={carrier.name} />
+                    )}
+                  </div>
+                  {subsidyAmount > 0 && (
+                    <div className={styles.phoneHeroBadge}>구매지원금 {formatWon(subsidyAmount + extraSubsidy + specialSupport)}</div>
+                  )}
+                </>
+              )}
+              {/* 색상 선택 */}
+              {selectedPhone.colors.length > 0 && (
+                <div className={styles.colorSelector}>
+                  <div className={styles.colorDots}>
+                    {selectedPhone.colors.map((c) => (
+                      <button
+                        key={c.name}
+                        className={`${styles.colorDot} ${selectedColor === c.name ? styles.colorDotActive : ''}`}
+                        style={{ backgroundColor: c.hex }}
+                        onClick={() => setColor(c.name)}
+                        title={c.name}
+                      />
+                    ))}
+                  </div>
+                  {selectedColor && (
+                    <div className={styles.colorInfo}>
+                      <span className={styles.colorName}>{selectedColor}</span>
+                      {selectedStorage && <span className={styles.colorStorage}>{selectedStorage}</span>}
+                      <span className={styles.colorChevron}>&#8250;</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -582,7 +621,7 @@ export function Step4PlanDiscount() {
 
               {specialSupport > 0 && (
                 <div className={summaryStyles.breakdownRow}>
-                  <span className={summaryStyles.breakdownLabel}>동네휴대폰마트 특별지원(대상자 한정)</span>
+                  <span className={summaryStyles.breakdownLabel}>동네폰 특별지원(대상자 한정)</span>
                   <span className={`${summaryStyles.breakdownValue} ${summaryStyles.breakdownDiscount}`}>
                     -{formatWon(specialSupport)}
                   </span>
