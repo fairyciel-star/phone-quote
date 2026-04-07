@@ -58,17 +58,18 @@ function detectFromUA(): ResolvedModel {
 }
 
 // 기기 저장용량 감지 (navigator.storage.estimate)
+// 브라우저 quota는 기기 총 용량의 약 50~60% (Chrome Android 기준)
+// 256GB 기기 → quota ~110~150GB, 512GB 기기 → quota ~220~300GB
 async function detectStorage(): Promise<string> {
   try {
     if (navigator.storage?.estimate) {
       const { quota } = await navigator.storage.estimate();
       if (quota) {
         const gb = quota / (1024 * 1024 * 1024);
-        // 실제 사용가능 용량 기준으로 총 용량 추정
-        if (gb > 400) return '512GB';
-        if (gb > 200) return '256GB';
-        if (gb > 100) return '128GB';
-        if (gb > 50) return '64GB';
+        if (gb > 150) return '512GB';
+        if (gb > 60) return '256GB';
+        if (gb > 30) return '128GB';
+        if (gb > 15) return '64GB';
       }
     }
   } catch {
