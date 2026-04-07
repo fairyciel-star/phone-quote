@@ -458,13 +458,20 @@ export function Step4PlanDiscount() {
                     if (matchId) {
                       setSelectedUsedPhone(matchId);
                       // 감지된 용량과 일치하는 시트 데이터가 있으면 자동 선택
+                      const modelStorages = usedPhoneList.filter((p) => p.모델ID === matchId);
                       const matchingStorage = detected.storage
-                        ? usedPhoneList.find((p) => p.모델ID === matchId && p.용량 === detected.storage)
+                        ? modelStorages.find((p) => p.용량 === detected.storage)
                         : null;
                       if (matchingStorage) {
+                        // 용량 감지 성공 + 시트 매칭
                         setSelectedUsedStorage(detected.storage);
                         setShowGradeSelect(true);
+                      } else if (modelStorages.length === 1) {
+                        // 용량 감지 실패해도 옵션이 1개뿐이면 자동 선택
+                        setSelectedUsedStorage(modelStorages[0].용량);
+                        setShowGradeSelect(true);
                       } else {
+                        // 여러 용량 → 수동 선택
                         setSelectedUsedStorage(null);
                         setShowGradeSelect(true);
                       }

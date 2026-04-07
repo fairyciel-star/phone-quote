@@ -58,32 +58,53 @@ function detectFromUA(): ResolvedModel {
 }
 
 // 기기 출시 용량 감지
-// Chrome Android: quota ≈ 전체 파티션 여유공간의 ~50~80%
-// 출시 용량별 포맷 후 실제 용량: 128GB→~109GB, 256GB→~230GB, 512GB→~460GB
-// quota를 역산해서 가장 가까운 출시 용량으로 매핑
-const STANDARD_CAPACITIES = [64, 128, 256, 512, 1024] as const;
-
+// Chrome Android: quota는 전체 파티션 가용 공간 기준 (기기마다 다름)
+// 여러 추정 방식으로 시도
 async function detectStorage(): Promise<string> {
   try {
     if (navigator.storage?.estimate) {
       const { quota, usage } = await navigator.storage.estimate();
       if (quota) {
-        // 전체 디스크 추정: quota는 여유공간의 일부 → 전체 = (quota + usage) / 0.5~0.6
-        const usedBytes = usage ?? 0;
-        const estimatedTotal = (quota + usedBytes) / 0.5;
-        const estimatedGB = estimatedTotal / (1024 * 1024 * 1024);
+        const quotaGB = quota / (1024 * 1024 * 1024);
+        const usageGB = (usage ?? 0) / (1024 * 1024 * 1024);
+        const totalUsed = quotaGB + usageGB;
 
-        // 가장 가까운 출시 용량 선택
-        let closest: number = STANDARD_CAPACITIES[0];
-        let minDiff = Math.abs(estimatedGB - closest);
-        for (const cap of STANDARD_CAPACITIES) {
-          const diff = Math.abs(estimatedGB - cap);
-          if (diff < minDiff) {
-            minDiff = diff;
-            closest = cap;
+        // 방법 1: quota + usage 기반 전체 디스크 추정
+        // Chrome Android: quota ≈ 전체 디스크의 약 60%
+        // Samsung Internet: quota ≈ 전체 디스크의 약 20~50%
+        // 여러 비율로 추정해서 가장 합리적인 값 선택
+        const estimates = [
+          totalUsed / 0.2,  // quota가 20%인 경우
+          totalUsed / 0.4,  // quota가 40%인 경우
+          totalUsed / 0.6,  // quota가 60%인 경우
+        ];
+
+        // 모든 추정값에서 가장 가까운 출시 용량 투표
+        const capacities = [128, 256, 512, 1024];
+        const votes: Record<number, number> = {};
+        for (const est of estimates) {
+          let best = capacities[0];
+          let bestDiff = Math.abs(est - best);
+          for (const cap of capacities) {
+            const diff = Math.abs(est - cap);
+            if (diff < bestDiff) {
+              bestDiff = diff;
+              best = cap;
+            }
+          }
+          votes[best] = (votes[best] ?? 0) + 1;
+        }
+
+        // 가장 많은 표를 받은 용량
+        let winner = capacities[0];
+        let maxVotes = 0;
+        for (const [cap, count] of Object.entries(votes)) {
+          if (count > maxVotes) {
+            maxVotes = count;
+            winner = Number(cap);
           }
         }
-        return `${closest}GB`;
+        return `${winner}GB`;
       }
     }
   } catch {
