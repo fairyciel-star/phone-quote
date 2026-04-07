@@ -88,6 +88,7 @@ export function Step4PlanDiscount() {
   const [selectedUsedPhone, setSelectedUsedPhone] = useState<string | null>(null);
   const [selectedUsedStorage, setSelectedUsedStorage] = useState<string | null>(null);
   const [detectedModel, setDetectedModel] = useState<string>('');
+  const [detectedDebug, setDetectedDebug] = useState<string>('');
   const [isMobileDevice, setIsMobileDevice] = useState<boolean | null>(null);
   const [showPhoneList, setShowPhoneList] = useState(false);
   const [showGradeSelect, setShowGradeSelect] = useState(false);
@@ -453,17 +454,21 @@ export function Step4PlanDiscount() {
                   const detected = await detectDevice();
                   setIsMobileDevice(detected.isMobile);
                   setDetectedModel(detected.matchKeyword || detected.raw);
+                  setDetectedDebug(detected.debugQuota);
                   if (detected.matchKeyword) {
                     const matchId = findMatchingUsedPhone(detected.matchKeyword, usedPhoneList);
                     if (matchId) {
                       setSelectedUsedPhone(matchId);
-                      // 모델의 용량 옵션 확인
                       const modelStorages = usedPhoneList.filter((p) => p.모델ID === matchId);
-                      if (modelStorages.length === 1) {
-                        // 용량 1개 → 자동 선택 → 바로 등급 선택
+                      // 감지된 용량으로 자동 선택 시도
+                      const matchedByStorage = detected.storageGB
+                        ? modelStorages.find((p) => p.용량 === detected.storageGB)
+                        : null;
+                      if (matchedByStorage) {
+                        setSelectedUsedStorage(detected.storageGB);
+                      } else if (modelStorages.length === 1) {
                         setSelectedUsedStorage(modelStorages[0].용량);
                       } else {
-                        // 여러 용량 → 용량 선택 표시
                         setSelectedUsedStorage(null);
                       }
                       setShowGradeSelect(true);
@@ -507,6 +512,7 @@ export function Step4PlanDiscount() {
                 <div className={styles.detectedDevice}>
                   <span className={styles.detectedIcon}>📱</span>
                   <span>감지된 기기: <strong>{detectedModel}{selectedUsedStorage ? ` ${selectedUsedStorage}` : ''}</strong></span>
+                  {detectedDebug && <div style={{ fontSize: 10, color: '#999', width: '100%' }}>[debug] {detectedDebug}</div>}
                   {selectedUsedStorage && selectedGrade && (
                     <button
                       className={styles.selectMyDeviceBtn}
