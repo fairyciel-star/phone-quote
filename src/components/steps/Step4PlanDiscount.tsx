@@ -457,7 +457,17 @@ export function Step4PlanDiscount() {
                     const matchId = findMatchingUsedPhone(detected.matchKeyword, usedPhoneList);
                     if (matchId) {
                       setSelectedUsedPhone(matchId);
-                      setSelectedUsedStorage(null);
+                      // 감지된 용량과 일치하는 시트 데이터가 있으면 자동 선택
+                      const matchingStorage = detected.storage
+                        ? usedPhoneList.find((p) => p.모델ID === matchId && p.용량 === detected.storage)
+                        : null;
+                      if (matchingStorage) {
+                        setSelectedUsedStorage(detected.storage);
+                        setShowGradeSelect(true);
+                      } else {
+                        setSelectedUsedStorage(null);
+                        setShowGradeSelect(true);
+                      }
                     }
                   }
                 } else {
@@ -497,7 +507,7 @@ export function Step4PlanDiscount() {
               ) : detectedModel && selectedUsedPhone ? (
                 <div className={styles.detectedDevice}>
                   <span className={styles.detectedIcon}>📱</span>
-                  <span>감지된 기기: <strong>{detectedModel}</strong></span>
+                  <span>감지된 기기: <strong>{detectedModel}{selectedUsedStorage ? ` ${selectedUsedStorage}` : ''}</strong></span>
                   {!selectedUsedStorage && (
                     <button
                       className={styles.selectMyDeviceBtn}
