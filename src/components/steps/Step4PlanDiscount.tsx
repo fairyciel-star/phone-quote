@@ -29,6 +29,7 @@ export function Step4PlanDiscount() {
   const setDiscountType = useQuoteStore((s) => s.setDiscountType);
   const toggleDiscount = useQuoteStore((s) => s.toggleDiscount);
   const setColor = useQuoteStore((s) => s.setColor);
+  const setStorage = useQuoteStore((s) => s.setStorage);
 
   const sheetLoaded = useSheetStore((s) => s.loaded);
   const getSheetCards = useSheetStore((s) => s.getCardDiscountsForCarrier);
@@ -54,6 +55,13 @@ export function Step4PlanDiscount() {
       setPlan(premiumPlan.id);
     }
   }, [premiumPlan, selectedPlanId, setPlan]);
+
+  // 용량 미선택 시 항상 첫 번째 용량 자동 선택
+  useEffect(() => {
+    if (selectedPhone && !selectedStorage && selectedPhone.storage.length > 0) {
+      setStorage(selectedPhone.storage[0].size);
+    }
+  }, [selectedPhone, selectedStorage, setStorage]);
 
   // Subsidy
   const getSubsidyData = (): { 공통지원금: number; 추가지원금: number; 특별지원: number } => {
@@ -211,10 +219,7 @@ export function Step4PlanDiscount() {
       <div className={styles.container} ref={topRef}>
         {/* ===== 상단: 폰 이미지 + 가격 + 색상 ===== */}
         {selectedPhone && (
-          <div className={styles.phoneHero}>
-            <div className={styles.phoneHeroImageWrap}>
-              <img className={styles.phoneHeroImage} src={selectedPhone.image} alt={selectedPhone.name} />
-            </div>
+          <div className={styles.phoneHeroCard}>
             <div className={styles.phoneHeroInfo}>
               <div className={styles.phoneHeroName}>{selectedPhone.name}</div>
               {quote && (
@@ -262,6 +267,23 @@ export function Step4PlanDiscount() {
                       <span className={styles.colorChevron}>&#8250;</span>
                     </div>
                   )}
+                </div>
+              )}
+              {/* 용량 선택 */}
+              {selectedPhone.storage.length > 1 && (
+                <div className={styles.storageSelector}>
+                  <div className={styles.storageSelectorLabel}>용량 선택</div>
+                  <div className={styles.storagePills}>
+                    {selectedPhone.storage.map((s) => (
+                      <button
+                        key={s.size}
+                        className={`${styles.storagePill} ${selectedStorage === s.size ? styles.storagePillActive : ''}`}
+                        onClick={() => setStorage(s.size)}
+                      >
+                        <span className={styles.storagePillSize}>{s.size}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
