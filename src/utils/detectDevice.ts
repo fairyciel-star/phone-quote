@@ -5,6 +5,8 @@ export interface DetectedDevice {
   readonly brand: '삼성' | 'Apple' | null;
   readonly matchKeyword: string;
   readonly isMobile: boolean;
+  readonly storageGB: string;
+  readonly debugQuota: string;
 }
 
 const SAMSUNG_MODEL_MAP: readonly { pattern: RegExp; keyword: string }[] = [
@@ -55,7 +57,7 @@ function detectFromUA(): ResolvedModel {
   return { raw: '', brand: null, matchKeyword: '' };
 }
 
-const NO_DEVICE: DetectedDevice = { raw: '', brand: null, matchKeyword: '', isMobile: false };
+const NO_DEVICE: DetectedDevice = { raw: '', brand: null, matchKeyword: '', isMobile: false, storageGB: '', debugQuota: '' };
 
 export async function detectDevice(): Promise<DetectedDevice> {
   if (!isMobileDevice()) return NO_DEVICE;
@@ -70,7 +72,7 @@ export async function detectDevice(): Promise<DetectedDevice> {
     if (nav.userAgentData?.getHighEntropyValues) {
       const data = await nav.userAgentData.getHighEntropyValues(['model']);
       if (data.model) {
-        return { ...resolveKeyword(data.model.trim()), isMobile: true };
+        return { ...resolveKeyword(data.model.trim()), isMobile: true, storageGB: '', debugQuota: '' };
       }
     }
   } catch {
@@ -78,7 +80,7 @@ export async function detectDevice(): Promise<DetectedDevice> {
   }
 
   // 2) UA fallback
-  return { ...detectFromUA(), isMobile: true };
+  return { ...detectFromUA(), isMobile: true, storageGB: '', debugQuota: '' };
 }
 
 export function findMatchingUsedPhone(
