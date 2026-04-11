@@ -2,6 +2,7 @@ import type { SubscriptionType, CarrierId } from '../../types';
 import { useQuoteStore } from '../../store/useQuoteStore';
 import { StepNavigation } from '../layout/StepNavigation';
 import carriersData from '../../data/carriers.json';
+import { hapticLight, hapticMedium } from '../../utils/haptic';
 import styles from './Step1SubscriptionType.module.css';
 
 const OPTIONS: readonly { type: SubscriptionType; icon: string; label: string; desc: string }[] = [
@@ -46,7 +47,7 @@ export function Step1SubscriptionType() {
             <button
               key={opt.type}
               className={`${styles.typeBtn} ${selected === opt.type ? styles.typeBtnActive : ''}`}
-              onClick={() => setType(opt.type)}
+              onClick={() => { hapticLight(); setType(opt.type); }}
             >
               <span className={styles.typeIcon}>{opt.icon}</span>
               <span className={styles.typeLabel}>{opt.label}</span>
@@ -63,7 +64,7 @@ export function Step1SubscriptionType() {
                 <button
                   key={carrier.id}
                   className={`${styles.carrierBtn} ${carrierId === carrier.id ? styles.carrierBtnActive : ''}`}
-                  onClick={() => handleSelectNewCarrier(carrier.id as CarrierId)}
+                  onClick={() => { hapticMedium(); handleSelectNewCarrier(carrier.id as CarrierId); }}
                 >
                   <img
                     src={`/images/${carrier.id}.png`}

@@ -10,6 +10,7 @@ import { Step2Carrier } from './components/steps/Step2Carrier';
 import { Step3Phone } from './components/steps/Step3Phone';
 import { Step4PlanDiscount } from './components/steps/Step4PlanDiscount';
 import { Step7Consultation } from './components/steps/Step7Consultation';
+import { AdminPage } from './components/admin/AdminPage';
 
 const SHEET_ID = import.meta.env.VITE_GOOGLE_SHEET_ID || '';
 
@@ -54,12 +55,24 @@ function StepContent() {
 function App() {
   const showLanding = useQuoteStore((s) => s.showLanding);
   const loadFromSheet = useSheetStore((s) => s.loadFromSheet);
+  const [hash, setHash] = useState(window.location.hash);
 
   useEffect(() => {
     if (SHEET_ID) {
       loadFromSheet(SHEET_ID);
     }
   }, [loadFromSheet]);
+
+  useEffect(() => {
+    const handleHash = () => setHash(window.location.hash);
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
+  // Admin route: /#/admin
+  if (hash === '#/admin') {
+    return <AdminPage />;
+  }
 
   if (showLanding) {
     return <Landing />;

@@ -1,4 +1,5 @@
 import { useQuoteStore } from '../../store/useQuoteStore';
+import { hapticMedium } from '../../utils/haptic';
 import styles from './Step1Brand.module.css';
 
 const BRANDS = [
@@ -51,6 +52,7 @@ export function Step1Brand() {
   const currentStep = useQuoteStore((s) => s.currentStep);
 
   const handleSelect = (filter: string) => {
+    hapticMedium();
     setBrand(filter);
     setStep(currentStep + 1);
   };

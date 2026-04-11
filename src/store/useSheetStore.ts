@@ -30,6 +30,7 @@ interface SheetState {
   getAddonsForCarrier: (통신사: CarrierId) => Discount[];
   getUsedPhonePrice: (모델ID: string, 용량: string) => UsedPhoneRow | null;
   getUsedPhoneList: () => UsedPhoneRow[];
+  getStoragesForPhone: (모델ID: string, 통신사: CarrierId) => { size: string; price: number }[];
 }
 
 export const useSheetStore = create<SheetState>((set, get) => ({
@@ -124,6 +125,22 @@ export const useSheetStore = create<SheetState>((set, get) => ({
 
   getUsedPhoneList: () => {
     return [...get().usedPhones];
+  },
+
+  getStoragesForPhone: (모델ID, 통신사) => {
+    const rows = get().subsidies.filter(
+      (r) => r.모델ID === 모델ID && r.통신사 === 통신사
+    );
+    // 용량별로 중복 제거하고 출고가 반환
+    const seen = new Set<string>();
+    const result: { size: string; price: number }[] = [];
+    for (const row of rows) {
+      if (row.용량 && !seen.has(row.용량)) {
+        seen.add(row.용량);
+        result.push({ size: row.용량, price: row.출고가 });
+      }
+    }
+    return result;
   },
 
   getAddonsForCarrier: (통신사) => {

@@ -270,18 +270,6 @@ export function Step4PlanDiscount() {
 
         {quote && (
           <>
-            <div className={summaryStyles.installmentBox}>
-              <div className={summaryStyles.installmentBoxLabel}>총 할부 원금</div>
-              <div className={summaryStyles.installmentBoxAmount}>
-                할부원금: {formatWon(Math.max(0, quote.할부원금 - gradePrice))}
-              </div>
-              {gradePrice > 0 && (
-                <div className={summaryStyles.installmentBoxSub}>
-                  기기 반납 적용: -{formatWon(gradePrice)}
-                </div>
-              )}
-            </div>
-
             <div className={summaryStyles.installmentSelector}>
               {[12, 24, 36].map((m) => (
                 <button

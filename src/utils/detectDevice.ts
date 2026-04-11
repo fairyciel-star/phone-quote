@@ -5,8 +5,6 @@ export interface DetectedDevice {
   readonly brand: '삼성' | 'Apple' | null;
   readonly matchKeyword: string;
   readonly isMobile: boolean;
-  readonly storageGB: string;
-  readonly debugQuota: string; // 임시 디버그용
 }
 
 const SAMSUNG_MODEL_MAP: readonly { pattern: RegExp; keyword: string }[] = [
@@ -57,39 +55,10 @@ function detectFromUA(): ResolvedModel {
   return { raw: '', brand: null, matchKeyword: '' };
 }
 
-// 저장용량 감지 시도
-async function detectStorage(): Promise<{ storageGB: string; debugQuota: string }> {
-  try {
-    if (navigator.storage?.estimate) {
-      const { quota, usage } = await navigator.storage.estimate();
-      const quotaGB = (quota ?? 0) / (1024 * 1024 * 1024);
-      const usageGB = (usage ?? 0) / (1024 * 1024 * 1024);
-      const debug = `q=${quotaGB.toFixed(1)}GB u=${usageGB.toFixed(1)}GB`;
-
-      if (quota) {
-        // quota만으로 출시 용량 추정 (quota ≈ 가용 파티션의 일부)
-        // 가용 공간 + 사용량 = 전체에 가까움
-        const totalGB = quotaGB + usageGB;
-        if (totalGB > 350) return { storageGB: '512GB', debugQuota: debug };
-        if (totalGB > 170) return { storageGB: '256GB', debugQuota: debug };
-        if (totalGB > 85) return { storageGB: '128GB', debugQuota: debug };
-        if (totalGB > 40) return { storageGB: '64GB', debugQuota: debug };
-        return { storageGB: '', debugQuota: debug };
-      }
-      return { storageGB: '', debugQuota: debug };
-    }
-  } catch {
-    // 감지 실패
-  }
-  return { storageGB: '', debugQuota: 'N/A' };
-}
-
-const NO_DEVICE: DetectedDevice = { raw: '', brand: null, matchKeyword: '', isMobile: false, storageGB: '', debugQuota: '' };
+const NO_DEVICE: DetectedDevice = { raw: '', brand: null, matchKeyword: '', isMobile: false };
 
 export async function detectDevice(): Promise<DetectedDevice> {
   if (!isMobileDevice()) return NO_DEVICE;
-
-  const { storageGB, debugQuota } = await detectStorage();
 
   // 1) Client Hints API
   try {
@@ -101,7 +70,7 @@ export async function detectDevice(): Promise<DetectedDevice> {
     if (nav.userAgentData?.getHighEntropyValues) {
       const data = await nav.userAgentData.getHighEntropyValues(['model']);
       if (data.model) {
-        return { ...resolveKeyword(data.model.trim()), isMobile: true, storageGB, debugQuota };
+        return { ...resolveKeyword(data.model.trim()), isMobile: true };
       }
     }
   } catch {
@@ -109,7 +78,7 @@ export async function detectDevice(): Promise<DetectedDevice> {
   }
 
   // 2) UA fallback
-  return { ...detectFromUA(), isMobile: true, storageGB, debugQuota };
+  return { ...detectFromUA(), isMobile: true };
 }
 
 export function findMatchingUsedPhone(

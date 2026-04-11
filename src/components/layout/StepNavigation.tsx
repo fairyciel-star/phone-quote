@@ -43,7 +43,7 @@ export function StepNavigation({ canProceed, onNext, onSubmit }: StepNavigationP
           disabled={!canProceed}
           fullWidth
         >
-          {isLast ? '상담 신청하기' : '신청하기'}
+          {isLast ? '상담 신청하기' : '다음'}
         </Button>
       </div>
     </>
