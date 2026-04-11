@@ -18,6 +18,8 @@ export function Step3Phone() {
   const subscriptionType = useQuoteStore((s) => s.subscriptionType);
   const selectedPhoneId = useQuoteStore((s) => s.selectedPhoneId);
   const setPhone = useQuoteStore((s) => s.setPhone);
+  const setStorage = useQuoteStore((s) => s.setStorage);
+  const setColor = useQuoteStore((s) => s.setColor);
 
   const sheetLoaded = useSheetStore((s) => s.loaded);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
@@ -51,6 +53,15 @@ export function Step3Phone() {
   const handleSelectPhone = (phoneId: string) => {
     hapticMedium();
     setPhone(phoneId);
+    // 용량이 1개면 자동 선택
+    const phone = phones.find((p) => p.id === phoneId);
+    if (phone?.storage.length === 1) {
+      setStorage(phone.storage[0].size);
+    }
+    // 색상이 1개면 자동 선택
+    if (phone?.colors.length === 1) {
+      setColor(phone.colors[0].name);
+    }
     // 바로 다음 단계로 이동
     setStep(currentStep + 1);
   };
