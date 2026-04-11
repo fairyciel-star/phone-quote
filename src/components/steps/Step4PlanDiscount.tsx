@@ -29,7 +29,6 @@ export function Step4PlanDiscount() {
   const setDiscountType = useQuoteStore((s) => s.setDiscountType);
   const toggleDiscount = useQuoteStore((s) => s.toggleDiscount);
   const setColor = useQuoteStore((s) => s.setColor);
-  const setStorage = useQuoteStore((s) => s.setStorage);
 
   const sheetLoaded = useSheetStore((s) => s.loaded);
   const getSheetCards = useSheetStore((s) => s.getCardDiscountsForCarrier);
@@ -55,13 +54,6 @@ export function Step4PlanDiscount() {
       setPlan(premiumPlan.id);
     }
   }, [premiumPlan, selectedPlanId, setPlan]);
-
-  // 용량 미선택 시 항상 첫 번째 용량 자동 선택
-  useEffect(() => {
-    if (selectedPhone && !selectedStorage && selectedPhone.storage.length > 0) {
-      setStorage(selectedPhone.storage[0].size);
-    }
-  }, [selectedPhone, selectedStorage, setStorage]);
 
   // Subsidy
   const getSubsidyData = (): { 공통지원금: number; 추가지원금: number; 특별지원: number } => {
@@ -219,7 +211,10 @@ export function Step4PlanDiscount() {
       <div className={styles.container} ref={topRef}>
         {/* ===== 상단: 폰 이미지 + 가격 + 색상 ===== */}
         {selectedPhone && (
-          <div className={styles.phoneHeroCard}>
+          <div className={styles.phoneHero}>
+            <div className={styles.phoneHeroImageWrap}>
+              <img className={styles.phoneHeroImage} src={selectedPhone.image} alt={selectedPhone.name} />
+            </div>
             <div className={styles.phoneHeroInfo}>
               <div className={styles.phoneHeroName}>{selectedPhone.name}</div>
               {quote && (
@@ -269,23 +264,6 @@ export function Step4PlanDiscount() {
                   )}
                 </div>
               )}
-              {/* 용량 선택 */}
-              {selectedPhone.storage.length > 1 && (
-                <div className={styles.storageSelector}>
-                  <div className={styles.storageSelectorLabel}>용량 선택</div>
-                  <div className={styles.storagePills}>
-                    {selectedPhone.storage.map((s) => (
-                      <button
-                        key={s.size}
-                        className={`${styles.storagePill} ${selectedStorage === s.size ? styles.storagePillActive : ''}`}
-                        onClick={() => setStorage(s.size)}
-                      >
-                        <span className={styles.storagePillSize}>{s.size}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         )}
@@ -307,9 +285,6 @@ export function Step4PlanDiscount() {
         )}
 
         {/* ===== 요금제 & 할인 선택 ===== */}
-        <h2 className={styles.title}>요금제 & 할인 선택</h2>
-        <p className={styles.subtitle}>요금제와 할인 방식을 선택해주세요</p>
-
         <div className={styles.discountToggle}>
           <button
             className={`${styles.toggleBtn} ${discountType === '공통지원금' ? styles.active : ''}`}
@@ -330,6 +305,9 @@ export function Step4PlanDiscount() {
             ? '공통지원금: 기기값을 할인받는 대신, 요금제 할인은 받지 못합니다.'
             : '선택약정: 요금제를 25% 할인받는 대신, 기기값 할인(공통지원금)은 받지 못합니다.'}
         </div>
+
+        <h2 className={styles.title}>요금제 & 할인 선택</h2>
+        <p className={styles.subtitle}>요금제와 할인 방식을 선택해주세요</p>
 
         {premiumPlan && (
           <Card selected={true} onClick={() => setPlan(premiumPlan.id)} className={styles.planCard}>
