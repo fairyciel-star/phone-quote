@@ -29,12 +29,14 @@ export function Step4PlanDiscount() {
   const setDiscountType = useQuoteStore((s) => s.setDiscountType);
   const toggleDiscount = useQuoteStore((s) => s.toggleDiscount);
   const setColor = useQuoteStore((s) => s.setColor);
+  const setStorage = useQuoteStore((s) => s.setStorage);
 
   const sheetLoaded = useSheetStore((s) => s.loaded);
   const getSheetCards = useSheetStore((s) => s.getCardDiscountsForCarrier);
   const getSheetPlans = useSheetStore((s) => s.getPlansForCarrier);
   const getSheetAddons = useSheetStore((s) => s.getAddonsForCarrier);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
+  const getStoragesForPhone = useSheetStore((s) => s.getStoragesForPhone);
   const getUsedPhoneList = useSheetStore((s) => s.getUsedPhoneList);
 
   const selectedPhone = phones.find((p) => p.id === selectedPhoneId);
@@ -250,7 +252,7 @@ export function Step4PlanDiscount() {
                         key={c.name}
                         className={`${styles.colorDot} ${selectedColor === c.name ? styles.colorDotActive : ''}`}
                         style={{ backgroundColor: c.hex }}
-                        onClick={() => setColor(c.name)}
+                        onClick={() => { setColor(c.name); setStorage(null as unknown as string); }}
                         title={c.name}
                       />
                     ))}
@@ -264,6 +266,32 @@ export function Step4PlanDiscount() {
                   )}
                 </div>
               )}
+
+              {/* 용량 선택 — 색상 선택 후, 용량 미선택 시 표시 */}
+              {selectedColor && !selectedStorage && (() => {
+                const sheetStorages = sheetLoaded && selectedPhoneId && carrierId
+                  ? getStoragesForPhone(selectedPhoneId, carrierId as import('../../types').CarrierId)
+                  : [];
+                const storages = sheetStorages.length > 0
+                  ? sheetStorages
+                  : selectedPhone.storage.map((s) => ({ size: s.size, price: s.price }));
+                return storages.length > 0 ? (
+                  <div className={styles.storageSelector}>
+                    <div className={styles.storageSelectorLabel}>용량을 선택해주세요</div>
+                    <div className={styles.storageBtns}>
+                      {storages.map((s) => (
+                        <button
+                          key={s.size}
+                          className={styles.storageBtn}
+                          onClick={() => setStorage(s.size)}
+                        >
+                          {s.size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null;
+              })()}
             </div>
           </div>
         )}
