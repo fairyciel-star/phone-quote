@@ -29,11 +29,14 @@ export function calculate선택약정할인(
   return Math.floor(monthlyFee * 할인율);
 }
 
-export function calculateLowestMonthlyPrice(params: {
+/**
+ * 공통지원금 + 추가지원금 합산 기준으로 기기 실구매 최저가를 계산한다.
+ * 모든 통신사(또는 선택된 통신사), 용량, 가입유형 조합 중
+ * 출고가 - (공통지원금 + 추가지원금) 의 최솟값을 반환한다.
+ */
+export function calculateLowestDevicePrice(params: {
   phone: Phone;
   carriers: readonly CarrierId[];
-  plans: readonly Plan[];
-  할부개월?: number;
   getSubsidy?: (
     모델ID: string,
     통신사: CarrierId,
@@ -42,16 +45,12 @@ export function calculateLowestMonthlyPrice(params: {
   ) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number };
   sheetLoaded?: boolean;
 }): number {
-  const { phone, carriers, plans, 할부개월 = 24, getSubsidy, sheetLoaded } = params;
+  const { phone, carriers, getSubsidy, sheetLoaded } = params;
   const subscriptionTypes: SubscriptionType[] = ['번호이동', '기기변경'];
-  const discountTypes: DiscountType[] = ['공통지원금', '선택약정'];
 
   let lowest = Infinity;
 
   for (const carrierId of carriers) {
-    const carrierPlans = plans.filter((p) => p.carrier === carrierId);
-    if (carrierPlans.length === 0) continue;
-
     for (const storageOption of phone.storage) {
       for (const subType of subscriptionTypes) {
         let 출고가 = storageOption.price;
@@ -62,21 +61,11 @@ export function calculateLowestMonthlyPrice(params: {
           const sheet = getSubsidy(phone.id, carrierId, storageOption.size, subType);
           if (sheet.출고가 > 0) 출고가 = sheet.출고가;
           if (sheet.공통지원금 > 0) 공통지원금 = sheet.공통지원금;
-          추가지원금 = sheet.추가지원금;
+          if (sheet.추가지원금 > 0) 추가지원금 = sheet.추가지원금;
         }
 
-        for (const discountType of discountTypes) {
-          for (const plan of carrierPlans) {
-            const base = calculate할부원금(출고가, 공통지원금, 추가지원금, discountType);
-            const 월할부금 = calculate월할부금(Math.max(0, base), 할부개월);
-            const 선택약정할인 =
-              discountType === '선택약정'
-                ? calculate선택약정할인(plan.monthlyFee, plan.선택약정할인율)
-                : 0;
-            const total = 월할부금 + plan.monthlyFee - 선택약정할인;
-            if (total < lowest) lowest = total;
-          }
-        }
+        const 실구매가 = Math.max(0, 출고가 - 공통지원금 - 추가지원금);
+        if (실구매가 < lowest) lowest = 실구매가;
       }
     }
   }
