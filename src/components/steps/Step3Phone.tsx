@@ -4,10 +4,14 @@ import { useSheetStore } from '../../store/useSheetStore';
 import { Card } from '../ui/Card';
 import { StepNavigation } from '../layout/StepNavigation';
 import phonesData from '../../data/phones.json';
-import type { Phone } from '../../types';
+import plansData from '../../data/plans.json';
+import type { Phone, Plan } from '../../types';
 import { formatWon } from '../../utils/format';
 import { hapticMedium } from '../../utils/haptic';
+import { calculateLowestMonthlyPrice } from '../../utils/price';
 import styles from './Step3Phone.module.css';
+
+const allPlans = plansData as unknown as Plan[];
 
 const phones = phonesData as unknown as Phone[];
 
@@ -88,7 +92,15 @@ export function Step3Phone() {
         <div className={styles.list}>
           {filteredPhones.map((phone) => {
             const isSelected = selectedPhoneId === phone.id;
-            const lowestPrice = getDisplayPrice(phone, phone.storage[0].size);
+            const retailPrice = getDisplayPrice(phone, phone.storage[0].size);
+            const targetCarriers = carrierId ? [carrierId] : phone.carriers;
+            const lowestMonthly = calculateLowestMonthlyPrice({
+              phone,
+              carriers: targetCarriers,
+              plans: allPlans,
+              sheetLoaded,
+              getSubsidy,
+            });
             return (
               <div key={phone.id}>
                 <Card
@@ -119,8 +131,12 @@ export function Step3Phone() {
                         })()}
                       </div>
                       <span className={styles.phonePrice}>
-                        {formatWon(lowestPrice)}~
+                        {formatWon(retailPrice)}~
                       </span>
+                    </div>
+                    <div className={styles.lowestPrice}>
+                      <span className={styles.lowestPriceLabel}>오늘 최저가 금액</span>
+                      <span className={styles.lowestPriceValue}>{formatWon(lowestMonthly)}</span>
                     </div>
                   </div>
                 </Card>

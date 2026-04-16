@@ -124,6 +124,28 @@
   font-weight: 600;
 }
 
+.lowestPrice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  gap: 2px;
+}
+
+.lowestPriceLabel {
+  font-size: 11px;
+  color: var(--color-primary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.lowestPriceValue {
+  font-size: 15px;
+  color: var(--color-primary);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 /* 용량 선택 패널 - 선택된 모델 바로 아래 */
 .storagePanel {
   background: var(--color-primary-light);
