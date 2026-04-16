@@ -361,10 +361,18 @@ export function Step4PlanDiscount() {
                       <span className={styles.subsidyLabel}>공통지원금</span>
                       <span className={styles.subsidyAmount}>{formatWon(subsidyAmount)}</span>
                     </div>
-                    <div className={styles.subsidyItem}>
-                      <span className={styles.subsidyLabel}>최대 매장지원금</span>
-                      <span className={styles.subsidyAmount}>{formatWon(totalMaxSubsidy)}</span>
-                    </div>
+                    {extraSubsidy > 0 && (
+                      <div className={styles.subsidyItem}>
+                        <span className={styles.subsidyLabel}>최대 매장지원금</span>
+                        <span className={styles.subsidyAmount}>{formatWon(extraSubsidy)}</span>
+                      </div>
+                    )}
+                    {specialSupport > 0 && (
+                      <div className={styles.subsidyItem}>
+                        <span className={styles.subsidyLabel}>동네폰 특별지원</span>
+                        <span className={styles.subsidyAmount}>{formatWon(specialSupport)}</span>
+                      </div>
+                    )}
                     <div className={styles.subsidyItem}>
                       <span className={styles.subsidyTotalLabel}>최대 지원금</span>
                       <span className={styles.subsidyTotalAmount}>{formatWon(subsidyAmount + totalMaxSubsidy)}</span>
