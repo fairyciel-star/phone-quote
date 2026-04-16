@@ -30,9 +30,9 @@ export function calculate선택약정할인(
 }
 
 /**
- * 공통지원금 + 추가지원금 합산 기준으로 기기 실구매 최저가를 계산한다.
+ * 공통지원금 + 추가지원금 + 특별지원금 합산 기준으로 기기 실구매 최저가를 계산한다.
  * 모든 통신사(또는 선택된 통신사), 용량, 가입유형 조합 중
- * 출고가 - (공통지원금 + 추가지원금) 의 최솟값을 반환한다.
+ * 출고가 - (공통지원금 + 추가지원금 + 특별지원) 의 최솟값을 반환한다.
  */
 export function calculateLowestDevicePrice(params: {
   phone: Phone;
@@ -56,15 +56,17 @@ export function calculateLowestDevicePrice(params: {
         let 출고가 = storageOption.price;
         let 공통지원금 = phone.공통지원금[carrierId as keyof typeof phone.공통지원금]?.[storageOption.size] ?? 0;
         let 추가지원금 = 0;
+        let 특별지원 = 0;
 
         if (sheetLoaded && getSubsidy) {
           const sheet = getSubsidy(phone.id, carrierId, storageOption.size, subType);
           if (sheet.출고가 > 0) 출고가 = sheet.출고가;
           if (sheet.공통지원금 > 0) 공통지원금 = sheet.공통지원금;
           if (sheet.추가지원금 > 0) 추가지원금 = sheet.추가지원금;
+          if (sheet.특별지원 > 0) 특별지원 = sheet.특별지원;
         }
 
-        const 실구매가 = Math.max(0, 출고가 - 공통지원금 - 추가지원금);
+        const 실구매가 = Math.max(0, 출고가 - 공통지원금 - 추가지원금 - 특별지원);
         if (실구매가 < lowest) lowest = 실구매가;
       }
     }
