@@ -90,6 +90,10 @@ export const useQuoteStore = create<QuoteState & QuoteActions>((set) => ({
   setCarrier: (carrier) =>
     set({
       carrierId: carrier,
+      // 현재 통신사를 새로 지정할 때는 번호이동용 원래 통신사 기록을 초기화
+      // (Step2에서 통신사를 변경한 뒤 Step1의 "변경할 통신사" 목록이
+      //  stale previousCarrier로 잘못 필터링되는 버그 방지)
+      previousCarrier: null,
       selectedPlanId: null,
       selectedDiscountIds: [],
     }),
