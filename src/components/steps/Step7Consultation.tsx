@@ -94,12 +94,14 @@ export function Step7Consultation() {
         출고가Override: sheetSubsidy?.출고가,
         공통지원금Override: sheetSubsidy?.공통지원금,
         추가지원금Override: sheetSubsidy?.추가지원금,
+        특별지원Override: sheetSubsidy?.특별지원,
       });
       quoteText = `
 <b>📱 견적 정보</b>
 • 출고가: ${formatWon(quote.출고가)}
 • 공통지원금: -${formatWon(quote.공통지원금)}
-• 매장지원금: -${formatWon(quote.추가지원금)}
+• 매장지원금: -${formatWon(quote.추가지원금)}${quote.특별지원 > 0 ? `
+• 동네폰 특별지원: -${formatWon(quote.특별지원)}` : ''}
 • 할부원금: <b>${formatWon(quote.할부원금)}</b>
 • 월 할부금 (${할부개월}개월): <b>${formatWon(quote.월할부금)}</b>
 • 월 요금제: ${formatWon(quote.월요금제)}

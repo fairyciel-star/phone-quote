@@ -205,6 +205,7 @@ export function Step4PlanDiscount() {
       출고가Override: sheetSubsidy?.출고가,
       공통지원금Override: sheetSubsidy?.공통지원금,
       추가지원금Override: sheetSubsidy?.추가지원금,
+      특별지원Override: sheetSubsidy?.특별지원,
     });
   }, [selectedPhone, plan, selectedStorage, carrierId, discountType, selectedDiscounts, 할부개월, sheetSubsidy]);
 
