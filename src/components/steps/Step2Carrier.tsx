@@ -7,7 +7,11 @@ import { hapticMedium } from '../../utils/haptic';
 import styles from './Step2Carrier.module.css';
 
 export function Step2Carrier() {
-  const selected = useQuoteStore((s) => s.carrierId);
+  // 번호이동으로 carrierId가 교체된 상태에서 Step2로 돌아와도
+  // "현재 통신사"(= previousCarrier)를 선택된 것으로 표시한다.
+  const carrierId = useQuoteStore((s) => s.carrierId);
+  const previousCarrier = useQuoteStore((s) => s.previousCarrier);
+  const selected = previousCarrier ?? carrierId;
   const setCarrier = useQuoteStore((s) => s.setCarrier);
   const setStep = useQuoteStore((s) => s.setStep);
   const currentStep = useQuoteStore((s) => s.currentStep);
