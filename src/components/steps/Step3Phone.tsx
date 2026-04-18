@@ -4,6 +4,7 @@ import { useSheetStore } from '../../store/useSheetStore';
 import { Card } from '../ui/Card';
 import { StepNavigation } from '../layout/StepNavigation';
 import phonesData from '../../data/phones.json';
+import carriersData from '../../data/carriers.json';
 import type { Phone } from '../../types';
 import { formatWon } from '../../utils/format';
 import { hapticMedium } from '../../utils/haptic';
@@ -23,8 +24,14 @@ export function Step3Phone() {
   const setColor = useQuoteStore((s) => s.setColor);
 
   const sheetLoaded = useSheetStore((s) => s.loaded);
+  const sheetLoading = useSheetStore((s) => s.loading);
+  const sheetError = useSheetStore((s) => s.error);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
   const getPhoneBadge = useSheetStore((s) => s.getPhoneBadge);
+
+  // Sheet data is authoritative — wait until load attempt finishes
+  // before rendering the lowest price to avoid JSON→Sheet flipping.
+  const showLowestPrice = sheetLoaded || (sheetError !== null && !sheetLoading);
 
   const selectedBrand = useQuoteStore((s) => s.selectedBrand);
   const [brandFilter, setBrandFilter] = useState<BrandFilter>(
@@ -91,12 +98,15 @@ export function Step3Phone() {
             const isSelected = selectedPhoneId === phone.id;
             const retailPrice = getDisplayPrice(phone, phone.storage[0].size);
             const targetCarriers = carrierId ? [carrierId] : phone.carriers;
-            const lowestDevicePrice = calculateLowestDevicePrice({
+            const { price: lowestDevicePrice, carrierId: lowestCarrierId } = calculateLowestDevicePrice({
               phone,
               carriers: targetCarriers,
               sheetLoaded,
               getSubsidy,
             });
+            const lowestCarrier = lowestCarrierId
+              ? carriersData.find((c) => c.id === lowestCarrierId)
+              : null;
             return (
               <div key={phone.id}>
                 <Card
@@ -131,8 +141,19 @@ export function Step3Phone() {
                       </span>
                     </div>
                     <div className={styles.lowestPrice}>
+                      {showLowestPrice && lowestCarrier && (
+                        <img
+                          className={styles.lowestPriceCarrier}
+                          src={`/images/${lowestCarrier.id}.png`}
+                          alt={lowestCarrier.name}
+                        />
+                      )}
                       <span className={styles.lowestPriceLabel}>오늘 최저가 금액</span>
-                      <span className={styles.lowestPriceValue}>{formatWon(lowestDevicePrice)}</span>
+                      {showLowestPrice ? (
+                        <span className={styles.lowestPriceValue}>{formatWon(lowestDevicePrice)}</span>
+                      ) : (
+                        <span className={styles.lowestPriceSkeleton} aria-label="loading" />
+                      )}
                     </div>
                   </div>
                 </Card>

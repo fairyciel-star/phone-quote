@@ -37,6 +37,11 @@ export function calculate선택약정할인(
  * 모든 통신사(또는 선택된 통신사), 용량, 가입유형 조합 중
  * 출고가 - (공통지원금 + 추가지원금 + 특별지원) 의 최솟값을 반환한다.
  */
+export interface LowestDevicePriceResult {
+  readonly price: number;
+  readonly carrierId: CarrierId | null;
+}
+
 export function calculateLowestDevicePrice(params: {
   phone: Phone;
   carriers: readonly CarrierId[];
@@ -47,11 +52,12 @@ export function calculateLowestDevicePrice(params: {
     가입유형: SubscriptionType
   ) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number };
   sheetLoaded?: boolean;
-}): number {
+}): LowestDevicePriceResult {
   const { phone, carriers, getSubsidy, sheetLoaded } = params;
   const subscriptionTypes: SubscriptionType[] = ['번호이동', '기기변경'];
 
   let lowest = Infinity;
+  let lowestCarrier: CarrierId | null = null;
 
   for (const carrierId of carriers) {
     for (const storageOption of phone.storage) {
@@ -70,12 +76,18 @@ export function calculateLowestDevicePrice(params: {
         }
 
         const 실구매가 = Math.max(0, 출고가 - 공통지원금 - 추가지원금 - 특별지원);
-        if (실구매가 < lowest) lowest = 실구매가;
+        if (실구매가 < lowest) {
+          lowest = 실구매가;
+          lowestCarrier = carrierId;
+        }
       }
     }
   }
 
-  return lowest === Infinity ? 0 : lowest;
+  return {
+    price: lowest === Infinity ? 0 : lowest,
+    carrierId: lowestCarrier,
+  };
 }
 
 export function calculateFullQuote(params: {
