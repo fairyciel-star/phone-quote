@@ -66,3 +66,49 @@
   font-weight: 700;
   color: #4A3AFF;
 }
+
+/* 최저가 검색 오버레이 */
+.searchOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+.searchIcon {
+  width: 72px;
+  height: 72px;
+  animation: searchBounce 1.2s ease-in-out infinite;
+}
+
+.searchText {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: -0.2px;
+}
+
+.searchDots {
+  display: inline-block;
+  width: 18px;
+  text-align: left;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes searchBounce {
+  0%, 100% { transform: translate(0, 0) rotate(-8deg); }
+  25% { transform: translate(6px, -4px) rotate(6deg); }
+  50% { transform: translate(-4px, 2px) rotate(-10deg); }
+  75% { transform: translate(4px, -2px) rotate(8deg); }
+}
