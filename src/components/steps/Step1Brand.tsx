@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { useQuoteStore } from '../../store/useQuoteStore';
 import { hapticMedium } from '../../utils/haptic';
 import styles from './Step1Brand.module.css';
@@ -51,10 +52,32 @@ export function Step1Brand() {
   const setStep = useQuoteStore((s) => s.setStep);
   const currentStep = useQuoteStore((s) => s.currentStep);
 
+  const [searching, setSearching] = useState(false);
+  const [dots, setDots] = useState('');
+  const timerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!searching) return;
+    const interval = window.setInterval(() => {
+      setDots((prev) => (prev.length >= 3 ? '' : prev + '.'));
+    }, 300);
+    return () => window.clearInterval(interval);
+  }, [searching]);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+    };
+  }, []);
+
   const handleSelect = (filter: string) => {
+    if (searching) return;
     hapticMedium();
-    setBrand(filter);
-    setStep(currentStep + 1);
+    setSearching(true);
+    timerRef.current = window.setTimeout(() => {
+      setBrand(filter);
+      setStep(currentStep + 1);
+    }, 1000);
   };
 
   return (
@@ -72,6 +95,32 @@ export function Step1Brand() {
           </button>
         ))}
       </div>
+
+      {searching && (
+        <div className={styles.searchOverlay} role="status" aria-live="polite">
+          <svg
+            className={styles.searchIcon}
+            viewBox="0 0 64 64"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <circle cx="26" cy="26" r="16" stroke="#4A3AFF" strokeWidth="5" />
+            <line
+              x1="38"
+              y1="38"
+              x2="54"
+              y2="54"
+              stroke="#4A3AFF"
+              strokeWidth="5"
+              strokeLinecap="round"
+            />
+            <circle cx="22" cy="22" r="4" fill="#4A3AFF" opacity="0.35" />
+          </svg>
+          <div className={styles.searchText}>
+            최저가 검색중입니다<span className={styles.searchDots}>{dots}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
