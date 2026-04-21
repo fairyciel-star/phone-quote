@@ -96,10 +96,9 @@ export function Step3Phone() {
           {filteredPhones.map((phone) => {
             const isSelected = selectedPhoneId === phone.id;
             const retailPrice = getDisplayPrice(phone, phone.storage[0].size);
-            const targetCarriers = carrierId ? [carrierId] : phone.carriers;
             const { price: lowestDevicePrice } = calculateLowestDevicePrice({
               phone,
-              carriers: targetCarriers,
+              carriers: phone.carriers,
               sheetLoaded,
               getSubsidy,
             });
