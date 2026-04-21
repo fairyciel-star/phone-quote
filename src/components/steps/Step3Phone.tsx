@@ -98,15 +98,12 @@ export function Step3Phone() {
             const isSelected = selectedPhoneId === phone.id;
             const retailPrice = getDisplayPrice(phone, phone.storage[0].size);
             const targetCarriers = carrierId ? [carrierId] : phone.carriers;
-            const { price: lowestDevicePrice, carrierId: lowestCarrierId } = calculateLowestDevicePrice({
+            const { price: lowestDevicePrice } = calculateLowestDevicePrice({
               phone,
               carriers: targetCarriers,
               sheetLoaded,
               getSubsidy,
             });
-            const lowestCarrier = lowestCarrierId
-              ? carriersData.find((c) => c.id === lowestCarrierId)
-              : null;
             return (
               <div key={phone.id}>
                 <Card
