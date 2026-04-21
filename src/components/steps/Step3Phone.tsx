@@ -4,7 +4,6 @@ import { useSheetStore } from '../../store/useSheetStore';
 import { Card } from '../ui/Card';
 import { StepNavigation } from '../layout/StepNavigation';
 import phonesData from '../../data/phones.json';
-import carriersData from '../../data/carriers.json';
 import type { Phone } from '../../types';
 import { formatWon } from '../../utils/format';
 import { hapticMedium } from '../../utils/haptic';
