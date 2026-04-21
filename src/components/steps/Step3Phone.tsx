@@ -141,13 +141,6 @@ export function Step3Phone() {
                       </span>
                     </div>
                     <div className={styles.lowestPrice}>
-                      {showLowestPrice && lowestCarrier && (
-                        <img
-                          className={styles.lowestPriceCarrier}
-                          src={`/images/${lowestCarrier.id}.png`}
-                          alt={lowestCarrier.name}
-                        />
-                      )}
                       <span className={styles.lowestPriceLabel}>오늘 최저가 금액</span>
                       {showLowestPrice ? (
                         <span className={styles.lowestPriceValue}>{formatWon(lowestDevicePrice)}</span>
