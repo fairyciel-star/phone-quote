@@ -1,20 +1,5 @@
 import type { CarrierId, Discount, DiscountType, Phone, Plan, PriceBreakdown, SubscriptionType } from '../types';
 
-export function calculate할부원금(
-  출고가: number,
-  공통지원금: number,
-  추가지원금: number,
-  특별지원: number,
-  discountType: DiscountType
-): number {
-  // 특별지원과 추가지원금은 할인유형과 무관하게 항상 적용
-  // 공통지원금은 '공통지원금' 모드일 때만 적용
-  if (discountType === '공통지원금') {
-    return 출고가 - 공통지원금 - 추가지원금 - 특별지원;
-  }
-  return 출고가 - 추가지원금 - 특별지원;
-}
-
 const 연이율 = 0.059;
 
 export function calculate월할부금(할부원금: number, months: number): number {
@@ -132,8 +117,8 @@ export function calculateFullQuote(params: {
   const 부가서비스추가할인 = addons.reduce((sum, d) => sum + (d.추가할인 ?? 0), 0);
   const 월부가서비스료 = addons.reduce((sum, d) => sum + (d.monthlyFee ?? 0), 0);
 
-  // 할부원금 = 출고가 - 공통지원금 - 추가지원금(매장지원금) - 특별지원 - 제휴카드24개월할인 - 부가서비스추가할인
-  const base할부원금 = calculate할부원금(출고가, 공통지원금, 추가지원금, 특별지원, discountType);
+  // 할부원금 = 출고가 - 공통지원금 - 추가지원금 - 특별지원 - 제휴카드24개월할인 - 부가서비스추가할인
+  const base할부원금 = 출고가 - 공통지원금 - 추가지원금 - 특별지원;
   const 할부원금 = Math.max(0, base할부원금 - 제휴카드24개월할인 - 부가서비스추가할인);
   const 월할부금 = calculate월할부금(할부원금, 할부개월);
 

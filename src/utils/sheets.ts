@@ -24,6 +24,7 @@ const SHEET_GIDS = {
   요금제: '882540890',
   부가서비스: '528526412',
   중고폰시세: '1666746914',
+  선택약정: '',
 } as const;
 
 function parseCsvLine(line: string): string[] {
@@ -86,6 +87,8 @@ export interface SubsidyRow {
   readonly 추가지원금: number;
   readonly 배지: string;
   readonly 특별지원: number;
+  readonly 선택약정_추가지원금: number;
+  readonly 선택약정_특별지원: number;
 }
 
 export async function fetchSubsidies(sheetIdOrUrl: string): Promise<SubsidyRow[]> {
@@ -102,6 +105,8 @@ export async function fetchSubsidies(sheetIdOrUrl: string): Promise<SubsidyRow[]
     추가지원금: Number(row['추가지원금']) || 0,
     배지: row['배지'] ?? '',
     특별지원: Number(row['특별지원']) || 0,
+    선택약정_추가지원금: Number(row['선택약정_추가지원금']) || 0,
+    선택약정_특별지원: Number(row['선택약정_특별지원금'] ?? row['선택약정_특별지원']) || 0,
   }));
 }
 
@@ -194,6 +199,36 @@ export async function fetchUsedPhones(sheetIdOrUrl: string): Promise<UsedPhoneRo
     B등급: Number(row['B등급']) || 0,
     C등급: Number(row['C등급']) || 0,
     E등급: Number(row['E등급']) || 0,
+  }));
+}
+
+// ── 선택약정 지원금 (공통지원금과 동일 구조, 모델×통신사×용량×가입유형) ──
+
+export interface SelectAgreementSubsidyRow {
+  readonly 모델ID: string;
+  readonly 통신사: CarrierId;
+  readonly 용량: string;
+  readonly 가입유형: SubscriptionType;
+  readonly 출고가: number;
+  readonly 추가지원금: number;
+  readonly 특별지원: number;
+}
+
+export async function fetchSelectAgreementSubsidies(
+  sheetIdOrUrl: string
+): Promise<SelectAgreementSubsidyRow[]> {
+  if (!SHEET_GIDS.선택약정) return [];
+  const pubKey = extractPubKey(sheetIdOrUrl);
+  const rows = await fetchCsv(pubKey, SHEET_GIDS.선택약정);
+
+  return rows.map((row) => ({
+    모델ID: row['모델ID'] ?? '',
+    통신사: (row['통신사'] ?? '') as CarrierId,
+    용량: row['용량'] ?? '',
+    가입유형: (row['가입유형'] ?? '번호이동') as SubscriptionType,
+    출고가: Number(row['출고가']) || 0,
+    추가지원금: Number(row['추가지원금']) || 0,
+    특별지원: Number(row['특별지원']) || 0,
   }));
 }
 

@@ -38,6 +38,7 @@ export function Step4PlanDiscount() {
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
   const getStoragesForPhone = useSheetStore((s) => s.getStoragesForPhone);
   const getUsedPhoneList = useSheetStore((s) => s.getUsedPhoneList);
+  const getSelectAgreementSubsidy = useSheetStore((s) => s.getSelectAgreementSubsidy);
 
   const selectedPhone = phones.find((p) => p.id === selectedPhoneId);
   const carrier = carriersData.find((c) => c.id === carrierId);
@@ -52,14 +53,21 @@ export function Step4PlanDiscount() {
   );
 
   useEffect(() => {
-    if (premiumPlan && selectedPlanId !== premiumPlan.id) {
+    if (!premiumPlan) return;
+    const hasSelected = selectedPlanId && carrierPlans.some((p) => p.id === selectedPlanId);
+    if (!hasSelected) {
       setPlan(premiumPlan.id);
     }
-  }, [premiumPlan, selectedPlanId, setPlan]);
+  }, [premiumPlan, selectedPlanId, carrierPlans, setPlan]);
 
-  // Subsidy
+  // Subsidy (mode-aware: 공통지원금 vs 선택약정)
   const getSubsidyData = (): { 공통지원금: number; 추가지원금: number; 특별지원: number } => {
     if (!selectedPhone || !carrierId || !selectedStorage || !subscriptionType) return { 공통지원금: 0, 추가지원금: 0, 특별지원: 0 };
+    if (sheetLoaded && discountType === '선택약정') {
+      // 선택약정 모드: 선택약정 시트의 추가/특별지원 사용 (공통지원금은 0)
+      const sa = getSelectAgreementSubsidy(selectedPhone.id, carrierId, selectedStorage, subscriptionType);
+      return { 공통지원금: 0, 추가지원금: sa.추가지원금, 특별지원: sa.특별지원 };
+    }
     if (sheetLoaded) {
       const sheet = getSubsidy(selectedPhone.id, carrierId, selectedStorage, subscriptionType);
       if (sheet.공통지원금 > 0) return { 공통지원금: sheet.공통지원금, 추가지원금: sheet.추가지원금, 특별지원: sheet.특별지원 };
@@ -186,9 +194,23 @@ export function Step4PlanDiscount() {
   ];
   const selectedDiscounts = allDiscounts.filter((d) => selectedIds.includes(d.id));
 
-  const sheetSubsidy = sheetLoaded && selectedPhoneId && carrierId && selectedStorage && subscriptionType
+  const commonSheetSubsidy = sheetLoaded && selectedPhoneId && carrierId && selectedStorage && subscriptionType
     ? getSubsidy(selectedPhoneId, carrierId, selectedStorage, subscriptionType)
     : null;
+
+  const saSheetSubsidy = sheetLoaded && selectedPhoneId && carrierId && selectedStorage && subscriptionType
+    ? getSelectAgreementSubsidy(selectedPhoneId, carrierId, selectedStorage, subscriptionType)
+    : null;
+
+  // 선택약정 모드: 선택약정 시트값 우선, 공통지원금 모드: 공통지원금 시트값
+  const activeSheetSubsidy = discountType === '선택약정'
+    ? (saSheetSubsidy ? {
+        출고가: saSheetSubsidy.출고가 || commonSheetSubsidy?.출고가 || 0,
+        공통지원금: 0,
+        추가지원금: saSheetSubsidy.추가지원금,
+        특별지원: saSheetSubsidy.특별지원,
+      } : commonSheetSubsidy)
+    : commonSheetSubsidy;
 
   const plan = carrierPlans.find((p) => p.id === selectedPlanId) ?? premiumPlan;
 
@@ -202,12 +224,12 @@ export function Step4PlanDiscount() {
       discountType,
       selectedDiscounts,
       할부개월,
-      출고가Override: sheetSubsidy?.출고가,
-      공통지원금Override: sheetSubsidy?.공통지원금,
-      추가지원금Override: sheetSubsidy?.추가지원금,
-      특별지원Override: sheetSubsidy?.특별지원,
+      출고가Override: activeSheetSubsidy?.출고가,
+      공통지원금Override: activeSheetSubsidy?.공통지원금,
+      추가지원금Override: activeSheetSubsidy?.추가지원금,
+      특별지원Override: activeSheetSubsidy?.특별지원,
     });
-  }, [selectedPhone, plan, selectedStorage, carrierId, discountType, selectedDiscounts, 할부개월, sheetSubsidy]);
+  }, [selectedPhone, plan, selectedStorage, carrierId, discountType, selectedDiscounts, 할부개월, activeSheetSubsidy]);
 
   return (
     <>
@@ -338,7 +360,7 @@ export function Step4PlanDiscount() {
         <h2 className={styles.title}>요금제 & 할인 선택</h2>
         <p className={styles.subtitle}>요금제와 할인 방식을 선택해주세요</p>
 
-        {premiumPlan && (
+        {discountType === '공통지원금' && premiumPlan && (
           <Card selected={true} onClick={() => setPlan(premiumPlan.id)} className={styles.planCard}>
             <div className={styles.planLayout}>
               <div className={styles.planLeft}>
@@ -356,33 +378,98 @@ export function Step4PlanDiscount() {
                   <Badge>{premiumPlan.data}</Badge>
                   <Badge>6개월 유지</Badge>
                 </div>
-                {discountType === '공통지원금' && (
-                  <div className={styles.subsidyColumn}>
-                    <div className={styles.subsidyItem}>
-                      <span className={styles.subsidyLabel}>공통지원금</span>
-                      <span className={styles.subsidyAmount}>{formatWon(subsidyAmount)}</span>
-                    </div>
-                    {extraSubsidy > 0 && (
-                      <div className={styles.subsidyItem}>
-                        <span className={styles.subsidyLabel}>최대 매장지원금</span>
-                        <span className={styles.subsidyAmount}>{formatWon(extraSubsidy)}</span>
-                      </div>
-                    )}
-                    {specialSupport > 0 && (
-                      <div className={styles.subsidyItem}>
-                        <span className={styles.subsidyLabel}>동네폰 특별지원</span>
-                        <span className={styles.subsidyAmount}>{formatWon(specialSupport)}</span>
-                      </div>
-                    )}
-                    <div className={styles.subsidyItem}>
-                      <span className={styles.subsidyTotalLabel}>최대 지원금</span>
-                      <span className={styles.subsidyTotalAmount}>{formatWon(subsidyAmount + totalMaxSubsidy)}</span>
-                    </div>
+                <div className={styles.subsidyColumn}>
+                  <div className={styles.subsidyItem}>
+                    <span className={styles.subsidyLabel}>공통지원금</span>
+                    <span className={styles.subsidyAmount}>{formatWon(subsidyAmount)}</span>
                   </div>
-                )}
+                  {extraSubsidy > 0 && (
+                    <div className={styles.subsidyItem}>
+                      <span className={styles.subsidyLabel}>최대 매장지원금</span>
+                      <span className={styles.subsidyAmount}>{formatWon(extraSubsidy)}</span>
+                    </div>
+                  )}
+                  {specialSupport > 0 && (
+                    <div className={styles.subsidyItem}>
+                      <span className={styles.subsidyLabel}>동네폰 특별지원</span>
+                      <span className={styles.subsidyAmount}>{formatWon(specialSupport)}</span>
+                    </div>
+                  )}
+                  <div className={styles.subsidyItem}>
+                    <span className={styles.subsidyTotalLabel}>최대 지원금</span>
+                    <span className={styles.subsidyTotalAmount}>{formatWon(subsidyAmount + totalMaxSubsidy)}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </Card>
+        )}
+
+        {discountType === '선택약정' && carrierPlans.length > 0 && (
+          <div className={styles.planListSection}>
+            <div className={styles.planListLabel}>요금제를 선택하세요</div>
+            <div className={styles.planList}>
+              {[...carrierPlans]
+                .sort((a, b) => b.monthlyFee - a.monthlyFee)
+                .map((p) => {
+                  const planDiscount = Math.floor(p.monthlyFee * (p.선택약정할인율 || 0.25));
+                  const monthlyAfter = p.monthlyFee - planDiscount;
+                  const isSelected = selectedPlanId === p.id;
+                  return (
+                    <Card
+                      key={p.id}
+                      selected={isSelected}
+                      onClick={() => setPlan(p.id)}
+                      className={styles.planCard}
+                    >
+                      <div className={styles.planLayout}>
+                        <div className={styles.planLeft}>
+                          <div className={styles.planNameRow}>
+                            <span className={styles.planName}>{p.name}</span>
+                          </div>
+                          <div className={styles.planPriceRow}>
+                            <span className={styles.planPriceLabel}>월</span>
+                            <span className={styles.planPrice}>{formatWon(p.monthlyFee)}</span>
+                          </div>
+                          <div className={styles.planAfterDiscount}>
+                            <span className={styles.planAfterLabel}>25% 할인 후</span>
+                            <span className={styles.planAfterPrice}>{formatWon(monthlyAfter)}</span>
+                          </div>
+                        </div>
+                        <div className={styles.planRight}>
+                          <div className={styles.planBadges}>
+                            <Badge>데이터</Badge>
+                            <Badge>{p.data}</Badge>
+                          </div>
+                          {isSelected && (extraSubsidy > 0 || specialSupport > 0) && (
+                            <div className={styles.subsidyColumn}>
+                              {extraSubsidy > 0 && (
+                                <div className={styles.subsidyItem}>
+                                  <span className={styles.subsidyLabel}>최대 매장지원금</span>
+                                  <span className={styles.subsidyAmount}>{formatWon(extraSubsidy)}</span>
+                                </div>
+                              )}
+                              {specialSupport > 0 && (
+                                <div className={styles.subsidyItem}>
+                                  <span className={styles.subsidyLabel}>동네폰 특별지원</span>
+                                  <span className={styles.subsidyAmount}>{formatWon(specialSupport)}</span>
+                                </div>
+                              )}
+                              <div className={styles.subsidyItem}>
+                                <span className={styles.subsidyTotalLabel}>최대 지원금</span>
+                                <span className={styles.subsidyTotalAmount}>
+                                  {formatWon(totalMaxSubsidy)}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+            </div>
+          </div>
         )}
 
         {/* ===== 조건 항목 ===== */}
