@@ -405,71 +405,51 @@ export function Step4PlanDiscount() {
           </Card>
         )}
 
-        {discountType === '선택약정' && carrierPlans.length > 0 && (
-          <div className={styles.planListSection}>
-            <div className={styles.planListLabel}>요금제를 선택하세요</div>
-            <div className={styles.planList}>
-              {[...carrierPlans]
-                .sort((a, b) => b.monthlyFee - a.monthlyFee)
-                .map((p) => {
-                  const planDiscount = Math.floor(p.monthlyFee * (p.선택약정할인율 || 0.25));
-                  const monthlyAfter = p.monthlyFee - planDiscount;
-                  const isSelected = selectedPlanId === p.id;
-                  return (
-                    <Card
-                      key={p.id}
-                      selected={isSelected}
-                      onClick={() => setPlan(p.id)}
-                      className={styles.planCard}
-                    >
-                      <div className={styles.planLayout}>
-                        <div className={styles.planLeft}>
-                          <div className={styles.planNameRow}>
-                            <span className={styles.planName}>{p.name}</span>
-                          </div>
-                          <div className={styles.planPriceRow}>
-                            <span className={styles.planPriceLabel}>월</span>
-                            <span className={styles.planPrice}>{formatWon(p.monthlyFee)}</span>
-                          </div>
-                          <div className={styles.planAfterDiscount}>
-                            <span className={styles.planAfterLabel}>25% 할인 후</span>
-                            <span className={styles.planAfterPrice}>{formatWon(monthlyAfter)}</span>
-                          </div>
-                        </div>
-                        <div className={styles.planRight}>
-                          <div className={styles.planBadges}>
-                            <Badge>데이터</Badge>
-                            <Badge>{p.data}</Badge>
-                          </div>
-                          {isSelected && (extraSubsidy > 0 || specialSupport > 0) && (
-                            <div className={styles.subsidyColumn}>
-                              {extraSubsidy > 0 && (
-                                <div className={styles.subsidyItem}>
-                                  <span className={styles.subsidyLabel}>최대 매장지원금</span>
-                                  <span className={styles.subsidyAmount}>{formatWon(extraSubsidy)}</span>
-                                </div>
-                              )}
-                              {specialSupport > 0 && (
-                                <div className={styles.subsidyItem}>
-                                  <span className={styles.subsidyLabel}>동네폰 특별지원</span>
-                                  <span className={styles.subsidyAmount}>{formatWon(specialSupport)}</span>
-                                </div>
-                              )}
-                              <div className={styles.subsidyItem}>
-                                <span className={styles.subsidyTotalLabel}>최대 지원금</span>
-                                <span className={styles.subsidyTotalAmount}>
-                                  {formatWon(totalMaxSubsidy)}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
+        {discountType === '선택약정' && premiumPlan && (
+          <Card selected={true} onClick={() => setPlan(premiumPlan.id)} className={styles.planCard}>
+            <div className={styles.planLayout}>
+              <div className={styles.planLeft}>
+                <div className={styles.planNameRow}>
+                  <span className={styles.planName}>{premiumPlan.name}</span>
+                </div>
+                <div className={styles.planPriceRow}>
+                  <span className={styles.planPriceLabel}>월</span>
+                  <span className={styles.planPrice}>{formatWon(premiumPlan.monthlyFee)}</span>
+                </div>
+                <div className={styles.planAfterDiscount}>
+                  <span className={styles.planAfterLabel}>25% 할인 후</span>
+                  <span className={styles.planAfterPrice}>{formatWon(premiumPlan.monthlyFee - Math.floor(premiumPlan.monthlyFee * (premiumPlan.선택약정할인율 || 0.25)))}</span>
+                </div>
+              </div>
+              <div className={styles.planRight}>
+                <div className={styles.planBadges}>
+                  <Badge>데이터</Badge>
+                  <Badge>{premiumPlan.data}</Badge>
+                  <Badge>6개월 유지</Badge>
+                </div>
+                {(extraSubsidy > 0 || specialSupport > 0) && (
+                  <div className={styles.subsidyColumn}>
+                    {extraSubsidy > 0 && (
+                      <div className={styles.subsidyItem}>
+                        <span className={styles.subsidyLabel}>최대 매장지원금</span>
+                        <span className={styles.subsidyAmount}>{formatWon(extraSubsidy)}</span>
                       </div>
-                    </Card>
-                  );
-                })}
+                    )}
+                    {specialSupport > 0 && (
+                      <div className={styles.subsidyItem}>
+                        <span className={styles.subsidyLabel}>동네폰 특별지원</span>
+                        <span className={styles.subsidyAmount}>{formatWon(specialSupport)}</span>
+                      </div>
+                    )}
+                    <div className={styles.subsidyItem}>
+                      <span className={styles.subsidyTotalLabel}>최대 지원금</span>
+                      <span className={styles.subsidyTotalAmount}>{formatWon(totalMaxSubsidy)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          </Card>
         )}
 
         {/* ===== 조건 항목 ===== */}
