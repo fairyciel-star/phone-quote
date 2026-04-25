@@ -3,16 +3,16 @@
     "id": "galaxy-s26-ultra",
     "name": "갤럭시 S26 Ultra",
     "brand": "삼성",
-    "image": "/images/phones/galaxy-s26-ultra.webp",
+    "image": "/images/phones/galaxy-s26-ultra/galaxy-s26-ultra.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
       { "size": "256GB", "price": 1797400 }
     ],
     "colors": [
-      { "name": "코발트 바이올렛", "hex": "#5B4B8A", "image": "/images/phones/galaxy-s26-cobalt-violet.png" },
-      { "name": "블랙", "hex": "#1A1A1A" },
-      { "name": "화이트", "hex": "#F5F5F5" },
-      { "name": "스카이 블루", "hex": "#87CEEB", "image": "/images/phones/galaxy-s26-sky-blue.png" }
+      { "name": "코발트 바이올렛", "hex": "#5B4B8A", "image": "/images/phones/galaxy-s26-ultra/cobat%20violet.png" },
+      { "name": "블랙", "hex": "#1A1A1A", "image": "/images/phones/galaxy-s26-ultra/black.png" },
+      { "name": "화이트", "hex": "#F5F5F5", "image": "/images/phones/galaxy-s26-ultra/white.png" },
+      { "name": "스카이 블루", "hex": "#87CEEB", "image": "/images/phones/galaxy-s26-ultra/sky-blue.png" }
     ],
     "공통지원금": {
       "SKT": { "256GB": 500000 },
@@ -24,16 +24,16 @@
     "id": "galaxy-s26-plus",
     "name": "갤럭시 S26+",
     "brand": "삼성",
-    "image": "/images/phones/galaxy-s26-plus.webp",
+    "image": "/images/phones/s26-plus/galaxy-s26-plus.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
       { "size": "256GB", "price": 1452000 }
     ],
     "colors": [
-      { "name": "코발트 바이올렛", "hex": "#5B4B8A", "image": "/images/phones/galaxy-s26-cobalt-violet.png" },
-      { "name": "블랙", "hex": "#1A1A1A" },
-      { "name": "화이트", "hex": "#F5F5F5" },
-      { "name": "스카이 블루", "hex": "#87CEEB", "image": "/images/phones/galaxy-s26-sky-blue.png" }
+      { "name": "코발트 바이올렛", "hex": "#5B4B8A", "image": "/images/phones/s26-plus/galaxy-s26-plus-cobalt-violet.png" },
+      { "name": "블랙", "hex": "#1A1A1A", "image": "/images/phones/s26-plus/galaxy-s26-plus-black.png" },
+      { "name": "화이트", "hex": "#F5F5F5", "image": "/images/phones/s26-plus/galaxy-s26-plus-white.png" },
+      { "name": "스카이 블루", "hex": "#87CEEB", "image": "/images/phones/s26-plus/galaxy-s26-plus-sky-blue.png" }
     ],
     "공통지원금": {
       "SKT": { "256GB": 500000 },
@@ -45,16 +45,16 @@
     "id": "galaxy-s26",
     "name": "갤럭시 S26",
     "brand": "삼성",
-    "image": "/images/phones/galaxy-s26.webp",
+    "image": "/images/phones/s26/galaxy-s26.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
       { "size": "256GB", "price": 1254000 }
     ],
     "colors": [
-      { "name": "코발트 바이올렛", "hex": "#5B4B8A", "image": "/images/phones/galaxy-s26-cobalt-violet.png" },
-      { "name": "블랙", "hex": "#1A1A1A" },
-      { "name": "화이트", "hex": "#F5F5F5" },
-      { "name": "스카이 블루", "hex": "#87CEEB", "image": "/images/phones/galaxy-s26-sky-blue.png" }
+      { "name": "코발트 바이올렛", "hex": "#5B4B8A", "image": "/images/phones/s26/galaxy-s26-cobalt%20violet.png" },
+      { "name": "블랙", "hex": "#1A1A1A", "image": "/images/phones/s26/galaxy-s26-black.png" },
+      { "name": "화이트", "hex": "#F5F5F5", "image": "/images/phones/s26/galaxy-s26-white.png" },
+      { "name": "스카이 블루", "hex": "#87CEEB", "image": "/images/phones/s26/galaxy-s26-sky-blue.png" }
     ],
     "공통지원금": {
       "SKT": { "256GB": 500000 },

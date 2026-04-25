@@ -26,7 +26,6 @@ export function Step3Phone() {
   const sheetLoading = useSheetStore((s) => s.loading);
   const sheetError = useSheetStore((s) => s.error);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
-  const getPhoneBadge = useSheetStore((s) => s.getPhoneBadge);
 
   // Sheet data is authoritative — wait until load attempt finishes
   // before rendering the lowest price to avoid JSON→Sheet flipping.
@@ -121,15 +120,6 @@ export function Step3Phone() {
                       <span className={styles.phoneBrand}>{phone.brand}</span>
                       <div className={styles.phoneNameRow}>
                         <span className={styles.phoneName}>{phone.name}</span>
-                        {sheetLoaded && carrierId && (() => {
-                          const badge = getPhoneBadge(phone.id, carrierId);
-                          if (!badge) return null;
-                          return (
-                            <span className={`${styles.badge} ${badge === 'NEW' ? styles.badgeNew : styles.badgeEvent}`}>
-                              {badge}
-                            </span>
-                          );
-                        })()}
                       </div>
                       <span className={styles.phonePrice}>
                         {formatWon(retailPrice)}~
