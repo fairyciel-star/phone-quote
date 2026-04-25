@@ -97,22 +97,8 @@ export function Step3Phone() {
   return (
     <>
       <div className={styles.container}>
-        <h2 className={styles.title}>기기를 선택해주세요!</h2>
-
-        <div className={styles.filterBar}>
-          {!selectedBrand && (
-            <div className={styles.brandFilter}>
-              {(['전체', '삼성', 'Apple'] as const).map((brand) => (
-                <button
-                  key={brand}
-                  className={`${styles.brandBtn} ${brandFilter === brand ? styles.brandBtnActive : ''}`}
-                  onClick={() => setBrandFilter(brand)}
-                >
-                  {brand}
-                </button>
-              ))}
-            </div>
-          )}
+        <div className={styles.titleRow}>
+          <h2 className={styles.title}>기기를 선택해주세요!</h2>
           <button
             className={`${styles.sortBtn} ${sortByPrice ? styles.sortBtnActive : ''}`}
             onClick={() => setSortByPrice(!sortByPrice)}
@@ -120,6 +106,20 @@ export function Step3Phone() {
             최저가↑
           </button>
         </div>
+
+        {!selectedBrand && (
+          <div className={styles.brandFilter}>
+            {(['전체', '삼성', 'Apple'] as const).map((brand) => (
+              <button
+                key={brand}
+                className={`${styles.brandBtn} ${brandFilter === brand ? styles.brandBtnActive : ''}`}
+                onClick={() => setBrandFilter(brand)}
+              >
+                {brand}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className={styles.list}>
           {displayPhones.map(({ phone, retailPrice, lowestDevicePrice }) => {
