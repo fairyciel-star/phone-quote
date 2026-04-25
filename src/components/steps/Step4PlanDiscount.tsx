@@ -863,7 +863,10 @@ export function Step4PlanDiscount() {
           </>
         )}
       </div>
-      <StepNavigation canProceed={selectedPlanId !== null} />
+      <StepNavigation
+        canProceed={selectedPlanId !== null}
+        priceDisplay={quote ? { 출고가: quote.출고가, 할부원금: Math.max(0, quote.할부원금 - gradePrice) } : undefined}
+      />
     </>
   );
 }

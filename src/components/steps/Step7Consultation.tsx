@@ -65,7 +65,7 @@ export function Step7Consultation() {
     setSending(true);
 
     const state = useQuoteStore.getState();
-    const { selectedPhoneId, selectedStorage, carrierId, selectedPlanId, discountType, selectedDiscountIds, 할부개월, subscriptionType } = state;
+    const { selectedPhoneId, selectedStorage, selectedColor, carrierId, selectedPlanId, discountType, selectedDiscountIds, 할부개월, subscriptionType } = state;
 
     // 견적 데이터 조합
     const phone = phones.find((p) => p.id === selectedPhoneId);
@@ -122,7 +122,7 @@ ${consultation.memo ? `• 메모: ${consultation.memo}` : ''}
 <b>📋 선택 정보</b>
 • 가입유형: ${subscriptionType ?? '-'}
 • 통신사: ${carrier?.name ?? '-'}
-• 모델: ${phone?.name ?? '-'} ${selectedStorage ?? ''}
+• 모델: ${phone?.name ?? '-'} ${selectedStorage ?? ''}${selectedColor ? ` / ${selectedColor}` : ''}
 • 요금제: ${plan?.name ?? '-'}
 • 할인방식: ${discountType}
 • 할부: ${할부개월}개월

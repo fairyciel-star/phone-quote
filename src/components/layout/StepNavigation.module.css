@@ -17,3 +17,24 @@
 .spacer {
   height: 80px;
 }
+
+.priceInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.priceOriginal {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  text-decoration: line-through;
+}
+
+.priceMain {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1.2;
+}
