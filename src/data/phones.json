@@ -63,6 +63,46 @@
     }
   },
   {
+    "id": "galaxy-zfold7",
+    "name": "갤럭시 Z Fold 7",
+    "brand": "삼성",
+    "image": "/images/phones/galaxy-zfold7/galaxy-zfold7.png",
+    "carriers": ["SKT", "KT", "LGU"],
+    "storage": [
+      { "size": "256GB", "price": 2299000 }
+    ],
+    "colors": [
+      { "name": "제트블랙", "hex": "#1A1A1A", "image": "/images/phones/galaxy-zfold7/black.png" },
+      { "name": "블루 쉐도우", "hex": "#4A6FA5", "image": "/images/phones/galaxy-zfold7/blue.png" },
+      { "name": "실버 쉐도우", "hex": "#C0C0C8", "image": "/images/phones/galaxy-zfold7/silver.png" }
+    ],
+    "공통지원금": {
+      "SKT": { "256GB": 0 },
+      "KT": { "256GB": 0 },
+      "LGU": { "256GB": 0 }
+    }
+  },
+  {
+    "id": "galaxy-zflip7",
+    "name": "갤럭시 Z Flip 7",
+    "brand": "삼성",
+    "image": "/images/phones/galaxy-zflip7/galaxy-zflip7.png",
+    "carriers": ["SKT", "KT", "LGU"],
+    "storage": [
+      { "size": "256GB", "price": 1299000 }
+    ],
+    "colors": [
+      { "name": "블루 쉐도우", "hex": "#4A6FA5", "image": "/images/phones/galaxy-zflip7/blue.png" },
+      { "name": "코랄레드", "hex": "#E8604C", "image": "/images/phones/galaxy-zflip7/red.png" },
+      { "name": "제트블랙", "hex": "#1A1A1A", "image": "/images/phones/galaxy-zflip7/black.png" }
+    ],
+    "공통지원금": {
+      "SKT": { "256GB": 0 },
+      "KT": { "256GB": 0 },
+      "LGU": { "256GB": 0 }
+    }
+  },
+  {
     "id": "iphone-17-pro",
     "name": "iPhone 17 Pro",
     "brand": "Apple",
