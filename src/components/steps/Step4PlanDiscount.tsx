@@ -238,7 +238,11 @@ export function Step4PlanDiscount() {
         {selectedPhone && (
           <div className={styles.phoneHero}>
             <div className={styles.phoneHeroImageWrap}>
-              <img className={styles.phoneHeroImage} src={selectedPhone.image} alt={selectedPhone.name} />
+              <img
+                className={styles.phoneHeroImage}
+                src={selectedPhone.colors.find((c) => c.name === selectedColor)?.image ?? selectedPhone.image}
+                alt={selectedPhone.name}
+              />
             </div>
             <div className={styles.phoneHeroInfo}>
               <div className={styles.phoneHeroName}>{selectedPhone.name}</div>
@@ -249,9 +253,6 @@ export function Step4PlanDiscount() {
                   </div>
                   <div className={styles.phoneHeroPriceRow}>
                     <span className={styles.phoneHeroPrice}>{formatWon(Math.max(0, quote.할부원금 - gradePrice))}</span>
-                    {carrier && (
-                      <img className={styles.phoneHeroCarrier} src={`/images/${carrier.id}.png`} alt={carrier.name} />
-                    )}
                   </div>
                   <div className={styles.phoneHeroBadges}>
                     {subsidyAmount > 0 && (

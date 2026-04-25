@@ -17,6 +17,7 @@ export interface PhoneStorage {
 export interface PhoneColor {
   readonly name: string;
   readonly hex: string;
+  readonly image?: string;
 }
 
 export interface PhoneSubsidy {
