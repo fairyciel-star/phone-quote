@@ -1,7 +1,7 @@
 import { useQuoteStore } from '../../store/useQuoteStore';
 import styles from './Header.module.css';
 
-const NAV_STEPS = [1, 2, 3, 5];
+const NAV_STEPS = [1, 2, 3, 4, 5];
 
 export function Header() {
   const reset = useQuoteStore((s) => s.reset);
@@ -19,7 +19,7 @@ export function Header() {
         </button>
         <span className={styles.navTitle}>오늘 실시간 시세 확인하기</span>
         <button className={styles.navHomeBtn} onClick={reset}>
-          🏠
+          처음부터
         </button>
       </header>
     );

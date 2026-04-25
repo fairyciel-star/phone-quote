@@ -1,7 +1,6 @@
 import type { CarrierId } from '../../types';
 import { useQuoteStore } from '../../store/useQuoteStore';
 import { Card } from '../ui/Card';
-import { StepNavigation } from '../layout/StepNavigation';
 import carriersData from '../../data/carriers.json';
 import { hapticMedium } from '../../utils/haptic';
 import styles from './Step2Carrier.module.css';
@@ -46,7 +45,6 @@ export function Step2Carrier() {
           ))}
         </div>
       </div>
-      <StepNavigation canProceed={selected !== null} />
     </>
   );
 }

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useQuoteStore } from '../../store/useQuoteStore';
 import { useSheetStore } from '../../store/useSheetStore';
 import { Card } from '../ui/Card';
-import { StepNavigation } from '../layout/StepNavigation';
 import phonesData from '../../data/phones.json';
 import type { Phone } from '../../types';
 import { formatWon } from '../../utils/format';
@@ -140,7 +139,6 @@ export function Step3Phone() {
           })}
         </div>
       </div>
-      <StepNavigation canProceed={selectedPhoneId !== null} />
     </>
   );
 }
