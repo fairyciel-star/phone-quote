@@ -64,7 +64,7 @@ body {
 #root {
   max-width: 480px;
   margin: 0 auto;
-  min-height: 100dvh;
+  min-height: 100svh;
   background: var(--color-bg);
   position: relative;
 }
