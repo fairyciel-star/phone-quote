@@ -43,8 +43,10 @@ export function Step3Phone() {
     : basePhones.filter((p) => p.brand === brandFilter);
 
   const getDisplayPrice = (phone: Phone, storageSize: string): number => {
-    if (sheetLoaded && carrierId && subscriptionType) {
-      const sheet = getSubsidy(phone.id, carrierId, storageSize, subscriptionType);
+    if (sheetLoaded) {
+      const fallbackCarrier = (carrierId ?? phone.carriers[0]) as import('../../types').CarrierId;
+      const fallbackType = subscriptionType ?? '번호이동';
+      const sheet = getSubsidy(phone.id, fallbackCarrier, storageSize, fallbackType);
       if (sheet.출고가 > 0) return sheet.출고가;
     }
     const storage = phone.storage.find((s) => s.size === storageSize);

@@ -253,6 +253,13 @@ export function Step4PlanDiscount() {
                   </div>
                   <div className={styles.phoneHeroPriceRow}>
                     <span className={styles.phoneHeroPrice}>{formatWon(Math.max(0, quote.할부원금 - gradePrice))}</span>
+                    {carrier && (
+                      <img
+                        src={`/images/${carrier.id}.png`}
+                        alt={carrier.name}
+                        className={styles.phoneHeroCarrier}
+                      />
+                    )}
                   </div>
                   <div className={styles.phoneHeroBadges}>
                     {subsidyAmount > 0 && (
