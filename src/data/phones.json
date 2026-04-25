@@ -51,7 +51,7 @@
       { "size": "256GB", "price": 1254000 }
     ],
     "colors": [
-      { "name": "코발트 바이올렛", "hex": "#5B4B8A", "image": "/images/phones/s26/galaxy-s26-cobalt%20violet.png" },
+      { "name": "코발트 바이올렛", "hex": "#5B4B8A", "image": "/images/phones/s26/galaxy-s26-cobalt-violet.png" },
       { "name": "블랙", "hex": "#1A1A1A", "image": "/images/phones/s26/galaxy-s26-black.png" },
       { "name": "화이트", "hex": "#F5F5F5", "image": "/images/phones/s26/galaxy-s26-white.png" },
       { "name": "스카이 블루", "hex": "#87CEEB", "image": "/images/phones/s26/galaxy-s26-sky-blue.png" }
