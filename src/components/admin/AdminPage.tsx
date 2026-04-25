@@ -463,7 +463,6 @@ function SheetDebugTab() {
   const phoneIds = new Set(phones.map((p) => p.id));
   const sheetModelIds = [...new Set(subsidies.map((r) => r.모델ID))].sort();
 
-  const matched = sheetModelIds.filter((id) => phoneIds.has(id));
   const unmatched = sheetModelIds.filter((id) => !phoneIds.has(id));
   const missingInSheet = phones.map((p) => p.id).filter((id) => !sheetModelIds.includes(id));
 
