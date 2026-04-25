@@ -9,10 +9,10 @@
       { "size": "256GB", "price": 1797400 }
     ],
     "colors": [
-      { "name": "코발트 바이올렛", "hex": "#5B4B8A", "image": "/images/phones/galaxy-s26-cobalt violet.png" },
-      { "name": "블랙", "hex": "#1A1A1A", "image": "/images/phones/galaxy-s26-black.png" },
-      { "name": "화이트", "hex": "#F5F5F5", "image": "/images/phones/galaxy-s26-white.png" },
-      { "name": "스카이 블루", "hex": "#87CEEB", "image": "/images/phones/galaxy-s26-sky-blue.png" }
+      { "name": "코발트 바이올렛", "hex": "#5B4B8A", "image": "/images/phones/galaxy-s26-cobalt-violet.webp" },
+      { "name": "블랙", "hex": "#1A1A1A", "image": "/images/phones/galaxy-s26-black.webp" },
+      { "name": "화이트", "hex": "#F5F5F5", "image": "/images/phones/galaxy-s26-white.webp" },
+      { "name": "스카이 블루", "hex": "#87CEEB", "image": "/images/phones/galaxy-s26-sky-blue.webp" }
     ],
     "공통지원금": {
       "SKT": { "256GB": 500000 },
@@ -30,10 +30,10 @@
       { "size": "256GB", "price": 1452000 }
     ],
     "colors": [
-      { "name": "코발트 바이올렛", "hex": "#5B4B8A", "image": "/images/phones/galaxy-s26-cobalt violet.png" },
-      { "name": "블랙", "hex": "#1A1A1A", "image": "/images/phones/galaxy-s26-black.png" },
-      { "name": "화이트", "hex": "#F5F5F5", "image": "/images/phones/galaxy-s26-white.png" },
-      { "name": "스카이 블루", "hex": "#87CEEB", "image": "/images/phones/galaxy-s26-sky-blue.png" }
+      { "name": "코발트 바이올렛", "hex": "#5B4B8A", "image": "/images/phones/galaxy-s26-cobalt-violet.webp" },
+      { "name": "블랙", "hex": "#1A1A1A", "image": "/images/phones/galaxy-s26-black.webp" },
+      { "name": "화이트", "hex": "#F5F5F5", "image": "/images/phones/galaxy-s26-white.webp" },
+      { "name": "스카이 블루", "hex": "#87CEEB", "image": "/images/phones/galaxy-s26-sky-blue.webp" }
     ],
     "공통지원금": {
       "SKT": { "256GB": 500000 },
@@ -51,10 +51,10 @@
       { "size": "256GB", "price": 1254000 }
     ],
     "colors": [
-      { "name": "코발트 바이올렛", "hex": "#5B4B8A", "image": "/images/phones/galaxy-s26-cobalt violet.png" },
-      { "name": "블랙", "hex": "#1A1A1A", "image": "/images/phones/galaxy-s26-black.png" },
-      { "name": "화이트", "hex": "#F5F5F5", "image": "/images/phones/galaxy-s26-white.png" },
-      { "name": "스카이 블루", "hex": "#87CEEB", "image": "/images/phones/galaxy-s26-sky-blue.png" }
+      { "name": "코발트 바이올렛", "hex": "#5B4B8A", "image": "/images/phones/galaxy-s26-cobalt-violet.webp" },
+      { "name": "블랙", "hex": "#1A1A1A", "image": "/images/phones/galaxy-s26-black.webp" },
+      { "name": "화이트", "hex": "#F5F5F5", "image": "/images/phones/galaxy-s26-white.webp" },
+      { "name": "스카이 블루", "hex": "#87CEEB", "image": "/images/phones/galaxy-s26-sky-blue.webp" }
     ],
     "공통지원금": {
       "SKT": { "256GB": 500000 },
