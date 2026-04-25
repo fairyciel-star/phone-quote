@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuoteStore } from '../../store/useQuoteStore';
 import { useSheetStore } from '../../store/useSheetStore';
 import { Card } from '../ui/Card';
 import phonesData from '../../data/phones.json';
-import type { Phone } from '../../types';
+import type { Phone, SubscriptionType } from '../../types';
+import type { CarrierId } from '../../types';
 import { formatWon } from '../../utils/format';
 import { hapticMedium } from '../../utils/haptic';
 import { calculateLowestDevicePrice } from '../../utils/price';
@@ -26,14 +27,13 @@ export function Step3Phone() {
   const sheetError = useSheetStore((s) => s.error);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
 
-  // Sheet data is authoritative — wait until load attempt finishes
-  // before rendering the lowest price to avoid JSON→Sheet flipping.
   const showLowestPrice = sheetLoaded || (sheetError !== null && !sheetLoading);
 
   const selectedBrand = useQuoteStore((s) => s.selectedBrand);
   const [brandFilter, setBrandFilter] = useState<BrandFilter>(
     selectedBrand === '삼성' ? '삼성' : selectedBrand === 'Apple' ? 'Apple' : '전체'
   );
+  const [sortByPrice, setSortByPrice] = useState(false);
 
   const basePhones = carrierId
     ? phones.filter((p) => p.carriers.includes(carrierId))
@@ -42,17 +42,22 @@ export function Step3Phone() {
     ? basePhones
     : basePhones.filter((p) => p.brand === brandFilter);
 
+  // 출고가 조회 — 가입유형 무관하게 시트에서 실제 출고가를 우선 사용.
+  // store의 getSubsidy가 이미 가입유형 fallback을 처리하므로 두 타입을 모두 시도.
   const getDisplayPrice = (phone: Phone, storageSize: string): number => {
     if (sheetLoaded) {
-      const fallbackCarrier = (carrierId ?? phone.carriers[0]) as import('../../types').CarrierId;
-      const fallbackType = subscriptionType ?? '번호이동';
-      const sheet = getSubsidy(phone.id, fallbackCarrier, storageSize, fallbackType);
-      if (sheet.출고가 > 0) return sheet.출고가;
+      const fallbackCarrier = (carrierId ?? phone.carriers[0]) as CarrierId;
+      const subTypes: SubscriptionType[] = subscriptionType
+        ? [subscriptionType, subscriptionType === '번호이동' ? '기기변경' : '번호이동']
+        : ['번호이동', '기기변경'];
+      for (const subType of subTypes) {
+        const sheet = getSubsidy(phone.id, fallbackCarrier, storageSize, subType);
+        if (sheet.출고가 > 0) return sheet.출고가;
+      }
     }
     const storage = phone.storage.find((s) => s.size === storageSize);
     return storage?.price ?? 0;
   };
-
 
   const setStep = useQuoteStore((s) => s.setStep);
   const currentStep = useQuoteStore((s) => s.currentStep);
@@ -60,48 +65,65 @@ export function Step3Phone() {
   const handleSelectPhone = (phoneId: string) => {
     hapticMedium();
     setPhone(phoneId);
-    // 용량이 1개면 자동 선택
     const phone = phones.find((p) => p.id === phoneId);
     if (phone?.storage.length === 1) {
       setStorage(phone.storage[0].size);
     }
-    // 색상이 1개면 자동 선택
     if (phone?.colors.length === 1) {
       setColor(phone.colors[0].name);
     }
-    // 바로 다음 단계로 이동
     setStep(currentStep + 1);
   };
+
+  const phonesWithData = useMemo(() =>
+    filteredPhones.map((phone) => ({
+      phone,
+      retailPrice: getDisplayPrice(phone, phone.storage[0].size),
+      lowestDevicePrice: calculateLowestDevicePrice({
+        phone,
+        carriers: phone.carriers,
+        sheetLoaded,
+        getSubsidy,
+      }).price,
+    })),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [filteredPhones, sheetLoaded]);
+
+  const displayPhones = useMemo(() => {
+    if (!sortByPrice) return phonesWithData;
+    return [...phonesWithData].sort((a, b) => a.lowestDevicePrice - b.lowestDevicePrice);
+  }, [phonesWithData, sortByPrice]);
 
   return (
     <>
       <div className={styles.container}>
-        <h2 className={styles.title}>원하시는 기기를 선택해주세요!</h2>
+        <h2 className={styles.title}>기기를 선택해주세요!</h2>
 
-        {!selectedBrand && (
-          <div className={styles.brandFilter}>
-            {(['전체', '삼성', 'Apple'] as const).map((brand) => (
-              <button
-                key={brand}
-                className={`${styles.brandBtn} ${brandFilter === brand ? styles.brandBtnActive : ''}`}
-                onClick={() => setBrandFilter(brand)}
-              >
-                {brand}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className={styles.filterBar}>
+          {!selectedBrand && (
+            <div className={styles.brandFilter}>
+              {(['전체', '삼성', 'Apple'] as const).map((brand) => (
+                <button
+                  key={brand}
+                  className={`${styles.brandBtn} ${brandFilter === brand ? styles.brandBtnActive : ''}`}
+                  onClick={() => setBrandFilter(brand)}
+                >
+                  {brand}
+                </button>
+              ))}
+            </div>
+          )}
+          <button
+            className={`${styles.sortBtn} ${sortByPrice ? styles.sortBtnActive : ''}`}
+            onClick={() => setSortByPrice(!sortByPrice)}
+          >
+            최저가↑
+          </button>
+        </div>
 
         <div className={styles.list}>
-          {filteredPhones.map((phone) => {
+          {displayPhones.map(({ phone, retailPrice, lowestDevicePrice }) => {
             const isSelected = selectedPhoneId === phone.id;
-            const retailPrice = getDisplayPrice(phone, phone.storage[0].size);
-            const { price: lowestDevicePrice } = calculateLowestDevicePrice({
-              phone,
-              carriers: phone.carriers,
-              sheetLoaded,
-              getSubsidy,
-            });
             return (
               <div key={phone.id}>
                 <Card

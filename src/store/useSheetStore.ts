@@ -80,8 +80,15 @@ export const useSheetStore = create<SheetState>((set, get) => ({
     const row = get().subsidies.find(
       (r) => r.모델ID === 모델ID && r.통신사 === 통신사 && r.용량 === 용량 && r.가입유형 === 가입유형
     );
+    // 출고가는 가입유형과 무관한 기기 속성 — 해당 row가 없거나 0이면 같은 폰·통신사·용량의 다른 row에서 조회
+    const 출고가Raw = row?.출고가 ?? 0;
+    const 출고가 = 출고가Raw > 0
+      ? 출고가Raw
+      : (get().subsidies.find(
+          (r) => r.모델ID === 모델ID && r.통신사 === 통신사 && r.용량 === 용량 && r.출고가 > 0
+        )?.출고가 ?? 0);
     return {
-      출고가: row?.출고가 ?? 0,
+      출고가,
       공통지원금: row?.공통지원금 ?? 0,
       추가지원금: row?.추가지원금 ?? 0,
       특별지원: row?.특별지원 ?? 0,
