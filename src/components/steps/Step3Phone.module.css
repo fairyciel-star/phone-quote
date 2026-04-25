@@ -16,9 +16,16 @@
 
 .titleRow {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
   margin-bottom: var(--space-xs);
+  width: 100%;
+}
+
+.titleRow .title {
+  flex: 1;
+  margin-bottom: 0;
 }
 
 .brandFilter {
