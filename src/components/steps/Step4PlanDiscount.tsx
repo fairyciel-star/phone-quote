@@ -289,8 +289,8 @@ export function Step4PlanDiscount() {
                 </div>
               )}
 
-              {/* 용량 선택 — 색상 선택 후, 용량 미선택 시 표시 */}
-              {selectedColor && !selectedStorage && (() => {
+              {/* 용량 선택 — 항상 고정 표시 */}
+              {(() => {
                 const sheetStorages = sheetLoaded && selectedPhoneId && carrierId
                   ? getStoragesForPhone(selectedPhoneId, carrierId as import('../../types').CarrierId)
                   : [];
@@ -304,7 +304,7 @@ export function Step4PlanDiscount() {
                       {storages.map((s) => (
                         <button
                           key={s.size}
-                          className={styles.storageBtn}
+                          className={`${styles.storageBtn} ${selectedStorage === s.size ? styles.storageBtnActive : ''}`}
                           onClick={() => setStorage(s.size)}
                         >
                           {s.size}

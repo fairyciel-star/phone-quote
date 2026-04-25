@@ -992,3 +992,10 @@
   color: var(--color-primary, #E53935);
   background: #fff5f5;
 }
+
+.storageBtnActive {
+  border-color: var(--color-primary, #E53935);
+  color: var(--color-primary, #E53935);
+  background: #fff5f5;
+  font-weight: 700;
+}
