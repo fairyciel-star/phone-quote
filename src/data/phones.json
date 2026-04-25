@@ -66,15 +66,15 @@
     "id": "iphone-17-pro",
     "name": "iPhone 17 Pro",
     "brand": "Apple",
-    "image": "/images/phones/iphone-17-pro.webp",
+    "image": "/images/phones/iphone-17-pro/iphone-17-pro.webp",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
       { "size": "256GB", "price": 1782000 }
     ],
     "colors": [
-      { "name": "블랙 티타늄", "hex": "#3C3C3C" },
-      { "name": "화이트 티타늄", "hex": "#F5F5F0" },
-      { "name": "내추럴 티타늄", "hex": "#C2B8A3" }
+      { "name": "실버", "hex": "#C0C0C8", "image": "/images/phones/iphone-17-pro/silver.png" },
+      { "name": "딥 블루", "hex": "#1C3A5C", "image": "/images/phones/iphone-17-pro/blue.png" },
+      { "name": "코스믹 오렌지", "hex": "#C05830", "image": "/images/phones/iphone-17-pro/orange.png" }
     ],
     "공통지원금": {
       "SKT": { "256GB": 450000 },
@@ -86,15 +86,16 @@
     "id": "iphone-17-air",
     "name": "iPhone 17 Air",
     "brand": "Apple",
-    "image": "/images/phones/iphone-17-air.webp",
+    "image": "/images/phones/iphone-17-air/iphone-17-air.webp",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
       { "size": "256GB", "price": 1584000 }
     ],
     "colors": [
-      { "name": "블랙", "hex": "#3C3C3C" },
-      { "name": "화이트", "hex": "#F5F5F0" },
-      { "name": "그린", "hex": "#A8C8A8" }
+      { "name": "라이트골드", "hex": "#D4B896", "image": "/images/phones/iphone-17-air/gold.png" },
+      { "name": "스페이스 블랙", "hex": "#2C2C2C", "image": "/images/phones/iphone-17-air/black.png" },
+      { "name": "스카이 블루", "hex": "#87CEEB", "image": "/images/phones/iphone-17-air/blue.png" },
+      { "name": "클라우드 화이트", "hex": "#F0F0F0", "image": "/images/phones/iphone-17-air/white.png" }
     ],
     "공통지원금": {
       "SKT": { "256GB": 450000 },
@@ -106,15 +107,17 @@
     "id": "iphone-17",
     "name": "iPhone 17",
     "brand": "Apple",
-    "image": "/images/phones/iphone-17.webp",
+    "image": "/images/phones/iphone-17/iphone-17.webp",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
       { "size": "256GB", "price": 1287000 }
     ],
     "colors": [
-      { "name": "블랙", "hex": "#3C3C3C" },
-      { "name": "화이트", "hex": "#F5F5F0" },
-      { "name": "그린", "hex": "#A8C8A8" }
+      { "name": "블랙", "hex": "#1A1A1A", "image": "/images/phones/iphone-17/black.png" },
+      { "name": "세이지", "hex": "#7FA07A", "image": "/images/phones/iphone-17/sage.png" },
+      { "name": "미스트 블루", "hex": "#8BAEC4", "image": "/images/phones/iphone-17/blue.png" },
+      { "name": "라벤더", "hex": "#C8B8D8", "image": "/images/phones/iphone-17/lavender.png" },
+      { "name": "화이트", "hex": "#F5F5F0", "image": "/images/phones/iphone-17/white.png" }
     ],
     "공통지원금": {
       "SKT": { "256GB": 450000 },
