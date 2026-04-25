@@ -164,5 +164,25 @@
       "KT": { "256GB": 450000 },
       "LGU": { "256GB": 450000 }
     }
+  },
+  {
+    "id": "iphone-17e",
+    "name": "iPhone 17e",
+    "brand": "Apple",
+    "image": "/images/phones/iphone-17e/iphone-17e.png",
+    "carriers": ["SKT", "KT", "LGU"],
+    "storage": [
+      { "size": "256GB", "price": 0 }
+    ],
+    "colors": [
+      { "name": "핑크", "hex": "#F2A7B0", "image": "/images/phones/iphone-17e/pink.png" },
+      { "name": "블랙", "hex": "#1A1A1A", "image": "/images/phones/iphone-17e/black.png" },
+      { "name": "화이트", "hex": "#F5F5F0", "image": "/images/phones/iphone-17e/white.png" }
+    ],
+    "공통지원금": {
+      "SKT": { "256GB": 0 },
+      "KT": { "256GB": 0 },
+      "LGU": { "256GB": 0 }
+    }
   }
 ]
