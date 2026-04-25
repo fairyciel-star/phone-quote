@@ -4,7 +4,7 @@ const ADMIN_PW_KEY = 'admin_password';
 const SUBSIDY_OVERRIDE_KEY = 'admin_subsidy_overrides';
 const DEFAULT_PASSWORD = 'admin1234';
 
-export type AdminTab = 'dashboard' | 'phones' | 'plans' | 'discounts' | 'settings';
+export type AdminTab = 'dashboard' | 'phones' | 'plans' | 'discounts' | 'sheet-debug' | 'settings';
 
 export interface SubsidyOverride {
   phoneId: string;

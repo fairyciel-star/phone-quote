@@ -453,6 +453,129 @@ function DiscountsTab() {
 }
 
 // ────────────────────────────────────
+// Sheet Debug Tab
+// ────────────────────────────────────
+function SheetDebugTab() {
+  const sheetLoaded = useSheetStore((s) => s.loaded);
+  const subsidies = useSheetStore((s) => s.subsidies);
+  const [filterModelId, setFilterModelId] = useState('');
+
+  const phoneIds = new Set(phones.map((p) => p.id));
+  const sheetModelIds = [...new Set(subsidies.map((r) => r.모델ID))].sort();
+
+  const matched = sheetModelIds.filter((id) => phoneIds.has(id));
+  const unmatched = sheetModelIds.filter((id) => !phoneIds.has(id));
+  const missingInSheet = phones.map((p) => p.id).filter((id) => !sheetModelIds.includes(id));
+
+  const filtered = subsidies.filter((r) =>
+    filterModelId === '' || r.모델ID === filterModelId
+  );
+
+  return (
+    <>
+      <h2 className={styles.pageTitle}>🔍 시트 진단</h2>
+      {!sheetLoaded && (
+        <p style={{ color: '#ef4444', marginBottom: 16 }}>⚠️ 시트가 연결되지 않았습니다.</p>
+      )}
+
+      {/* ID 매칭 현황 */}
+      <div className={styles.tableWrap} style={{ marginBottom: 24 }}>
+        <div className={styles.tableHeader}>
+          <span className={styles.tableTitle}>모델ID 매칭 현황</span>
+        </div>
+        <table className={styles.table}>
+          <thead>
+            <tr><th>상태</th><th>phones.json ID</th><th>시트 매칭</th></tr>
+          </thead>
+          <tbody>
+            {phones.map((p) => {
+              const inSheet = sheetModelIds.includes(p.id);
+              return (
+                <tr key={p.id}>
+                  <td>
+                    <span style={{ fontWeight: 700, color: inSheet ? '#16a34a' : '#ef4444' }}>
+                      {inSheet ? '✅ 매칭' : '❌ 불일치'}
+                    </span>
+                  </td>
+                  <td><code style={{ fontSize: 12 }}>{p.id}</code></td>
+                  <td style={{ fontSize: 12, color: '#64748b' }}>
+                    {inSheet ? `${subsidies.filter(r => r.모델ID === p.id).length}행` : '시트에 해당 ID 없음'}
+                  </td>
+                </tr>
+              );
+            })}
+            {unmatched.map((id) => (
+              <tr key={id}>
+                <td><span style={{ fontWeight: 700, color: '#f59e0b' }}>⚠️ 시트에만 있음</span></td>
+                <td><code style={{ fontSize: 12, color: '#f59e0b' }}>{id}</code></td>
+                <td style={{ fontSize: 12, color: '#64748b' }}>{subsidies.filter(r => r.모델ID === id).length}행</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* 시트 원본 데이터 */}
+      <div className={styles.tableWrap}>
+        <div className={styles.tableHeader}>
+          <span className={styles.tableTitle}>공통지원금 시트 원본 ({filtered.length}행)</span>
+          <div className={styles.filterRow}>
+            <select className={styles.filterSelect} value={filterModelId} onChange={(e) => setFilterModelId(e.target.value)}>
+              <option value="">전체 모델</option>
+              {sheetModelIds.map((id) => (
+                <option key={id} value={id}>{id}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>모델ID</th>
+              <th>통신사</th>
+              <th>용량</th>
+              <th>가입유형</th>
+              <th>출고가</th>
+              <th>공통지원금</th>
+              <th>추가지원금</th>
+              <th>특별지원</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((r, i) => {
+              const isMatched = phoneIds.has(r.모델ID);
+              return (
+                <tr key={i} style={{ background: isMatched ? undefined : '#fef2f2' }}>
+                  <td>
+                    <code style={{ fontSize: 11, color: isMatched ? '#16a34a' : '#ef4444' }}>{r.모델ID}</code>
+                  </td>
+                  <td><span className={`${styles.badge} ${styles[r.통신사.toLowerCase() as 'skt' | 'kt' | 'lgu']}`}>{r.통신사}</span></td>
+                  <td>{r.용량}</td>
+                  <td>{r.가입유형}</td>
+                  <td>{r.출고가.toLocaleString()}</td>
+                  <td style={{ fontWeight: r.공통지원금 > 0 ? 700 : undefined, color: r.공통지원금 > 0 ? '#16a34a' : '#94a3b8' }}>
+                    {r.공통지원금.toLocaleString()}
+                  </td>
+                  <td style={{ color: r.추가지원금 > 0 ? '#16a34a' : '#94a3b8' }}>{r.추가지원금.toLocaleString()}</td>
+                  <td style={{ color: r.특별지원 > 0 ? '#f59e0b' : '#94a3b8' }}>{r.특별지원.toLocaleString()}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {missingInSheet.length > 0 && sheetLoaded && (
+        <div style={{ marginTop: 16, padding: '12px 16px', background: '#fef2f2', borderRadius: 8, fontSize: 13 }}>
+          <strong style={{ color: '#ef4444' }}>phones.json에는 있으나 시트에 없는 ID:</strong>
+          {' '}{missingInSheet.map((id) => <code key={id} style={{ marginRight: 8, color: '#ef4444' }}>{id}</code>)}
+        </div>
+      )}
+    </>
+  );
+}
+
+// ────────────────────────────────────
 // Settings Tab
 // ────────────────────────────────────
 function SettingsTab() {
@@ -553,6 +676,7 @@ const NAV_ITEMS: { tab: AdminTab; icon: string; label: string }[] = [
   { tab: 'phones', icon: '📱', label: '기기 관리' },
   { tab: 'plans', icon: '📋', label: '요금제' },
   { tab: 'discounts', icon: '💳', label: '할인 관리' },
+  { tab: 'sheet-debug', icon: '🔍', label: '시트 진단' },
   { tab: 'settings', icon: '⚙️', label: '설정' },
 ];
 
@@ -596,6 +720,7 @@ export function AdminPage() {
           {activeTab === 'phones' && <PhonesTab />}
           {activeTab === 'plans' && <PlansTab />}
           {activeTab === 'discounts' && <DiscountsTab />}
+          {activeTab === 'sheet-debug' && <SheetDebugTab />}
           {activeTab === 'settings' && <SettingsTab />}
         </main>
       </div>
