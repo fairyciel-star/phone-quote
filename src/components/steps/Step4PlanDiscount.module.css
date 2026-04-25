@@ -1000,3 +1000,45 @@
   background: #fff5f5;
   font-weight: 700;
 }
+
+/* 사전승낙서 링크 */
+.preconLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  margin-top: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: box-shadow 0.15s, border-color 0.15s;
+  box-shadow: var(--shadow-sm);
+}
+
+.preconLink:active {
+  box-shadow: var(--shadow-md);
+  border-color: #4A6CF7;
+}
+
+.preconIcon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preconLabel {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.preconExtIcon {
+  flex-shrink: 0;
+}

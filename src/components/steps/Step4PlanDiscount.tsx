@@ -867,6 +867,33 @@ export function Step4PlanDiscount() {
                 <span>{formatWon(quote.월납입금총액 - (gradePrice > 0 ? quote.월할부금 - Math.max(0, Math.round((quote.할부원금 - gradePrice) / 할부개월)) : 0))}</span>
               </div>
             </div>
+
+            {/* 사전승낙서 링크 */}
+            <a
+              href="https://ictmarket.or.kr:8443/precon/pop_CertIcon.do?PRECON_REQ_ID=PRE0000194989&YN=1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.preconLink}
+            >
+              <div className={styles.preconIcon}>
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="28" height="28" rx="6" fill="#E8F0FE"/>
+                  <rect x="7" y="5" width="14" height="18" rx="2" fill="#4A6CF7" opacity="0.15"/>
+                  <rect x="7" y="5" width="14" height="18" rx="2" stroke="#4A6CF7" strokeWidth="1.5"/>
+                  <line x1="10" y1="10" x2="18" y2="10" stroke="#4A6CF7" strokeWidth="1.5" strokeLinecap="round"/>
+                  <line x1="10" y1="13.5" x2="18" y2="13.5" stroke="#4A6CF7" strokeWidth="1.5" strokeLinecap="round"/>
+                  <line x1="10" y1="17" x2="15" y2="17" stroke="#4A6CF7" strokeWidth="1.5" strokeLinecap="round"/>
+                  <circle cx="20" cy="20" r="5" fill="#4A6CF7"/>
+                  <path d="M18 20l1.5 1.5L22 18.5" stroke="white" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <span className={styles.preconLabel}>사전승낙서</span>
+              <svg className={styles.preconExtIcon} width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 3h5v5" stroke="#4A6CF7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M15 3L8 10" stroke="#4A6CF7" strokeWidth="1.5" strokeLinecap="round"/>
+                <path d="M14 10v4a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1h4" stroke="#4A6CF7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
           </>
         )}
       </div>
