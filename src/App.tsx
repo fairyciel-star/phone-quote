@@ -69,6 +69,30 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
 
+  // 하드웨어/브라우저 뒤로가기 → 앱 종료 대신 이전 단계로
+  useEffect(() => {
+    if (window.location.hash === '#/admin') return;
+    // 현재 히스토리 위에 sentinel 항목 추가 — 뒤로가기가 소비할 대상
+    history.pushState({ appStep: true }, '');
+
+    const handlePopState = () => {
+      if (window.location.hash === '#/admin') return;
+      const { currentStep, showLanding: onLanding, setStep } = useQuoteStore.getState();
+      if (onLanding) return; // 랜딩에서는 자연스럽게 종료
+      if (currentStep > 1) {
+        setStep(currentStep - 1);
+      } else {
+        useQuoteStore.setState({ showLanding: true });
+      }
+      // sentinel 재추가 — 다음 뒤로가기도 처리할 수 있도록
+      history.pushState({ appStep: true }, '');
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Admin route: /#/admin
   if (hash === '#/admin') {
     return <AdminPage />;
