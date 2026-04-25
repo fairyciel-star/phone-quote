@@ -354,8 +354,12 @@ export function Step4PlanDiscount() {
             : '선택약정: 요금제를 25% 할인받는 대신, 기기값 할인(공통지원금)은 받지 못합니다.'}
         </div>
 
-        <h2 className={styles.title}>요금제 & 할인 선택</h2>
-        <p className={styles.subtitle}>요금제와 할인 방식을 선택해주세요</p>
+        <h2 className={styles.title}>요금제</h2>
+        <p className={styles.subtitle}>
+          {carrierId === 'SKT' && '6개월 이후 45,000원 이상 요금제로 변경 가능'}
+          {carrierId === 'KT' && '6개월 이후 47,000원 이상 요금제로 변경 가능'}
+          {carrierId === 'LGU' && '6개월 이후 47,000원 이상 요금제로 변경 가능'}
+        </p>
 
         {discountType === '공통지원금' && premiumPlan && (
           <Card selected={true} onClick={() => setPlan(premiumPlan.id)} className={styles.planCard}>
