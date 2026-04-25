@@ -284,8 +284,6 @@ export function Step4PlanDiscount() {
                   {selectedColor && (
                     <div className={styles.colorInfo}>
                       <span className={styles.colorName}>{selectedColor}</span>
-                      {selectedStorage && <span className={styles.colorStorage}>{selectedStorage}</span>}
-                      <span className={styles.colorChevron}>&#8250;</span>
                     </div>
                   )}
                 </div>
