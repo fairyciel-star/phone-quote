@@ -25,3 +25,36 @@
 .resetBtn:active {
   color: #ffffff;
 }
+
+/* 상단 네비게이션 바 (1·2·3·5단계) */
+.navBackBtn {
+  font-size: 20px;
+  color: #ffffff;
+  padding: 6px 10px;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.navBackBtn:active {
+  opacity: 0.7;
+}
+
+.navTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  flex: 1;
+  text-align: center;
+}
+
+.navHomeBtn {
+  font-size: 18px;
+  color: #ffffff;
+  padding: 6px 10px;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.navHomeBtn:active {
+  opacity: 0.7;
+}

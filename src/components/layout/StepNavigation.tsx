@@ -15,16 +15,19 @@ interface StepNavigationProps {
   readonly priceDisplay?: PriceDisplay;
 }
 
+// Steps 1,2,3,5: back button lives in the Header nav bar
+// Step 4: no back button anywhere
+// Step 6: back button in bottom nav
+const BOTTOM_BACK_STEP = 6;
+
 export function StepNavigation({ canProceed, onNext, onSubmit, priceDisplay }: StepNavigationProps) {
   const currentStep = useQuoteStore((s) => s.currentStep);
   const setStep = useQuoteStore((s) => s.setStep);
 
-  const isFirst = currentStep === 1;
   const isLast = currentStep === 6;
+  const showBack = currentStep === BOTTOM_BACK_STEP;
 
-  const handlePrev = () => {
-    if (!isFirst) setStep(currentStep - 1);
-  };
+  const handlePrev = () => setStep(currentStep - 1);
 
   const handleNext = () => {
     if (isLast) {
@@ -40,11 +43,6 @@ export function StepNavigation({ canProceed, onNext, onSubmit, priceDisplay }: S
       <>
         <div className={styles.spacer} />
         <div className={styles.wrapper}>
-          {!isFirst && (
-            <Button variant="secondary" onClick={handlePrev}>
-              이전
-            </Button>
-          )}
           <div className={styles.priceInfo}>
             <span className={styles.priceOriginal}>{formatWon(priceDisplay.출고가)}</span>
             <span className={styles.priceMain}>{formatWon(priceDisplay.할부원금)}</span>
@@ -61,7 +59,7 @@ export function StepNavigation({ canProceed, onNext, onSubmit, priceDisplay }: S
     <>
       <div className={styles.spacer} />
       <div className={styles.wrapper}>
-        {!isFirst && (
+        {showBack && (
           <Button variant="secondary" onClick={handlePrev} fullWidth>
             이전
           </Button>
