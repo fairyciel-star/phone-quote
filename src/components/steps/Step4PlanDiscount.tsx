@@ -276,7 +276,7 @@ export function Step4PlanDiscount() {
                         key={c.name}
                         className={`${styles.colorDot} ${selectedColor === c.name ? styles.colorDotActive : ''}`}
                         style={{ backgroundColor: c.hex }}
-                        onClick={() => { setColor(c.name); setStorage(null as unknown as string); }}
+                        onClick={() => setColor(c.name)}
                         title={c.name}
                       />
                     ))}
