@@ -195,10 +195,10 @@ export async function fetchUsedPhones(sheetIdOrUrl: string): Promise<UsedPhoneRo
     모델ID: row['모델ID'] ?? '',
     모델명: row['모델명'] ?? '',
     용량: row['용량'] ?? '',
-    A등급: Number(row['A등급']) || 0,
-    B등급: Number(row['B등급']) || 0,
-    C등급: Number(row['C등급']) || 0,
-    E등급: Number(row['E등급']) || 0,
+    A등급: (Number(row['A등급']) || 0) * 10000,
+    B등급: (Number(row['B등급']) || 0) * 10000,
+    C등급: (Number(row['C등급']) || 0) * 10000,
+    E등급: (Number(row['E등급']) || 0) * 10000,
   }));
 }
 
