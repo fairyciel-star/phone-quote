@@ -57,10 +57,32 @@ function detectFromUA(): ResolvedModel {
   return { raw: '', brand: null, matchKeyword: '' };
 }
 
+// navigator.storage.estimate() quota → 실제 용량 추정
+// Chrome Android는 기기 전체 용량의 약 60% 수준으로 quota를 반환
+async function detectStorageGB(): Promise<{ storageGB: string; debugQuota: string }> {
+  try {
+    if (!navigator.storage?.estimate) return { storageGB: '', debugQuota: '' };
+    const { quota = 0 } = await navigator.storage.estimate();
+    const gb = quota / 1_000_000_000;
+    const debugQuota = `${gb.toFixed(1)}GB quota`;
+    let storageGB = '';
+    if (gb >= 450) storageGB = '1TB';
+    else if (gb >= 220) storageGB = '512GB';
+    else if (gb >= 110) storageGB = '256GB';
+    else if (gb >= 50)  storageGB = '128GB';
+    else if (gb >= 25)  storageGB = '64GB';
+    return { storageGB, debugQuota };
+  } catch {
+    return { storageGB: '', debugQuota: '' };
+  }
+}
+
 const NO_DEVICE: DetectedDevice = { raw: '', brand: null, matchKeyword: '', isMobile: false, storageGB: '', debugQuota: '' };
 
 export async function detectDevice(): Promise<DetectedDevice> {
   if (!isMobileDevice()) return NO_DEVICE;
+
+  const storageResult = await detectStorageGB();
 
   // 1) Client Hints API
   try {
@@ -72,7 +94,7 @@ export async function detectDevice(): Promise<DetectedDevice> {
     if (nav.userAgentData?.getHighEntropyValues) {
       const data = await nav.userAgentData.getHighEntropyValues(['model']);
       if (data.model) {
-        return { ...resolveKeyword(data.model.trim()), isMobile: true, storageGB: '', debugQuota: '' };
+        return { ...resolveKeyword(data.model.trim()), isMobile: true, ...storageResult };
       }
     }
   } catch {
@@ -80,7 +102,7 @@ export async function detectDevice(): Promise<DetectedDevice> {
   }
 
   // 2) UA fallback
-  return { ...detectFromUA(), isMobile: true, storageGB: '', debugQuota: '' };
+  return { ...detectFromUA(), isMobile: true, ...storageResult };
 }
 
 export function findMatchingUsedPhone(
