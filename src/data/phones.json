@@ -103,6 +103,27 @@
     }
   },
   {
+    "id": "galaxy-s25fe",
+    "name": "갤럭시 S25 FE",
+    "brand": "삼성",
+    "image": "/images/phones/s25fe/s25fe.png",
+    "carriers": ["SKT", "KT", "LGU"],
+    "storage": [
+      { "size": "256GB", "price": 0 }
+    ],
+    "colors": [
+      { "name": "아이스 블루", "hex": "#A8D8EA", "image": "/images/phones/s25fe/blue.png" },
+      { "name": "제트블랙", "hex": "#1A1A1A", "image": "/images/phones/s25fe/black.png" },
+      { "name": "화이트", "hex": "#F5F5F5", "image": "/images/phones/s25fe/white.png" },
+      { "name": "네이비", "hex": "#1B3A5C", "image": "/images/phones/s25fe/navy.png" }
+    ],
+    "공통지원금": {
+      "SKT": { "256GB": 0 },
+      "KT": { "256GB": 0 },
+      "LGU": { "256GB": 0 }
+    }
+  },
+  {
     "id": "iphone-17-pro",
     "name": "iPhone 17 Pro",
     "brand": "Apple",
