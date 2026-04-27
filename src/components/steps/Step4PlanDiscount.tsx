@@ -356,9 +356,10 @@ export function Step4PlanDiscount() {
         </div>
 
         <div className={styles.discountInfo}>
-          {discountType === '공통지원금'
+          <div>{discountType === '공통지원금'
             ? '공통지원금: 기기값을 할인받는 대신, 요금제 할인은 받지 못합니다.'
-            : '선택약정: 요금제를 25% 할인받는 대신, 기기값 할인(공통지원금)은 받지 못합니다.'}
+            : '선택약정: 요금제를 25% 할인받는 대신, 기기값 할인(공통지원금)은 받지 못합니다.'}</div>
+          <div className={styles.discountInfoSub}>*부가서비스가 포함 된 최대 금액 기준 입니다.</div>
         </div>
 
         <h2 className={styles.title}>요금제</h2>
