@@ -151,7 +151,9 @@ export function Step3Phone() {
                     <div className={styles.lowestPrice}>
                       <span className={styles.lowestPriceLabel}>오늘 최저가 금액</span>
                       {showLowestPrice ? (
-                        <span className={styles.lowestPriceValue}>{formatWon(lowestDevicePrice)}</span>
+                        lowestDevicePrice > 0
+                          ? <span className={styles.lowestPriceValue}>{formatWon(lowestDevicePrice)}</span>
+                          : <span className={styles.lowestPriceNone}>가격 준비중</span>
                       ) : (
                         <span className={styles.lowestPriceSkeleton} aria-label="loading" />
                       )}

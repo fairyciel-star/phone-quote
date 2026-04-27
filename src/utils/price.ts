@@ -60,6 +60,8 @@ export function calculateLowestDevicePrice(params: {
           if (sheet.특별지원 > 0) 특별지원 = sheet.특별지원;
         }
 
+        if (출고가 === 0) continue; // 출고가 없는 모델은 최저가 계산 제외
+
         const 실구매가 = Math.max(0, 출고가 - 공통지원금 - 추가지원금 - 특별지원);
         if (실구매가 < lowest) {
           lowest = 실구매가;

@@ -201,6 +201,13 @@
   white-space: nowrap;
 }
 
+.lowestPriceNone {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 /* 용량 선택 패널 - 선택된 모델 바로 아래 */
 .storagePanel {
   background: var(--color-primary-light);
