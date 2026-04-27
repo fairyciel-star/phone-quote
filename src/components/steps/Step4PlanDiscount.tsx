@@ -34,7 +34,8 @@ export function Step4PlanDiscount() {
   const sheetLoaded = useSheetStore((s) => s.loaded);
   const getSheetCards = useSheetStore((s) => s.getCardDiscountsForCarrier);
   const getSheetPlans = useSheetStore((s) => s.getPlansForCarrier);
-  const getSheetAddons = useSheetStore((s) => s.getAddonsForCarrier);
+  // 부가서비스 조건 임시 비활성화
+  // const getSheetAddons = useSheetStore((s) => s.getAddonsForCarrier);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
   const getStoragesForPhone = useSheetStore((s) => s.getStoragesForPhone);
   const getUsedPhoneList = useSheetStore((s) => s.getUsedPhoneList);
@@ -87,13 +88,14 @@ export function Step4PlanDiscount() {
   const jsonCardDiscounts = jsonCarrierDiscounts.filter((d) => d.type === '제휴카드');
   const cardDiscounts = sheetCardDiscounts.length > 0 ? sheetCardDiscounts : jsonCardDiscounts;
 
-  // Addons
-  const sheetAddons = sheetLoaded && carrierId ? getSheetAddons(carrierId) : [];
-  const jsonAddons = jsonCarrierDiscounts.filter((d) => d.type === '부가서비스');
-  const addons = sheetAddons.length > 0 ? sheetAddons : jsonAddons;
+  // Addons — 부가서비스 조건 임시 비활성화
+  // const sheetAddons = sheetLoaded && carrierId ? getSheetAddons(carrierId) : [];
+  // const jsonAddons = jsonCarrierDiscounts.filter((d) => d.type === '부가서비스');
+  // const addons = sheetAddons.length > 0 ? sheetAddons : jsonAddons;
 
   const [cardEnabled, setCardEnabled] = useState(false);
-  const [addonEnabled, setAddonEnabled] = useState(false);
+  // 부가서비스 조건 임시 비활성화
+  // const [addonEnabled, setAddonEnabled] = useState(false);
   const [condReturn, setCondReturn] = useState(false);
   const [selectedUsedPhone, setSelectedUsedPhone] = useState<string | null>(null);
   const [selectedUsedStorage, setSelectedUsedStorage] = useState<string | null>(null);
@@ -147,15 +149,14 @@ export function Step4PlanDiscount() {
     }
   }, [cardEnabled, sortedCardDiscounts.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    if (addonEnabled && addons.length > 0) {
-      for (const addon of addons) {
-        if (!selectedIds.includes(addon.id)) {
-          toggleDiscount(addon.id);
-        }
-      }
-    }
-  }, [addonEnabled, addons.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  // 부가서비스 조건 임시 비활성화
+  // useEffect(() => {
+  //   if (addonEnabled && addons.length > 0) {
+  //     for (const addon of addons) {
+  //       if (!selectedIds.includes(addon.id)) toggleDiscount(addon.id);
+  //     }
+  //   }
+  // }, [addonEnabled, addons.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCardSelect = (discountId: string) => {
     if (selectedCardId && selectedCardId !== discountId) {
@@ -175,22 +176,21 @@ export function Step4PlanDiscount() {
     }
   };
 
-  const handleAddonToggle = () => {
-    if (addonEnabled) {
-      // 끌 때: 선택된 부가서비스 모두 해제
-      for (const addon of addons) {
-        if (selectedIds.includes(addon.id)) {
-          toggleDiscount(addon.id);
-        }
-      }
-    }
-    setAddonEnabled(!addonEnabled);
-  };
+  // 부가서비스 조건 임시 비활성화로 미사용
+  // const handleAddonToggle = () => {
+  //   if (addonEnabled) {
+  //     for (const addon of addons) {
+  //       if (selectedIds.includes(addon.id)) toggleDiscount(addon.id);
+  //     }
+  //   }
+  //   setAddonEnabled(!addonEnabled);
+  // };
 
   // Quote calculation
   const allDiscounts = [
     ...(sheetCardDiscounts.length > 0 ? sheetCardDiscounts : jsonCardDiscounts),
-    ...(sheetAddons.length > 0 ? sheetAddons : jsonAddons),
+    // 부가서비스 조건 임시 비활성화
+    // ...(sheetAddons.length > 0 ? sheetAddons : jsonAddons),
   ];
   const selectedDiscounts = allDiscounts.filter((d) => selectedIds.includes(d.id));
 
@@ -469,7 +469,7 @@ export function Step4PlanDiscount() {
 
         {/* ===== 조건 항목 ===== */}
         <div className={styles.conditionSection}>
-          {/* 부가서비스 조건 */}
+          {/* 부가서비스 조건 — 추후 추가 예정, 임시 비활성화
           <div className={styles.conditionRow}>
             <div className={styles.conditionLeft}>
               <span className={styles.conditionIcon}>📦</span>
@@ -506,6 +506,7 @@ export function Step4PlanDiscount() {
               })}
             </div>
           )}
+          */}
 
           {/* 카드 발급 조건 */}
           <div className={styles.conditionRow}>
