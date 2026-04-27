@@ -564,7 +564,7 @@ export function Step4PlanDiscount() {
                   setDetectedModel(detected.matchKeyword || detected.raw);
                   setDetectedDebug(detected.debugQuota);
                   if (detected.matchKeyword) {
-                    const matchId = findMatchingUsedPhone(detected.matchKeyword, usedPhoneList);
+                    const matchId = findMatchingUsedPhone(detected.raw, usedPhoneList);
                     if (matchId) {
                       setSelectedUsedPhone(matchId);
                       const modelStorages = usedPhoneList.filter((p) => p.모델ID === matchId);

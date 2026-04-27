@@ -84,23 +84,30 @@ export async function detectDevice(): Promise<DetectedDevice> {
 }
 
 export function findMatchingUsedPhone(
-  keyword: string,
+  raw: string,
   usedPhones: readonly { 모델ID: string; 모델명: string }[]
 ): string | null {
-  if (!keyword) return null;
-  const normalized = keyword.replace(/\s/g, '').toLowerCase();
+  if (!raw) return null;
 
-  // 1) 정확히 일치하는 모델명 우선
+  // 삼성 SM-XXXXX 형식: 모델코드(F731, S931 등) 추출 후 모델ID 직접 매칭
+  const smMatch = raw.match(/^SM-([A-Z]\d{3})/i);
+  if (smMatch) {
+    const baseCode = smMatch[1].toUpperCase();
+    const byId = usedPhones.find((p) =>
+      p.모델ID.replace(/^SM-/i, '').toUpperCase().startsWith(baseCode)
+    );
+    if (byId) return byId.모델ID;
+  }
+
+  // Fallback: 모델명 텍스트 검색 (Apple 등 SM- 아닌 기기)
+  const normalized = raw.replace(/\s/g, '').toLowerCase();
   const exact = usedPhones.find(
     (p) => p.모델명.replace(/\s/g, '').toLowerCase() === normalized
   );
   if (exact) return exact.모델ID;
-
-  // 2) 포함 매칭 중 가장 짧은 모델명 선택 (S25가 S25 Ultra보다 먼저 선택되도록)
   const matches = usedPhones.filter((p) =>
     p.모델명.replace(/\s/g, '').toLowerCase().includes(normalized)
   );
   if (matches.length === 0) return null;
-  const best = matches.reduce((a, b) => a.모델명.length <= b.모델명.length ? a : b);
-  return best.모델ID;
+  return matches.reduce((a, b) => a.모델명.length <= b.모델명.length ? a : b).모델ID;
 }
