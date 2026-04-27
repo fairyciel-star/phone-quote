@@ -23,11 +23,7 @@ export function Step3Phone() {
   const setColor = useQuoteStore((s) => s.setColor);
 
   const sheetLoaded = useSheetStore((s) => s.loaded);
-  const sheetLoading = useSheetStore((s) => s.loading);
-  const sheetError = useSheetStore((s) => s.error);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
-
-  const showLowestPrice = sheetLoaded || (sheetError !== null && !sheetLoading);
 
   const selectedBrand = useQuoteStore((s) => s.selectedBrand);
   const [brandFilter, setBrandFilter] = useState<BrandFilter>(
@@ -150,13 +146,10 @@ export function Step3Phone() {
                     </div>
                     <div className={styles.lowestPrice}>
                       <span className={styles.lowestPriceLabel}>오늘 최저가 금액</span>
-                      {showLowestPrice ? (
-                        lowestDevicePrice > 0
-                          ? <span className={styles.lowestPriceValue}>{formatWon(lowestDevicePrice)}</span>
-                          : <span className={styles.lowestPriceNone}>가격 준비중</span>
-                      ) : (
-                        <span className={styles.lowestPriceSkeleton} aria-label="loading" />
-                      )}
+                      {lowestDevicePrice > 0
+                        ? <span className={styles.lowestPriceValue}>{formatWon(lowestDevicePrice)}</span>
+                        : <span className={styles.lowestPriceNone}>가격 준비중</span>
+                      }
                     </div>
                   </div>
                 </Card>
