@@ -89,8 +89,18 @@ export function findMatchingUsedPhone(
 ): string | null {
   if (!keyword) return null;
   const normalized = keyword.replace(/\s/g, '').toLowerCase();
-  const match = usedPhones.find((p) =>
+
+  // 1) 정확히 일치하는 모델명 우선
+  const exact = usedPhones.find(
+    (p) => p.모델명.replace(/\s/g, '').toLowerCase() === normalized
+  );
+  if (exact) return exact.모델ID;
+
+  // 2) 포함 매칭 중 가장 짧은 모델명 선택 (S25가 S25 Ultra보다 먼저 선택되도록)
+  const matches = usedPhones.filter((p) =>
     p.모델명.replace(/\s/g, '').toLowerCase().includes(normalized)
   );
-  return match?.모델ID ?? null;
+  if (matches.length === 0) return null;
+  const best = matches.reduce((a, b) => a.모델명.length <= b.모델명.length ? a : b);
+  return best.모델ID;
 }
