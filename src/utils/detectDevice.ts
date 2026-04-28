@@ -99,6 +99,12 @@ export function findMatchingUsedPhone(
     if (byId) return byId.모델ID;
   }
 
+  // 모델ID 직접 매칭 (AT-M120 등 SM- 아닌 모델 코드)
+  const byModelId = usedPhones.find(
+    (p) => p.모델ID.replace(/\s/g, '').toUpperCase() === raw.replace(/\s/g, '').toUpperCase()
+  );
+  if (byModelId) return byModelId.모델ID;
+
   // Fallback: 모델명 텍스트 검색 (Apple 등 SM- 아닌 기기)
   const normalized = raw.replace(/\s/g, '').toLowerCase();
   const exact = usedPhones.find(

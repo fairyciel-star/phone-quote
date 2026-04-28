@@ -190,7 +190,7 @@ export function Step6Summary() {
 
           {specialSupport > 0 && (
             <div className={styles.breakdownRow}>
-              <span className={styles.breakdownLabel}>동네휴대폰마트 특별지원(대상자 한정)</span>
+              <span className={styles.breakdownLabel}>프로모션지원금(조건부 한정)</span>
               <span className={`${styles.breakdownValue} ${styles.breakdownDiscount}`}>
                 -{formatWon(specialSupport)}
               </span>
@@ -223,7 +223,7 @@ export function Step6Summary() {
           <div className={styles.divider} />
 
           <div className={styles.breakdownRow}>
-            <span className={styles.breakdownLabel}>월 할부금 ({할부개월}개월)</span>
+            <span className={styles.breakdownLabel}>월 할부금액({할부개월}개월)</span>
             <span className={styles.breakdownValue}>{formatWon(quote.월할부금)}</span>
           </div>
 

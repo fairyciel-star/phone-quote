@@ -14,6 +14,7 @@ import { calculateFullQuote } from '../../utils/price';
 import discountsData from '../../data/discounts.json';
 import type { Discount } from '../../types';
 import styles from './Step7Consultation.module.css';
+import summaryStyles from './Step6Summary.module.css';
 
 const phones = phonesData as unknown as Phone[];
 const plans = plansData as unknown as Plan[];
@@ -31,6 +32,17 @@ export function Step7Consultation() {
   const consultation = useQuoteStore((s) => s.consultation);
   const setConsultation = useQuoteStore((s) => s.setConsultation);
   const reset = useQuoteStore((s) => s.reset);
+
+  const subscriptionType = useQuoteStore((s) => s.subscriptionType);
+  const carrierId = useQuoteStore((s) => s.carrierId);
+  const selectedPhoneId = useQuoteStore((s) => s.selectedPhoneId);
+  const selectedStorage = useQuoteStore((s) => s.selectedStorage);
+  const selectedPlanId = useQuoteStore((s) => s.selectedPlanId);
+  const discountType = useQuoteStore((s) => s.discountType);
+
+  const phone = phones.find((p) => p.id === selectedPhoneId);
+  const carrier = carriersData.find((c) => c.id === carrierId);
+  const plan = plans.find((p) => p.id === selectedPlanId);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
 
@@ -151,6 +163,33 @@ ${quoteText}
       <div className={styles.container}>
         <h2 className={styles.title}>상담 신청</h2>
         <p className={styles.subtitle}>연락 정보를 입력해주시면 빠르게 연락드릴게요</p>
+
+        {/* 선택 정보 */}
+        <div className={summaryStyles.summaryCard} style={{ marginBottom: 'var(--space-lg)' }}>
+          <div className={summaryStyles.sectionTitle}>선택 정보</div>
+          <div className={summaryStyles.selectedInfo}>
+            <div className={summaryStyles.infoRow}>
+              <span className={summaryStyles.infoLabel}>가입유형</span>
+              <span className={summaryStyles.infoValue}>{subscriptionType ?? '-'}</span>
+            </div>
+            <div className={summaryStyles.infoRow}>
+              <span className={summaryStyles.infoLabel}>통신사</span>
+              <span className={summaryStyles.infoValue}>{carrier?.name ?? '-'}</span>
+            </div>
+            <div className={summaryStyles.infoRow}>
+              <span className={summaryStyles.infoLabel}>모델</span>
+              <span className={summaryStyles.infoValue}>{phone?.name ?? '-'} {selectedStorage ?? ''}</span>
+            </div>
+            <div className={summaryStyles.infoRow}>
+              <span className={summaryStyles.infoLabel}>요금제</span>
+              <span className={summaryStyles.infoValue}>{plan?.name ?? '-'}</span>
+            </div>
+            <div className={summaryStyles.infoRow}>
+              <span className={summaryStyles.infoLabel}>할인방식</span>
+              <span className={summaryStyles.infoValue}>{discountType}</span>
+            </div>
+          </div>
+        </div>
 
         <div className={styles.form}>
           <Input

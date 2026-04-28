@@ -100,6 +100,7 @@ export function Step4PlanDiscount() {
   const [selectedUsedPhone, setSelectedUsedPhone] = useState<string | null>(null);
   const [selectedUsedStorage, setSelectedUsedStorage] = useState<string | null>(null);
   const [detectedModel, setDetectedModel] = useState<string>('');
+  const [detectedBrand, setDetectedBrand] = useState<'삼성' | 'Apple' | null>(null);
   const [detectedDebug, setDetectedDebug] = useState<string>('');
   const [isMobileDevice, setIsMobileDevice] = useState<boolean | null>(null);
   const [showPhoneList, setShowPhoneList] = useState(false);
@@ -108,10 +109,10 @@ export function Step4PlanDiscount() {
 
   // 중고폰 시세 목록
   const usedPhoneList = sheetLoaded ? getUsedPhoneList() : [];
-  // 모델별 고유 목록 (중복 모델ID 제거)
-  const uniqueModels = usedPhoneList.filter((p, i, arr) =>
-    arr.findIndex((q) => q.모델ID === p.모델ID) === i
-  );
+  // 모델별 고유 목록 (중복 모델ID 제거, 아이폰 감지 시 iPhone 모델만 표시)
+  const uniqueModels = usedPhoneList
+    .filter((p, i, arr) => arr.findIndex((q) => q.모델ID === p.모델ID) === i)
+    .filter((p) => detectedBrand !== 'Apple' || /iphone|아이폰/i.test(p.모델명));
   // 선택된 모델의 용량 목록
   const storageOptions = selectedUsedPhone
     ? usedPhoneList.filter((p) => p.모델ID === selectedUsedPhone)
@@ -562,8 +563,12 @@ export function Step4PlanDiscount() {
                   const detected = await detectDevice();
                   setIsMobileDevice(detected.isMobile);
                   setDetectedModel(detected.matchKeyword || detected.raw);
+                  setDetectedBrand(detected.brand);
                   setDetectedDebug(detected.debugQuota);
-                  if (detected.matchKeyword) {
+                  if (detected.brand === 'Apple') {
+                    // 아이폰은 UA에 모델 번호가 없어 자동 매칭 불가 → 목록 직접 선택
+                    setShowPhoneList(true);
+                  } else if (detected.matchKeyword) {
                     const matchId = findMatchingUsedPhone(detected.raw, usedPhoneList);
                     if (matchId) {
                       setSelectedUsedPhone(matchId);
@@ -584,6 +589,7 @@ export function Step4PlanDiscount() {
                   }
                 } else {
                   setDetectedModel('');
+                  setDetectedBrand(null);
                   setSelectedUsedPhone(null);
                   setSelectedUsedStorage(null);
                   setShowPhoneList(false);
@@ -634,7 +640,10 @@ export function Step4PlanDiscount() {
                 <>
                   <div className={styles.detectedDevice}>
                     <span className={styles.detectedIcon}>📱</span>
-                    <span>감지된 기기: <strong>{detectedModel}</strong> (시세 데이터 없음)</span>
+                    {detectedBrand === 'Apple'
+                      ? <span><strong>아이폰</strong>으로 감지되었습니다. 모델을 선택해주세요.</span>
+                      : <span>감지된 기기: <strong>{detectedModel}</strong> (시세 데이터 없음)</span>
+                    }
                   </div>
                   <button className={styles.showPhoneListBtn} onClick={() => setShowPhoneList(!showPhoneList)}>
                     {showPhoneList ? '기종 목록 닫기 ▲' : '직접 기종 선택하기 ▼'}
@@ -795,36 +804,9 @@ export function Step4PlanDiscount() {
 
               {specialSupport > 0 && (
                 <div className={summaryStyles.breakdownRow}>
-                  <span className={summaryStyles.breakdownLabel}>동네폰 특별지원(대상자 한정)</span>
+                  <span className={summaryStyles.breakdownLabel}>프로모션지원금(조건부 한정)</span>
                   <span className={`${summaryStyles.breakdownValue} ${summaryStyles.breakdownDiscount}`}>
                     -{formatWon(specialSupport)}
-                  </span>
-                </div>
-              )}
-
-              {quote.제휴카드24개월할인 > 0 && (
-                <div className={summaryStyles.breakdownRow}>
-                  <span className={summaryStyles.breakdownLabel}>제휴카드 할인 (24개월)</span>
-                  <span className={`${summaryStyles.breakdownValue} ${summaryStyles.breakdownDiscount}`}>
-                    -{formatWon(quote.제휴카드24개월할인)}
-                  </span>
-                </div>
-              )}
-
-              {quote.부가서비스추가할인 > 0 && (
-                <div className={summaryStyles.breakdownRow}>
-                  <span className={summaryStyles.breakdownLabel}>부가서비스 추가할인</span>
-                  <span className={`${summaryStyles.breakdownValue} ${summaryStyles.breakdownDiscount}`}>
-                    -{formatWon(quote.부가서비스추가할인)}
-                  </span>
-                </div>
-              )}
-
-              {gradePrice > 0 && (
-                <div className={summaryStyles.breakdownRow}>
-                  <span className={summaryStyles.breakdownLabel}>기기 반납 예상금액</span>
-                  <span className={`${summaryStyles.breakdownValue} ${summaryStyles.breakdownDiscount}`}>
-                    -{formatWon(gradePrice)}
                   </span>
                 </div>
               )}
@@ -836,37 +818,9 @@ export function Step4PlanDiscount() {
 
               <div className={summaryStyles.divider} />
 
-              <div className={summaryStyles.breakdownRow}>
-                <span className={summaryStyles.breakdownLabel}>월 할부금 ({할부개월}개월)</span>
-                <span className={summaryStyles.breakdownValue}>{formatWon(Math.max(0, Math.round((quote.할부원금 - gradePrice) / 할부개월)))}</span>
-              </div>
-
-              <div className={summaryStyles.breakdownRow}>
-                <span className={summaryStyles.breakdownLabel}>월 요금제</span>
-                <span className={summaryStyles.breakdownValue}>{formatWon(quote.월요금제)}</span>
-              </div>
-
-              {quote.선택약정할인 > 0 && (
-                <div className={summaryStyles.breakdownRow}>
-                  <span className={summaryStyles.breakdownLabel}>선택약정할인</span>
-                  <span className={`${summaryStyles.breakdownValue} ${summaryStyles.breakdownDiscount}`}>
-                    -{formatWon(quote.선택약정할인)}/월
-                  </span>
-                </div>
-              )}
-
-              {quote.월부가서비스료 > 0 && (
-                <div className={summaryStyles.breakdownRow}>
-                  <span className={summaryStyles.breakdownLabel}>부가서비스</span>
-                  <span className={`${summaryStyles.breakdownValue} ${summaryStyles.breakdownAdd}`}>
-                    +{formatWon(quote.월부가서비스료)}
-                  </span>
-                </div>
-              )}
-
               <div className={`${summaryStyles.breakdownRow} ${summaryStyles.breakdownTotal}`}>
-                <span>월 납입금 합계</span>
-                <span>{formatWon(quote.월납입금총액 - (gradePrice > 0 ? quote.월할부금 - Math.max(0, Math.round((quote.할부원금 - gradePrice) / 할부개월)) : 0))}</span>
+                <span>월 할부금액({할부개월}개월)</span>
+                <span>{formatWon(Math.max(0, Math.round((quote.할부원금 - gradePrice) / 할부개월)))}</span>
               </div>
             </div>
 
