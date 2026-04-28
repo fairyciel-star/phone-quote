@@ -195,10 +195,11 @@
 }
 
 .lowestPriceValue {
-  font-size: 15px;
+  font-size: 20px;
   color: var(--color-primary);
-  font-weight: 700;
+  font-weight: 800;
   white-space: nowrap;
+  letter-spacing: -0.5px;
 }
 
 .lowestPriceNone {

@@ -118,7 +118,7 @@ export function Step3Phone() {
         )}
 
         <div className={styles.list}>
-          {displayPhones.map(({ phone, retailPrice, lowestDevicePrice, totalSubsidy }) => {
+          {displayPhones.map(({ phone, retailPrice, lowestDevicePrice }) => {
             const isSelected = selectedPhoneId === phone.id;
             return (
               <div key={phone.id}>
@@ -147,9 +147,6 @@ export function Step3Phone() {
                           <span className={styles.lowestPriceBadge}>▼ 오늘 최저가</span>
                           <span className={styles.lowestPriceValue}>{formatWon(lowestDevicePrice)}</span>
                           <span className={styles.lowestPriceRetail}>{formatWon(retailPrice)}</span>
-                          {totalSubsidy > 0 && (
-                            <span className={styles.lowestPriceSaving}>▼ {formatWon(totalSubsidy)} ↓</span>
-                          )}
                         </>
                       ) : (
                         <>
