@@ -118,7 +118,7 @@ export function Step3Phone() {
         )}
 
         <div className={styles.list}>
-          {displayPhones.map(({ phone, retailPrice, lowestDevicePrice, conditions, totalSubsidy }) => {
+          {displayPhones.map(({ phone, retailPrice, lowestDevicePrice, totalSubsidy }) => {
             const isSelected = selectedPhoneId === phone.id;
             return (
               <div key={phone.id}>
@@ -140,19 +140,6 @@ export function Step3Phone() {
                       <div className={styles.phoneNameRow}>
                         <span className={styles.phoneName}>{phone.name}</span>
                       </div>
-                      {conditions.length > 0 && (
-                        <div className={styles.conditionBadge}>
-                          <span className={styles.conditionLabel}>통신사</span>
-                          {conditions.map((c) => {
-                            const label = c.subscriptionType === '번호이동' ? '번이' : c.subscriptionType === '기기변경' ? '기변' : c.subscriptionType;
-                            return (
-                              <span key={`${c.carrierId}:${c.subscriptionType}`} className={styles.conditionTag}>
-                                {label} {c.carrierId}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      )}
                     </div>
                     <div className={styles.lowestPrice}>
                       {lowestDevicePrice > 0 ? (
