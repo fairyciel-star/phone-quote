@@ -42,7 +42,6 @@ export function Step7Consultation() {
 
   const phone = phones.find((p) => p.id === selectedPhoneId);
   const carrier = carriersData.find((c) => c.id === carrierId);
-  const plan = plans.find((p) => p.id === selectedPlanId);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
 
@@ -71,6 +70,9 @@ export function Step7Consultation() {
   const getSheetPlans = useSheetStore((s) => s.getPlansForCarrier);
   const getSheetCards = useSheetStore((s) => s.getCardDiscountsForCarrier);
   const getSheetAddons = useSheetStore((s) => s.getAddonsForCarrier);
+
+  const displaySheetPlans = sheetLoaded && carrierId ? getSheetPlans(carrierId) : [];
+  const plan = (displaySheetPlans.length > 0 ? displaySheetPlans : plans).find((p) => p.id === selectedPlanId);
 
   const handleSubmit = async () => {
     if (!validate()) return;

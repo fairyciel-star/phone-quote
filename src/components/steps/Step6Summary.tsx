@@ -134,40 +134,13 @@ export function Step6Summary() {
           </span>
         </div>
 
-        {/* 선택 정보 */}
-        <div className={styles.summaryCard}>
-          <div className={styles.sectionTitle}>선택 정보</div>
-          <div className={styles.selectedInfo}>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>가입유형</span>
-              <span className={styles.infoValue}>{subscriptionType}</span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>통신사</span>
-              <span className={styles.infoValue}>{carrier?.name}</span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>모델</span>
-              <span className={styles.infoValue}>{phone.name} {selectedStorage}</span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>요금제</span>
-              <span className={styles.infoValue}>{plan.name}</span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>할인방식</span>
-              <span className={styles.infoValue}>{discountType}</span>
-            </div>
-          </div>
-        </div>
-
         {/* 가격 상세 */}
         <div className={styles.summaryCard}>
           <div className={styles.sectionTitle}>가격 상세</div>
 
           <div className={styles.breakdownRow}>
             <span className={styles.breakdownLabel}>출고가</span>
-            <span className={styles.breakdownValue}>{formatWon(quote.출고가)}</span>
+            <span className={styles.breakdownValue} style={{ textDecoration: 'line-through', color: 'var(--color-text-secondary)' }}>{formatWon(quote.출고가)}</span>
           </div>
 
           {quote.공통지원금 > 0 && (
@@ -215,12 +188,12 @@ export function Step6Summary() {
             </div>
           )}
 
+          <div className={styles.divider} />
+
           <div className={`${styles.breakdownRow} ${styles.breakdownHighlight}`}>
             <span>할부원금</span>
             <span>{formatWon(quote.할부원금)}</span>
           </div>
-
-          <div className={styles.divider} />
 
           <div className={styles.breakdownRow}>
             <span className={styles.breakdownLabel}>월 할부금액({할부개월}개월)</span>
