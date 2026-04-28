@@ -25,6 +25,9 @@ export function calculate선택약정할인(
 export interface LowestDevicePriceResult {
   readonly price: number;
   readonly carrierId: CarrierId | null;
+  readonly subscriptionType: SubscriptionType | null;
+  readonly retailPrice: number;
+  readonly totalSubsidy: number;
 }
 
 export function calculateLowestDevicePrice(params: {
@@ -43,6 +46,9 @@ export function calculateLowestDevicePrice(params: {
 
   let lowest = Infinity;
   let lowestCarrier: CarrierId | null = null;
+  let lowestSubType: SubscriptionType | null = null;
+  let lowestRetailPrice = 0;
+  let lowestTotalSubsidy = 0;
 
   for (const carrierId of carriers) {
     for (const storageOption of phone.storage) {
@@ -60,12 +66,15 @@ export function calculateLowestDevicePrice(params: {
           if (sheet.특별지원 > 0) 특별지원 = sheet.특별지원;
         }
 
-        if (출고가 === 0) continue; // 출고가 없는 모델은 최저가 계산 제외
+        if (출고가 === 0) continue;
 
         const 실구매가 = Math.max(0, 출고가 - 공통지원금 - 추가지원금 - 특별지원);
         if (실구매가 < lowest) {
           lowest = 실구매가;
           lowestCarrier = carrierId;
+          lowestSubType = subType;
+          lowestRetailPrice = 출고가;
+          lowestTotalSubsidy = 공통지원금 + 추가지원금 + 특별지원;
         }
       }
     }
@@ -74,6 +83,9 @@ export function calculateLowestDevicePrice(params: {
   return {
     price: lowest === Infinity ? 0 : lowest,
     carrierId: lowestCarrier,
+    subscriptionType: lowestSubType,
+    retailPrice: lowestRetailPrice,
+    totalSubsidy: lowestTotalSubsidy,
   };
 }
 

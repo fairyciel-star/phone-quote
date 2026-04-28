@@ -72,16 +72,17 @@ export function Step3Phone() {
   };
 
   const phonesWithData = useMemo(() =>
-    filteredPhones.map((phone) => ({
-      phone,
-      retailPrice: getDisplayPrice(phone, phone.storage[0].size),
-      lowestDevicePrice: calculateLowestDevicePrice({
+    filteredPhones.map((phone) => {
+      const result = calculateLowestDevicePrice({ phone, carriers: phone.carriers, sheetLoaded, getSubsidy });
+      return {
         phone,
-        carriers: phone.carriers,
-        sheetLoaded,
-        getSubsidy,
-      }).price,
-    })),
+        lowestDevicePrice: result.price,
+        lowestCarrierId: result.carrierId,
+        lowestSubType: result.subscriptionType,
+        retailPrice: result.retailPrice > 0 ? result.retailPrice : getDisplayPrice(phone, phone.storage[0].size),
+        totalSubsidy: result.totalSubsidy,
+      };
+    }),
   // eslint-disable-next-line react-hooks/exhaustive-deps
   [filteredPhones, sheetLoaded]);
 
@@ -118,8 +119,9 @@ export function Step3Phone() {
         )}
 
         <div className={styles.list}>
-          {displayPhones.map(({ phone, retailPrice, lowestDevicePrice }) => {
+          {displayPhones.map(({ phone, retailPrice, lowestDevicePrice, lowestCarrierId, lowestSubType, totalSubsidy }) => {
             const isSelected = selectedPhoneId === phone.id;
+            const subTypeLabel = lowestSubType === '번호이동' ? '번이' : lowestSubType === '기기변경' ? '기변' : lowestSubType ?? '';
             return (
               <div key={phone.id}>
                 <Card
@@ -140,16 +142,30 @@ export function Step3Phone() {
                       <div className={styles.phoneNameRow}>
                         <span className={styles.phoneName}>{phone.name}</span>
                       </div>
-                      <span className={styles.phonePrice}>
-                        {formatWon(retailPrice)}~
-                      </span>
+                      {lowestCarrierId && (
+                        <div className={styles.conditionBadge}>
+                          <span className={styles.conditionLabel}>통신사</span>
+                          <span className={styles.conditionDivider}>|</span>
+                          <span className={styles.conditionValue}>{subTypeLabel} {lowestCarrierId}</span>
+                        </div>
+                      )}
                     </div>
                     <div className={styles.lowestPrice}>
-                      <span className={styles.lowestPriceLabel}>오늘 최저가 금액</span>
-                      {lowestDevicePrice > 0
-                        ? <span className={styles.lowestPriceValue}>{formatWon(lowestDevicePrice)}</span>
-                        : <span className={styles.lowestPriceNone}>가격 준비중</span>
-                      }
+                      {lowestDevicePrice > 0 ? (
+                        <>
+                          <span className={styles.lowestPriceBadge}>▼ 오늘 최저가</span>
+                          <span className={styles.lowestPriceValue}>{formatWon(lowestDevicePrice)}</span>
+                          <span className={styles.lowestPriceRetail}>{formatWon(retailPrice)}</span>
+                          {totalSubsidy > 0 && (
+                            <span className={styles.lowestPriceSaving}>▼ {formatWon(totalSubsidy)} ↓</span>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <span className={styles.lowestPriceLabel}>오늘 최저가</span>
+                          <span className={styles.lowestPriceNone}>가격 준비중</span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </Card>
