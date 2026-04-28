@@ -22,12 +22,18 @@ export function calculate선택약정할인(
  * 모든 통신사(또는 선택된 통신사), 용량, 가입유형 조합 중
  * 출고가 - (공통지원금 + 추가지원금 + 특별지원) 의 최솟값을 반환한다.
  */
+export interface LowestCondition {
+  readonly carrierId: CarrierId;
+  readonly subscriptionType: SubscriptionType;
+}
+
 export interface LowestDevicePriceResult {
   readonly price: number;
   readonly carrierId: CarrierId | null;
   readonly subscriptionType: SubscriptionType | null;
   readonly retailPrice: number;
   readonly totalSubsidy: number;
+  readonly conditions: readonly LowestCondition[];
 }
 
 export function calculateLowestDevicePrice(params: {
@@ -45,10 +51,9 @@ export function calculateLowestDevicePrice(params: {
   const subscriptionTypes: SubscriptionType[] = ['번호이동', '기기변경'];
 
   let lowest = Infinity;
-  let lowestCarrier: CarrierId | null = null;
-  let lowestSubType: SubscriptionType | null = null;
   let lowestRetailPrice = 0;
   let lowestTotalSubsidy = 0;
+  const matchMap = new Map<string, LowestCondition>();
 
   for (const carrierId of carriers) {
     for (const storageOption of phone.storage) {
@@ -71,21 +76,26 @@ export function calculateLowestDevicePrice(params: {
         const 실구매가 = Math.max(0, 출고가 - 공통지원금 - 추가지원금 - 특별지원);
         if (실구매가 < lowest) {
           lowest = 실구매가;
-          lowestCarrier = carrierId;
-          lowestSubType = subType;
           lowestRetailPrice = 출고가;
           lowestTotalSubsidy = 공통지원금 + 추가지원금 + 특별지원;
+          matchMap.clear();
+        }
+        if (실구매가 === lowest) {
+          const key = `${carrierId}:${subType}`;
+          if (!matchMap.has(key)) matchMap.set(key, { carrierId, subscriptionType: subType });
         }
       }
     }
   }
 
+  const conditions = [...matchMap.values()];
   return {
     price: lowest === Infinity ? 0 : lowest,
-    carrierId: lowestCarrier,
-    subscriptionType: lowestSubType,
+    carrierId: conditions[0]?.carrierId ?? null,
+    subscriptionType: conditions[0]?.subscriptionType ?? null,
     retailPrice: lowestRetailPrice,
     totalSubsidy: lowestTotalSubsidy,
+    conditions,
   };
 }
 

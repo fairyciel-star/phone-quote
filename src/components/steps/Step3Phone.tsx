@@ -77,10 +77,9 @@ export function Step3Phone() {
       return {
         phone,
         lowestDevicePrice: result.price,
-        lowestCarrierId: result.carrierId,
-        lowestSubType: result.subscriptionType,
         retailPrice: result.retailPrice > 0 ? result.retailPrice : getDisplayPrice(phone, phone.storage[0].size),
         totalSubsidy: result.totalSubsidy,
+        conditions: result.conditions,
       };
     }),
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -119,9 +118,8 @@ export function Step3Phone() {
         )}
 
         <div className={styles.list}>
-          {displayPhones.map(({ phone, retailPrice, lowestDevicePrice, lowestCarrierId, lowestSubType, totalSubsidy }) => {
+          {displayPhones.map(({ phone, retailPrice, lowestDevicePrice, conditions, totalSubsidy }) => {
             const isSelected = selectedPhoneId === phone.id;
-            const subTypeLabel = lowestSubType === '번호이동' ? '번이' : lowestSubType === '기기변경' ? '기변' : lowestSubType ?? '';
             return (
               <div key={phone.id}>
                 <Card
@@ -142,11 +140,17 @@ export function Step3Phone() {
                       <div className={styles.phoneNameRow}>
                         <span className={styles.phoneName}>{phone.name}</span>
                       </div>
-                      {lowestCarrierId && (
+                      {conditions.length > 0 && (
                         <div className={styles.conditionBadge}>
                           <span className={styles.conditionLabel}>통신사</span>
-                          <span className={styles.conditionDivider}>|</span>
-                          <span className={styles.conditionValue}>{subTypeLabel} {lowestCarrierId}</span>
+                          {conditions.map((c) => {
+                            const label = c.subscriptionType === '번호이동' ? '번이' : c.subscriptionType === '기기변경' ? '기변' : c.subscriptionType;
+                            return (
+                              <span key={`${c.carrierId}:${c.subscriptionType}`} className={styles.conditionTag}>
+                                {label} {c.carrierId}
+                              </span>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
