@@ -73,7 +73,13 @@ export function Step3Phone() {
 
   const phonesWithData = useMemo(() =>
     filteredPhones.map((phone) => {
-      const result = calculateLowestDevicePrice({ phone, carriers: phone.carriers, sheetLoaded, getSubsidy });
+      const result = calculateLowestDevicePrice({
+        phone,
+        carriers: carrierId ? [carrierId] : phone.carriers,
+        subscriptionType: subscriptionType ?? null,
+        sheetLoaded,
+        getSubsidy,
+      });
       return {
         phone,
         lowestDevicePrice: result.price,
@@ -83,7 +89,7 @@ export function Step3Phone() {
       };
     }),
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  [filteredPhones, sheetLoaded]);
+  [filteredPhones, sheetLoaded, carrierId, subscriptionType]);
 
   const displayPhones = useMemo(() => {
     if (!sortByPrice) return phonesWithData;

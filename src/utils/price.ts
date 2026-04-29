@@ -39,6 +39,7 @@ export interface LowestDevicePriceResult {
 export function calculateLowestDevicePrice(params: {
   phone: Phone;
   carriers: readonly CarrierId[];
+  subscriptionType?: SubscriptionType | null;
   getSubsidy?: (
     모델ID: string,
     통신사: CarrierId,
@@ -47,8 +48,8 @@ export function calculateLowestDevicePrice(params: {
   ) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number };
   sheetLoaded?: boolean;
 }): LowestDevicePriceResult {
-  const { phone, carriers, getSubsidy, sheetLoaded } = params;
-  const subscriptionTypes: SubscriptionType[] = ['번호이동', '기기변경'];
+  const { phone, carriers, subscriptionType, getSubsidy, sheetLoaded } = params;
+  const subscriptionTypes: SubscriptionType[] = subscriptionType ? [subscriptionType] : ['번호이동', '기기변경'];
 
   let lowest = Infinity;
   let lowestRetailPrice = 0;
