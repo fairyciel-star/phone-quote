@@ -329,3 +329,144 @@
   margin-top: 2px;
   opacity: 0.8;
 }
+
+/* ── 타 통신사 최저가 비교 패널 ── */
+.comparisonPanel {
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
+  border: 2px solid var(--color-primary);
+  border-top: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  padding: var(--space-md) var(--space-lg);
+  margin-top: -2px;
+  animation: slideDown 0.25s ease;
+}
+
+.comparisonHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid rgba(74, 58, 255, 0.15);
+}
+
+.comparisonIcon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.comparisonHeaderText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.comparisonTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.comparisonSub {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.alternativeList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.alternativeRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px var(--space-md);
+  cursor: pointer;
+  transition: all 0.18s;
+  text-align: left;
+  width: 100%;
+}
+
+.alternativeRow:active {
+  transform: scale(0.98);
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.altCarrierLogo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.altInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.altCarrierName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.altPrice {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.altRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.savingsBadge {
+  display: inline-block;
+  background: #e53e3e;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+
+.selectLabel {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.proceedCurrentBtn {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.18s;
+  text-align: center;
+}
+
+.proceedCurrentBtn:active {
+  background: var(--color-bg);
+  color: var(--color-text);
+}

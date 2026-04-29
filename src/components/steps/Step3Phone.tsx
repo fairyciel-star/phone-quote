@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuoteStore } from '../../store/useQuoteStore';
 import { useSheetStore } from '../../store/useSheetStore';
 import { Card } from '../ui/Card';
 import phonesData from '../../data/phones.json';
+import carriersData from '../../data/carriers.json';
 import type { Phone, SubscriptionType } from '../../types';
 import type { CarrierId } from '../../types';
 import { formatWon } from '../../utils/format';
@@ -14,6 +15,17 @@ const phones = phonesData as unknown as Phone[];
 
 type BrandFilter = '전체' | '삼성' | 'Apple';
 
+interface Alternative {
+  carrierId: CarrierId;
+  price: number;
+  savings: number;
+}
+
+interface ComparisonData {
+  currentPrice: number;
+  alternatives: Alternative[];
+}
+
 export function Step3Phone() {
   const carrierId = useQuoteStore((s) => s.carrierId);
   const subscriptionType = useQuoteStore((s) => s.subscriptionType);
@@ -21,6 +33,8 @@ export function Step3Phone() {
   const setPhone = useQuoteStore((s) => s.setPhone);
   const setStorage = useQuoteStore((s) => s.setStorage);
   const setColor = useQuoteStore((s) => s.setColor);
+  const switchCarrier = useQuoteStore((s) => s.switchCarrier);
+  const setSubscriptionType = useQuoteStore((s) => s.setSubscriptionType);
 
   const sheetLoaded = useSheetStore((s) => s.loaded);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
@@ -30,6 +44,7 @@ export function Step3Phone() {
     selectedBrand === '삼성' ? '삼성' : selectedBrand === 'Apple' ? 'Apple' : '전체'
   );
   const [sortByPrice, setSortByPrice] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
 
   const basePhones = carrierId
     ? phones.filter((p) => p.carriers.includes(carrierId))
@@ -38,8 +53,6 @@ export function Step3Phone() {
     ? basePhones
     : basePhones.filter((p) => p.brand === brandFilter);
 
-  // 출고가 조회 — 가입유형 무관하게 시트에서 실제 출고가를 우선 사용.
-  // store의 getSubsidy가 이미 가입유형 fallback을 처리하므로 두 타입을 모두 시도.
   const getDisplayPrice = (phone: Phone, storageSize: string): number => {
     if (sheetLoaded) {
       const fallbackCarrier = (carrierId ?? phone.carriers[0]) as CarrierId;
@@ -58,8 +71,69 @@ export function Step3Phone() {
   const setStep = useQuoteStore((s) => s.setStep);
   const currentStep = useQuoteStore((s) => s.currentStep);
 
+  // 선택된 모델의 타 통신사 최저가 비교 데이터
+  const comparisonData: ComparisonData | null = useMemo(() => {
+    if (!selectedPhoneId || !carrierId || !subscriptionType || !sheetLoaded) return null;
+    const phone = phones.find((p) => p.id === selectedPhoneId);
+    if (!phone) return null;
+
+    const currentResult = calculateLowestDevicePrice({
+      phone,
+      carriers: [carrierId],
+      subscriptionType,
+      sheetLoaded,
+      getSubsidy,
+    });
+
+    if (currentResult.price === 0) return null;
+
+    // 타 통신사는 번호이동 기준으로 비교
+    const alternatives: Alternative[] = phone.carriers
+      .filter((c) => c !== carrierId)
+      .map((altCarrierId) => {
+        const result = calculateLowestDevicePrice({
+          phone,
+          carriers: [altCarrierId as CarrierId],
+          subscriptionType: '번호이동',
+          sheetLoaded,
+          getSubsidy,
+        });
+        return {
+          carrierId: altCarrierId as CarrierId,
+          price: result.price,
+          savings: currentResult.price - result.price,
+        };
+      })
+      .filter((alt) => alt.price > 0 && alt.savings > 0)
+      .sort((a, b) => b.savings - a.savings);
+
+    return { currentPrice: currentResult.price, alternatives };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPhoneId, carrierId, subscriptionType, sheetLoaded]);
+
+  // 비교 데이터 준비 후 저렴한 대안이 없으면 자동으로 다음 스텝 진행
+  useEffect(() => {
+    if (!showComparison) return;
+    if (!sheetLoaded) {
+      // 시트 미로딩 시 바로 진행
+      setShowComparison(false);
+      setStep(currentStep + 1);
+      return;
+    }
+    if (comparisonData && comparisonData.alternatives.length === 0) {
+      setShowComparison(false);
+      setStep(currentStep + 1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showComparison, comparisonData, sheetLoaded]);
+
   const handleSelectPhone = (phoneId: string) => {
     hapticMedium();
+    // 이미 선택된 폰을 다시 클릭하면 비교 패널 토글
+    if (selectedPhoneId === phoneId && showComparison) {
+      setShowComparison(false);
+      return;
+    }
     setPhone(phoneId);
     const phone = phones.find((p) => p.id === phoneId);
     if (phone?.storage.length === 1) {
@@ -68,6 +142,22 @@ export function Step3Phone() {
     if (phone?.colors.length === 1) {
       setColor(phone.colors[0].name);
     }
+    setShowComparison(true);
+  };
+
+  // 타 통신사 조건 선택 → 통신사·가입유형 변경 후 다음 스텝
+  const handleSelectAlternative = (altCarrierId: CarrierId) => {
+    hapticMedium();
+    switchCarrier(altCarrierId);
+    setSubscriptionType('번호이동');
+    setShowComparison(false);
+    setStep(currentStep + 1);
+  };
+
+  // 현재 조건 유지하고 다음 스텝으로
+  const handleProceedWithCurrent = () => {
+    hapticMedium();
+    setShowComparison(false);
     setStep(currentStep + 1);
   };
 
@@ -88,13 +178,15 @@ export function Step3Phone() {
         conditions: result.conditions,
       };
     }),
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  [filteredPhones, sheetLoaded, carrierId, subscriptionType]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filteredPhones, sheetLoaded, carrierId, subscriptionType]);
 
   const displayPhones = useMemo(() => {
     if (!sortByPrice) return phonesWithData;
     return [...phonesWithData].sort((a, b) => a.lowestDevicePrice - b.lowestDevicePrice);
   }, [phonesWithData, sortByPrice]);
+
+  const currentCarrierName = carriersData.find((c) => c.id === carrierId)?.name ?? carrierId ?? '';
 
   return (
     <>
@@ -163,6 +255,56 @@ export function Step3Phone() {
                     </div>
                   </div>
                 </Card>
+
+                {/* 타 통신사 최저가 비교 패널 */}
+                {isSelected && showComparison && comparisonData && comparisonData.alternatives.length > 0 && (
+                  <div className={styles.comparisonPanel}>
+                    <div className={styles.comparisonHeader}>
+                      <span className={styles.comparisonIcon}>💡</span>
+                      <div className={styles.comparisonHeaderText}>
+                        <span className={styles.comparisonTitle}>번호이동 시 더 저렴해요</span>
+                        <span className={styles.comparisonSub}>
+                          현재 {currentCarrierName} {subscriptionType} {formatWon(comparisonData.currentPrice)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className={styles.alternativeList}>
+                      {comparisonData.alternatives.map((alt) => {
+                        const carrier = carriersData.find((c) => c.id === alt.carrierId);
+                        return (
+                          <button
+                            key={alt.carrierId}
+                            className={styles.alternativeRow}
+                            onClick={() => handleSelectAlternative(alt.carrierId)}
+                          >
+                            <img
+                              src={`/images/${alt.carrierId}.png`}
+                              alt={carrier?.name ?? alt.carrierId}
+                              className={styles.altCarrierLogo}
+                            />
+                            <div className={styles.altInfo}>
+                              <span className={styles.altCarrierName}>
+                                {carrier?.name ?? alt.carrierId} 번호이동
+                              </span>
+                              <span className={styles.altPrice}>{formatWon(alt.price)}</span>
+                            </div>
+                            <div className={styles.altRight}>
+                              <span className={styles.savingsBadge}>
+                                -{formatWon(alt.savings)} ▼
+                              </span>
+                              <span className={styles.selectLabel}>선택 →</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <button className={styles.proceedCurrentBtn} onClick={handleProceedWithCurrent}>
+                      현재 조건({currentCarrierName} {subscriptionType})으로 진행
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}
