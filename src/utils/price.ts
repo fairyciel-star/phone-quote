@@ -49,6 +49,7 @@ export function calculateLowestDevicePrice(params: {
   sheetLoaded?: boolean;
 }): LowestDevicePriceResult {
   const { phone, carriers, subscriptionType, getSubsidy, sheetLoaded } = params;
+  // 가입유형이 지정된 경우 해당 유형만 계산, 아니면 전체 유형 중 최저가
   const subscriptionTypes: SubscriptionType[] = subscriptionType ? [subscriptionType] : ['번호이동', '기기변경'];
 
   let lowest = Infinity;
