@@ -16,13 +16,13 @@ const SHEET_ID = import.meta.env.VITE_GOOGLE_SHEET_ID || '';
 
 function getStepComponent(step: number) {
   switch (step) {
-    case 1: return <Step1Brand />;
-    case 2: return <Step3Phone />;
-    case 3: return <Step2Carrier />;
-    case 4: return <Step1SubscriptionType />;
+    case 1: return <Step2Carrier />;
+    case 2: return <Step1SubscriptionType />;
+    case 3: return <Step1Brand />;
+    case 4: return <Step3Phone />;
     case 5: return <Step4PlanDiscount />;
     case 6: return <Step7Consultation />;
-    default: return <Step1Brand />;
+    default: return <Step2Carrier />;
   }
 }
 
