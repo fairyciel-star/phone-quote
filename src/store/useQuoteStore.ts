@@ -55,7 +55,6 @@ export const useQuoteStore = create<QuoteState & QuoteActions>((set) => ({
   setBrand: (brand) =>
     set({
       selectedBrand: brand,
-      carrierId: null,
       selectedPhoneId: null,
       selectedStorage: null,
       selectedColor: null,
