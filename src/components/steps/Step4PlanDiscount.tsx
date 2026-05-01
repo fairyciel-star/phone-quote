@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { CarrierId, Discount, DiscountType, Phone, Plan } from '../../types';
+import type { Discount, DiscountType, Phone, Plan, PriceBreakdown } from '../../types';
 import { useQuoteStore } from '../../store/useQuoteStore';
 import { useSheetStore } from '../../store/useSheetStore';
 import { Card } from '../ui/Card';
@@ -9,7 +9,7 @@ import plansData from '../../data/plans.json';
 import phonesData from '../../data/phones.json';
 import discountsData from '../../data/discounts.json';
 import carriersData from '../../data/carriers.json';
-import { calculate월할부금, calculateFullQuote } from '../../utils/price';
+import { calculate월할부금, calculate선택약정할인, calculateFullQuote } from '../../utils/price';
 import { detectDevice, findMatchingUsedPhone } from '../../utils/detectDevice';
 import { formatWon } from '../../utils/format';
 import styles from './Step4PlanDiscount.module.css';
@@ -19,6 +19,12 @@ const plans = plansData as unknown as Plan[];
 const phones = phonesData as unknown as Phone[];
 const jsonDiscounts = discountsData as unknown as Discount[];
 
+const KIDS_MODEL_INFO: Record<string, { name: string; imageId: string; emoji: string }> = {
+  'galaxy-a175n-zem': { name: '포켓피스', imageId: 'a175n_zem', emoji: '🐣' },
+  'galaxy-a175n-kp': { name: '폼폼푸린', imageId: 'a175nk-kp', emoji: '🍮' },
+  'galaxy-a175n-m2': { name: '무너2', imageId: 'a175n-m2', emoji: '🐰' },
+};
+
 export function Step4PlanDiscount() {
   const topRef = useRef<HTMLDivElement>(null);
   const scrollToTop = () => topRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -27,8 +33,7 @@ export function Step4PlanDiscount() {
   const { carrierId, selectedPhoneId, selectedStorage, selectedColor, selectedPlanId, discountType, selectedDiscountIds: selectedIds, 할부개월, subscriptionType, selectedBrand } = state;
   const isKidsPhone = selectedBrand === '키즈' || (subscriptionType === '신규가입' && selectedBrand !== 'Apple');
   const setPlan = useQuoteStore((s) => s.setPlan);
-  const setCarrier = useQuoteStore((s) => s.setCarrier);
-  const setDiscountType = useQuoteStore((s) => s.setDiscountType);
+const setDiscountType = useQuoteStore((s) => s.setDiscountType);
   const toggleDiscount = useQuoteStore((s) => s.toggleDiscount);
   const setColor = useQuoteStore((s) => s.setColor);
   const setStorage = useQuoteStore((s) => s.setStorage);
@@ -45,13 +50,63 @@ export function Step4PlanDiscount() {
   const kidsPhones = useSheetStore((s) => s.kidsPhones);
   const allSheetPlans = useSheetStore((s) => s.plans);
 
+  // 키즈 플랜 (Plan 타입으로 변환, 해당 통신사 필터)
+  const kidsPlans = useMemo((): Plan[] => {
+    if (!sheetLoaded || !carrierId) return [];
+    const kidsIds = new Set(
+      allSheetPlans
+        .filter((p) => (p.전용요금제?.trim().toUpperCase() ?? '') === 'KIDS')
+        .map((p) => p.id)
+    );
+    return getSheetPlans(carrierId).filter((p) => kidsIds.has(p.id));
+  }, [sheetLoaded, carrierId, allSheetPlans, getSheetPlans]);
+
+  // 키즈폰 가격 데이터 (키즈전용 시트)
+  const kidsPhoneData = useMemo(() => {
+    if (!isKidsPhone || !selectedPhoneId) return null;
+    let rows = kidsPhones.filter((r) => r.모델ID === selectedPhoneId);
+    if (carrierId) {
+      const byCarrier = rows.filter((r) => r.통신사 === carrierId);
+      if (byCarrier.length > 0) rows = byCarrier;
+    }
+    const byType = rows.filter((r) => r.가입유형 === '신규가입');
+    if (byType.length > 0) rows = byType;
+    if (selectedStorage) {
+      const byStorage = rows.filter((r) => r.용량 === selectedStorage);
+      if (byStorage.length > 0) rows = byStorage;
+    }
+    let lowestPrice = Infinity;
+    let best = rows[0] ?? null;
+    for (const row of rows) {
+      const 실구매가 = Math.max(0, row.출고가 - row.공통지원금 - row.추가지원금 - row.특별지원);
+      if (row.출고가 > 0 && 실구매가 < lowestPrice) {
+        lowestPrice = 실구매가;
+        best = row;
+      }
+    }
+    if (!best || best.출고가 === 0) return null;
+    return {
+      출고가: best.출고가,
+      공통지원금: best.공통지원금,
+      추가지원금: best.추가지원금,
+      특별지원: best.특별지원,
+      실구매가: lowestPrice === Infinity ? 0 : lowestPrice,
+    };
+  }, [isKidsPhone, selectedPhoneId, selectedStorage, kidsPhones, carrierId]);
+
+  // 키즈폰 표시 정보
+  const kidsModelInfo = isKidsPhone ? KIDS_MODEL_INFO[selectedPhoneId ?? ''] : undefined;
+  const kidsImgId = kidsModelInfo?.imageId ?? (selectedPhoneId?.toLowerCase() ?? '');
+  const kidsDisplayName = kidsModelInfo?.name ?? selectedPhoneId ?? '키즈폰';
+  const kidsEmoji = kidsModelInfo?.emoji ?? '📱';
+
   const selectedPhone = phones.find((p) => p.id === selectedPhoneId);
   const carrier = carriersData.find((c) => c.id === carrierId);
 
   // Plans
   const sheetPlans = sheetLoaded && carrierId ? getSheetPlans(carrierId) : [];
   const jsonPlans = plans.filter((p) => p.carrier === carrierId);
-  const carrierPlans = sheetPlans.length > 0 ? sheetPlans : jsonPlans;
+  const carrierPlans = isKidsPhone ? kidsPlans : (sheetPlans.length > 0 ? sheetPlans : jsonPlans);
   const premiumPlan = carrierPlans.reduce<Plan | null>(
     (best, p) => (!best || p.monthlyFee > best.monthlyFee ? p : best),
     null
@@ -67,6 +122,9 @@ export function Step4PlanDiscount() {
 
   // Subsidy (mode-aware: 공통지원금 vs 선택약정)
   const getSubsidyData = (): { 공통지원금: number; 추가지원금: number; 특별지원: number } => {
+    if (isKidsPhone && kidsPhoneData) {
+      return { 공통지원금: kidsPhoneData.공통지원금, 추가지원금: kidsPhoneData.추가지원금, 특별지원: kidsPhoneData.특별지원 };
+    }
     if (!selectedPhone || !carrierId || !selectedStorage || !subscriptionType) return { 공통지원금: 0, 추가지원금: 0, 특별지원: 0 };
     if (sheetLoaded && discountType === '선택약정') {
       // 선택약정 모드: 선택약정 시트의 추가/특별지원 사용 (공통지원금은 0)
@@ -219,7 +277,38 @@ export function Step4PlanDiscount() {
 
   const plan = carrierPlans.find((p) => p.id === selectedPlanId) ?? premiumPlan;
 
-  const quote = useMemo(() => {
+  const quote = useMemo((): PriceBreakdown | null => {
+    if (isKidsPhone) {
+      if (!kidsPhoneData || !plan) return null;
+      const 공통지원금 = discountType === '공통지원금' ? kidsPhoneData.공통지원금 : 0;
+      const 추가지원금 = kidsPhoneData.추가지원금;
+      const 특별지원 = kidsPhoneData.특별지원;
+      const cardDiscountObjs = selectedDiscounts.filter((d) => d.type === '제휴카드');
+      const 월카드할인 = cardDiscountObjs.reduce((sum, d) => sum + (d.monthlyDiscount ?? 0), 0);
+      const 제휴카드24개월할인 = 월카드할인 * 24;
+      const 선택약정할인 = discountType === '선택약정'
+        ? calculate선택약정할인(plan.monthlyFee, plan.선택약정할인율 ?? 0.25)
+        : 0;
+      const 할부원금 = Math.max(0, kidsPhoneData.실구매가 - 제휴카드24개월할인);
+      const 월할부금 = calculate월할부금(할부원금, 할부개월);
+      const 월요금제 = plan.monthlyFee - 선택약정할인;
+      return {
+        출고가: kidsPhoneData.출고가,
+        공통지원금,
+        추가지원금,
+        특별지원,
+        제휴카드24개월할인,
+        부가서비스추가할인: 0,
+        선택약정할인,
+        할부원금,
+        월할부금,
+        월요금제,
+        월카드할인,
+        월부가서비스료: 0,
+        월납입금총액: 월할부금 + 월요금제,
+        할부개월,
+      };
+    }
     if (!selectedPhone || !plan || !selectedStorage || !carrierId) return null;
     return calculateFullQuote({
       phone: selectedPhone,
@@ -234,255 +323,29 @@ export function Step4PlanDiscount() {
       추가지원금Override: activeSheetSubsidy?.추가지원금,
       특별지원Override: activeSheetSubsidy?.특별지원,
     });
-  }, [selectedPhone, plan, selectedStorage, carrierId, discountType, selectedDiscounts, 할부개월, activeSheetSubsidy]);
+  }, [isKidsPhone, kidsPhoneData, selectedPhone, plan, selectedStorage, carrierId, discountType, selectedDiscounts, 할부개월, activeSheetSubsidy]);
 
-  const kidsPlans = useMemo(
-    () => allSheetPlans
-      .filter((p) => {
-        const val = p.전용요금제?.trim() ?? '';
-        return val.toUpperCase() === 'KIDS' || val.includes('키즈');
-      })
-      .filter((p) => !carrierId || p.통신사 === carrierId),
-    [allSheetPlans, carrierId]
-  );
 
-  const kidsPhoneData = useMemo(() => {
-    if (!isKidsPhone || !selectedPhoneId) return null;
-    let rows = kidsPhones.filter((r) => r.모델ID === selectedPhoneId);
-    if (carrierId) {
-      const byCarrier = rows.filter((r) => r.통신사 === carrierId);
-      if (byCarrier.length > 0) rows = byCarrier;
-    }
-    const byType = rows.filter((r) => r.가입유형 === '신규가입');
-    if (byType.length > 0) rows = byType;
-    if (selectedStorage) {
-      const byStorage = rows.filter((r) => r.용량 === selectedStorage);
-      if (byStorage.length > 0) rows = byStorage;
-    }
-    let lowestPrice = Infinity;
-    let best = rows[0] ?? null;
-    for (const row of rows) {
-      const 실구매가 = Math.max(0, row.출고가 - row.공통지원금 - row.추가지원금 - row.특별지원);
-      if (row.출고가 > 0 && 실구매가 < lowestPrice) {
-        lowestPrice = 실구매가;
-        best = row;
-      }
-    }
-    if (!best || best.출고가 === 0) return null;
-    return {
-      출고가: best.출고가,
-      공통지원금: best.공통지원금,
-      추가지원금: best.추가지원금,
-      특별지원: best.특별지원,
-      실구매가: lowestPrice === Infinity ? 0 : lowestPrice,
-    };
-  }, [isKidsPhone, selectedPhoneId, selectedStorage, kidsPhones, carrierId]);
-
-  // 키즈 요금제 자동 선택
-  useEffect(() => {
-    if (!isKidsPhone || kidsPlans.length === 0) return;
-    const hasSelected = selectedPlanId && kidsPlans.some((p) => p.id === selectedPlanId);
-    if (!hasSelected) {
-      setPlan(kidsPlans[0].id);
-    }
-  }, [isKidsPhone, kidsPlans, selectedPlanId, setPlan]);
-
-  if (isKidsPhone) {
-    const KIDS_MODEL_INFO: Record<string, { name: string; imageId: string; emoji: string }> = {
-      'galaxy-a175n-zem': { name: '포켓피스', imageId: 'a175n_zem', emoji: '🐣' },
-      'galaxy-a175n-kp': { name: '폼폼푸린', imageId: 'a175nk-kp', emoji: '🍮' },
-      'galaxy-a175n-m2': { name: '무너2', imageId: 'a175n-m2', emoji: '🐰' },
-    };
-    const modelInfo = KIDS_MODEL_INFO[selectedPhoneId ?? ''];
-    const imgId = modelInfo?.imageId ?? (selectedPhoneId?.toLowerCase() ?? '');
-    const displayName = modelInfo?.name ?? selectedPhoneId ?? '키즈폰';
-    const emoji = modelInfo?.emoji ?? '📱';
-    const monthly = kidsPhoneData ? calculate월할부금(kidsPhoneData.실구매가, 할부개월) : 0;
-    const selectedKidsPlan = kidsPlans.find((p) => p.id === selectedPlanId);
-    const kidsTotalSubsidy = kidsPhoneData ? kidsPhoneData.공통지원금 + kidsPhoneData.추가지원금 + kidsPhoneData.특별지원 : 0;
-
-    return (
-      <>
-        <div className={styles.container} ref={topRef}>
-          {/* ===== 상단: 폰 이미지 + 가격 ===== */}
-          <div className={styles.phoneHero}>
-            <div className={styles.phoneHeroImageWrap}>
-              <img
-                className={styles.phoneHeroImage}
-                src={`/images/phones/${imgId}/${imgId}.png`}
-                alt={displayName}
-              />
-            </div>
-            <div className={styles.phoneHeroInfo}>
-              <div className={styles.phoneHeroName}>{emoji} {displayName}</div>
-              {kidsPhoneData && (
-                <>
-                  <div className={styles.phoneHeroOriginal}>
-                    <span className={styles.phoneHeroStrike}>{formatWon(kidsPhoneData.출고가)}</span>
-                  </div>
-                  <div className={styles.phoneHeroPriceRow}>
-                    <span className={styles.phoneHeroPrice}>{formatWon(kidsPhoneData.실구매가)}</span>
-                    {carrier && (
-                      <img
-                        src={`/images/${carrier.id}.png`}
-                        alt={carrier.name}
-                        className={styles.phoneHeroCarrier}
-                      />
-                    )}
-                  </div>
-                  {kidsTotalSubsidy > 0 && (
-                    <div className={styles.phoneHeroBadges}>
-                      <div className={styles.phoneHeroBadge}>
-                        🎁 구매지원금 {formatWon(kidsTotalSubsidy)}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-
-          {kidsPhoneData && (
-            <div className={summaryStyles.installmentSelector}>
-              {[12, 24, 36].map((m) => (
-                <button
-                  key={m}
-                  className={`${summaryStyles.installmentBtn} ${할부개월 === m ? summaryStyles.active : ''}`}
-                  onClick={() => state.set할부개월(m)}
-                >
-                  {m}개월
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* ===== 요금제 ===== */}
-          <h2 className={styles.title}>📋 요금제</h2>
-          {kidsPlans.length > 0 ? (
-            kidsPlans.map((kidsPlan) => {
-              const isSelected = selectedPlanId === kidsPlan.id;
-              return (
-                <Card
-                  key={kidsPlan.id}
-                  selected={isSelected}
-                  onClick={() => setPlan(kidsPlan.id)}
-                  className={styles.planCard}
-                >
-                  <div className={styles.planLayout}>
-                    <div className={styles.planLeft}>
-                      <div className={styles.planNameRow}>
-                        <span className={styles.planName}>{kidsPlan.요금제명}</span>
-                      </div>
-                      <div className={styles.planPriceRow}>
-                        <span className={styles.planPriceLabel}>월</span>
-                        <span className={styles.planPrice}>{formatWon(kidsPlan.월요금)}</span>
-                      </div>
-                    </div>
-                    <div className={styles.planRight}>
-                      <div className={styles.planBadges}>
-                        {kidsPlan.데이터 && <><Badge>📶 데이터</Badge><Badge>{kidsPlan.데이터}</Badge></>}
-                      </div>
-                      {kidsTotalSubsidy > 0 && (
-                        <div className={styles.subsidyColumn}>
-                          {kidsPhoneData && kidsPhoneData.공통지원금 > 0 && (
-                            <div className={styles.subsidyItem}>
-                              <span className={styles.subsidyLabel}>공통지원금</span>
-                              <span className={styles.subsidyAmount}>{formatWon(kidsPhoneData.공통지원금)}</span>
-                            </div>
-                          )}
-                          {kidsPhoneData && kidsPhoneData.추가지원금 > 0 && (
-                            <div className={styles.subsidyItem}>
-                              <span className={styles.subsidyLabel}>최대 매장지원금</span>
-                              <span className={styles.subsidyAmount}>{formatWon(kidsPhoneData.추가지원금)}</span>
-                            </div>
-                          )}
-                          {kidsPhoneData && kidsPhoneData.특별지원 > 0 && (
-                            <div className={styles.subsidyItem}>
-                              <span className={styles.subsidyLabel}>동네폰 특별지원</span>
-                              <span className={styles.subsidyAmount}>{formatWon(kidsPhoneData.특별지원)}</span>
-                            </div>
-                          )}
-                          <div className={styles.subsidyItem}>
-                            <span className={styles.subsidyTotalLabel}>최대 지원금</span>
-                            <span className={styles.subsidyTotalAmount}>{formatWon(kidsTotalSubsidy)}</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              );
-            })
-          ) : (
-            <p style={{ textAlign: 'center', color: 'var(--color-text-secondary)', padding: '16px 0' }}>
-              해당 통신사의 키즈 요금제가 없습니다
-            </p>
-          )}
-
-          {/* ===== 가격 상세 ===== */}
-          {kidsPhoneData && selectedKidsPlan && (
-            <div className={summaryStyles.summaryCard}>
-              <div className={summaryStyles.sectionTitle}>💰 가격 상세</div>
-              <div className={summaryStyles.breakdownRow}>
-                <span className={summaryStyles.breakdownLabel}>출고가</span>
-                <span className={summaryStyles.breakdownValue} style={{ textDecoration: 'line-through', color: 'var(--color-text-secondary)' }}>{formatWon(kidsPhoneData.출고가)}</span>
-              </div>
-              {kidsPhoneData.공통지원금 > 0 && (
-                <div className={summaryStyles.breakdownRow}>
-                  <span className={summaryStyles.breakdownLabel}>공통지원금</span>
-                  <span className={`${summaryStyles.breakdownValue} ${summaryStyles.breakdownDiscount}`}>-{formatWon(kidsPhoneData.공통지원금)}</span>
-                </div>
-              )}
-              {kidsPhoneData.추가지원금 > 0 && (
-                <div className={summaryStyles.breakdownRow}>
-                  <span className={summaryStyles.breakdownLabel}>최대 매장지원금</span>
-                  <span className={`${summaryStyles.breakdownValue} ${summaryStyles.breakdownDiscount}`}>-{formatWon(kidsPhoneData.추가지원금)}</span>
-                </div>
-              )}
-              {kidsPhoneData.특별지원 > 0 && (
-                <div className={summaryStyles.breakdownRow}>
-                  <span className={summaryStyles.breakdownLabel}>동네폰 특별지원</span>
-                  <span className={`${summaryStyles.breakdownValue} ${summaryStyles.breakdownDiscount}`}>-{formatWon(kidsPhoneData.특별지원)}</span>
-                </div>
-              )}
-              <div className={summaryStyles.divider} />
-              <div className={`${summaryStyles.breakdownRow} ${summaryStyles.breakdownHighlight}`}>
-                <span>최종 기계값</span>
-                <span>{formatWon(kidsPhoneData.실구매가)}</span>
-              </div>
-              <div className={`${summaryStyles.breakdownRow} ${summaryStyles.breakdownTotal}`}>
-                <div>
-                  <div>월 할부금액({할부개월}개월)</div>
-                  <div style={{ fontSize: '11px', fontWeight: 'normal', opacity: 0.7 }}>할부이자 5.9% 포함</div>
-                </div>
-                <span>{formatWon(monthly)}</span>
-              </div>
-            </div>
-          )}
-        </div>
-        <StepNavigation
-          canProceed={!!selectedPlanId}
-          priceDisplay={kidsPhoneData && selectedKidsPlan ? { 출고가: kidsPhoneData.출고가, 할부원금: kidsPhoneData.실구매가 } : undefined}
-        />
-      </>
-    );
-  }
 
   return (
     <>
       <div className={styles.container} ref={topRef}>
         {/* ===== 상단: 폰 이미지 + 가격 + 색상 ===== */}
-        {selectedPhone && (
+        {(selectedPhone || (isKidsPhone && kidsPhoneData)) && (
           <div className={styles.phoneHero}>
             <div className={styles.phoneHeroImageWrap}>
               <img
                 className={styles.phoneHeroImage}
-                src={selectedPhone.colors.find((c) => c.name === selectedColor)?.image ?? selectedPhone.image}
-                alt={selectedPhone.name}
+                src={isKidsPhone
+                  ? `/images/phones/${kidsImgId}/${kidsImgId}.png`
+                  : (selectedPhone!.colors.find((c) => c.name === selectedColor)?.image ?? selectedPhone!.image)}
+                alt={isKidsPhone ? kidsDisplayName : selectedPhone!.name}
               />
             </div>
             <div className={styles.phoneHeroInfo}>
-              <div className={styles.phoneHeroName}>{selectedPhone.name}</div>
+              <div className={styles.phoneHeroName}>
+                {isKidsPhone ? `${kidsEmoji} ${kidsDisplayName}` : selectedPhone!.name}
+              </div>
               {quote && (
                 <>
                   <div className={styles.phoneHeroOriginal}>
@@ -512,7 +375,7 @@ export function Step4PlanDiscount() {
                 </>
               )}
               {/* 색상 선택 */}
-              {selectedPhone.colors.length > 0 && (
+              {!isKidsPhone && selectedPhone && selectedPhone.colors.length > 0 && (
                 <div className={styles.colorSelector}>
                   <div className={styles.colorDots}>
                     {selectedPhone.colors.map((c) => (
@@ -532,30 +395,55 @@ export function Step4PlanDiscount() {
               )}
 
               {/* 용량 선택 — 항상 고정 표시 */}
-              {(() => {
-                const sheetStorages = sheetLoaded && selectedPhoneId && carrierId
-                  ? getStoragesForPhone(selectedPhoneId, carrierId as import('../../types').CarrierId)
-                  : [];
-                const storages = sheetStorages.length > 0
-                  ? sheetStorages
-                  : selectedPhone.storage.map((s) => ({ size: s.size, price: s.price }));
-                return storages.length > 0 ? (
-                  <div className={styles.storageSelector}>
-                    <div className={styles.storageSelectorLabel}>용량을 선택해주세요</div>
-                    <div className={styles.storageBtns}>
-                      {storages.map((s) => (
-                        <button
-                          key={s.size}
-                          className={`${styles.storageBtn} ${selectedStorage === s.size ? styles.storageBtnActive : ''}`}
-                          onClick={() => setStorage(s.size)}
-                        >
-                          {s.size}
-                        </button>
-                      ))}
+              {isKidsPhone ? (
+                (() => {
+                  const kidsStorages = kidsPhones
+                    .filter((r) => r.모델ID === selectedPhoneId && (!carrierId || r.통신사 === carrierId))
+                    .map((r) => r.용량)
+                    .filter((v, i, arr) => arr.indexOf(v) === i);
+                  return kidsStorages.length > 1 ? (
+                    <div className={styles.storageSelector}>
+                      <div className={styles.storageSelectorLabel}>용량을 선택해주세요</div>
+                      <div className={styles.storageBtns}>
+                        {kidsStorages.map((s) => (
+                          <button
+                            key={s}
+                            className={`${styles.storageBtn} ${selectedStorage === s ? styles.storageBtnActive : ''}`}
+                            onClick={() => setStorage(s)}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ) : null;
-              })()}
+                  ) : null;
+                })()
+              ) : (
+                (() => {
+                  const sheetStorages = sheetLoaded && selectedPhoneId && carrierId
+                    ? getStoragesForPhone(selectedPhoneId, carrierId as import('../../types').CarrierId)
+                    : [];
+                  const storages = sheetStorages.length > 0
+                    ? sheetStorages
+                    : (selectedPhone ? selectedPhone.storage.map((s) => ({ size: s.size, price: s.price })) : []);
+                  return storages.length > 0 ? (
+                    <div className={styles.storageSelector}>
+                      <div className={styles.storageSelectorLabel}>용량을 선택해주세요</div>
+                      <div className={styles.storageBtns}>
+                        {storages.map((s) => (
+                          <button
+                            key={s.size}
+                            className={`${styles.storageBtn} ${selectedStorage === s.size ? styles.storageBtnActive : ''}`}
+                            onClick={() => setStorage(s.size)}
+                          >
+                            {s.size}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null;
+                })()
+              )}
             </div>
           </div>
         )}
