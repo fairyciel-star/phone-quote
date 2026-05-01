@@ -44,6 +44,7 @@ export function Step3Phone() {
 
   const sheetLoaded = useSheetStore((s) => s.loaded);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
+  const getSelectAgreementSubsidy = useSheetStore((s) => s.getSelectAgreementSubsidy);
   const kidsPhones = useSheetStore((s) => s.kidsPhones);
 
   const selectedBrand = useQuoteStore((s) => s.selectedBrand);
@@ -90,6 +91,7 @@ export function Step3Phone() {
       subscriptionType,
       sheetLoaded,
       getSubsidy,
+      getSelectAgreementSubsidy,
     });
 
     if (currentResult.price === 0) return null;
@@ -104,6 +106,7 @@ export function Step3Phone() {
           subscriptionType: '번호이동',
           sheetLoaded,
           getSubsidy,
+          getSelectAgreementSubsidy,
         });
         return {
           carrierId: altCarrierId as CarrierId,
@@ -176,6 +179,7 @@ export function Step3Phone() {
         subscriptionType: subscriptionType ?? null,
         sheetLoaded,
         getSubsidy,
+        getSelectAgreementSubsidy,
       });
       return {
         phone,

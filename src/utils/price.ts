@@ -46,6 +46,12 @@ export function calculateLowestDevicePrice(params: {
     용량: string,
     가입유형: SubscriptionType
   ) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number };
+  getSelectAgreementSubsidy?: (
+    모델ID: string,
+    통신사: CarrierId,
+    용량: string,
+    가입유형: SubscriptionType
+  ) => { 출고가: number; 추가지원금: number; 특별지원: number };
   sheetLoaded?: boolean;
 }): LowestDevicePriceResult {
   const { phone, carriers, subscriptionType, getSubsidy, sheetLoaded } = params;
@@ -75,11 +81,26 @@ export function calculateLowestDevicePrice(params: {
 
         if (출고가 === 0) continue;
 
-        const 실구매가 = Math.max(0, 출고가 - 공통지원금 - 추가지원금 - 특별지원);
+        const 공통실구매가 = Math.max(0, 출고가 - 공통지원금 - 추가지원금 - 특별지원);
+        let 실구매가 = 공통실구매가;
+        let 사용된지원금 = 공통지원금 + 추가지원금 + 특별지원;
+
+        if (sheetLoaded && params.getSelectAgreementSubsidy) {
+          const sa = params.getSelectAgreementSubsidy(phone.id, carrierId, storageOption.size, subType);
+          const sa지원금 = (sa.추가지원금 || 0) + (sa.특별지원 || 0);
+          if (sa지원금 > 0) {
+            const 선택실구매가 = Math.max(0, 출고가 - sa지원금);
+            if (선택실구매가 < 실구매가) {
+              실구매가 = 선택실구매가;
+              사용된지원금 = sa지원금;
+            }
+          }
+        }
+
         if (실구매가 < lowest) {
           lowest = 실구매가;
           lowestRetailPrice = 출고가;
-          lowestTotalSubsidy = 공통지원금 + 추가지원금 + 특별지원;
+          lowestTotalSubsidy = 사용된지원금;
           matchMap.clear();
         }
         if (실구매가 === lowest) {

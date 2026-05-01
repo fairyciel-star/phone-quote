@@ -19,10 +19,29 @@ const plans = plansData as unknown as Plan[];
 const phones = phonesData as unknown as Phone[];
 const jsonDiscounts = discountsData as unknown as Discount[];
 
-const KIDS_MODEL_INFO: Record<string, { name: string; imageId: string; emoji: string }> = {
-  'galaxy-a175n-zem': { name: '포켓피스', imageId: 'a175n_zem', emoji: '🐣' },
-  'galaxy-a175n-kp': { name: '폼폼푸린', imageId: 'a175nk-kp', emoji: '🍮' },
-  'galaxy-a175n-m2': { name: '무너2', imageId: 'a175n-m2', emoji: '🐰' },
+interface KidsColor { name: string; hex: string; imageFile: string }
+const KIDS_MODEL_INFO: Record<string, { name: string; imageId: string; emoji: string; colors: KidsColor[] }> = {
+  'galaxy-a175n-zem': {
+    name: '포켓피스', imageId: 'a175n_zem', emoji: '🐣',
+    colors: [
+      { name: '기본', hex: '#FFC85C', imageFile: 'a175n_zem' },
+      { name: '라이트 블루', hex: '#A8D8E8', imageFile: 'blue' },
+    ],
+  },
+  'galaxy-a175n-kp': {
+    name: '폼폼푸린', imageId: 'a175nk-kp', emoji: '🍮',
+    colors: [
+      { name: '기본', hex: '#F5E6A0', imageFile: 'a175nk-kp' },
+      { name: '라이트 블루', hex: '#A8D8E8', imageFile: 'blue' },
+    ],
+  },
+  'galaxy-a175n-m2': {
+    name: '무너2', imageId: 'a175n-m2', emoji: '🐰',
+    colors: [
+      { name: '기본', hex: '#C8B5E0', imageFile: 'a175n-m2' },
+      { name: '라이트 블루', hex: '#A8D8E8', imageFile: 'blue' },
+    ],
+  },
 };
 
 export function Step4PlanDiscount() {
@@ -99,6 +118,9 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
   const kidsImgId = kidsModelInfo?.imageId ?? (selectedPhoneId?.toLowerCase() ?? '');
   const kidsDisplayName = kidsModelInfo?.name ?? selectedPhoneId ?? '키즈폰';
   const kidsEmoji = kidsModelInfo?.emoji ?? '📱';
+  const kidsColors = kidsModelInfo?.colors ?? [];
+  const kidsActiveColor = (selectedColor ? kidsColors.find((c) => c.name === selectedColor) : null) ?? kidsColors[0];
+  const kidsImageSrc = `/images/phones/${kidsImgId}/${kidsActiveColor?.imageFile ?? kidsImgId}.png`;
 
   const selectedPhone = phones.find((p) => p.id === selectedPhoneId);
   const carrier = carriersData.find((c) => c.id === carrierId);
@@ -106,7 +128,9 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
   // Plans
   const sheetPlans = sheetLoaded && carrierId ? getSheetPlans(carrierId) : [];
   const jsonPlans = plans.filter((p) => p.carrier === carrierId);
-  const carrierPlans = isKidsPhone ? kidsPlans : (sheetPlans.length > 0 ? sheetPlans : jsonPlans);
+  const carrierPlans = isKidsPhone
+    ? (kidsPlans.length > 0 ? kidsPlans : (sheetPlans.length > 0 ? sheetPlans : jsonPlans))
+    : (sheetPlans.length > 0 ? sheetPlans : jsonPlans);
   const premiumPlan = carrierPlans.reduce<Plan | null>(
     (best, p) => (!best || p.monthlyFee > best.monthlyFee ? p : best),
     null
@@ -119,6 +143,12 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
       setPlan(premiumPlan.id);
     }
   }, [premiumPlan, selectedPlanId, carrierPlans, setPlan]);
+
+  useEffect(() => {
+    if (!isKidsPhone || !selectedPhoneId || selectedColor) return;
+    const info = KIDS_MODEL_INFO[selectedPhoneId];
+    if (info?.colors.length) setColor(info.colors[0].name);
+  }, [isKidsPhone, selectedPhoneId, selectedColor, setColor]);
 
   // Subsidy (mode-aware: 공통지원금 vs 선택약정)
   const getSubsidyData = (): { 공통지원금: number; 추가지원금: number; 특별지원: number } => {
@@ -337,7 +367,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
               <img
                 className={styles.phoneHeroImage}
                 src={isKidsPhone
-                  ? `/images/phones/${kidsImgId}/${kidsImgId}.png`
+                  ? kidsImageSrc
                   : (selectedPhone!.colors.find((c) => c.name === selectedColor)?.image ?? selectedPhone!.image)}
                 alt={isKidsPhone ? kidsDisplayName : selectedPhone!.name}
               />
@@ -375,6 +405,24 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
                 </>
               )}
               {/* 색상 선택 */}
+              {isKidsPhone && kidsColors.length > 1 && (
+                <div className={styles.colorSelector}>
+                  <div className={styles.colorDots}>
+                    {kidsColors.map((c) => (
+                      <button
+                        key={c.name}
+                        className={`${styles.colorDot} ${(selectedColor ?? kidsColors[0]?.name) === c.name ? styles.colorDotActive : ''}`}
+                        style={{ backgroundColor: c.hex }}
+                        onClick={() => setColor(c.name)}
+                        title={c.name}
+                      />
+                    ))}
+                  </div>
+                  <div className={styles.colorInfo}>
+                    <span className={styles.colorName}>{selectedColor || kidsColors[0]?.name || ''}</span>
+                  </div>
+                </div>
+              )}
               {!isKidsPhone && selectedPhone && selectedPhone.colors.length > 0 && (
                 <div className={styles.colorSelector}>
                   <div className={styles.colorDots}>
