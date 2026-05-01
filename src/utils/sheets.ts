@@ -146,6 +146,7 @@ export interface PlanRow {
   readonly 문자: string;
   readonly 선택약정할인율: number;
   readonly 혜택: string;
+  readonly 전용요금제: string;
 }
 
 export async function fetchPlans(sheetIdOrUrl: string): Promise<PlanRow[]> {
@@ -162,6 +163,7 @@ export async function fetchPlans(sheetIdOrUrl: string): Promise<PlanRow[]> {
     문자: row['문자'] ?? '',
     선택약정할인율: Number(row['선택약정할인율']) || 0.25,
     혜택: row['혜택'] ?? '',
+    전용요금제: row['전용요금제'] ?? '',
   }));
 }
 

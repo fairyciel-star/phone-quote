@@ -1,4 +1,4 @@
-export type SubscriptionType = '번호이동' | '기기변경';
+export type SubscriptionType = '번호이동' | '기기변경' | '신규가입';
 
 export type CarrierId = 'SKT' | 'KT' | 'LGU';
 

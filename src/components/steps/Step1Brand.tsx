@@ -23,28 +23,16 @@ const BRANDS = [
       </div>
     ),
   },
-  {
-    id: 'kids',
-    label: '키즈폰',
-    filter: '키즈',
-    logo: (
-      <div className={styles.kidsLogo}>
-        <svg viewBox="0 0 24 24" className={styles.kidsPhoneIcon} aria-hidden="true">
-          <rect x="5" y="2" width="14" height="20" rx="2" ry="2" fill="none" stroke="currentColor" strokeWidth="1.5"/>
-          <line x1="9" y1="5.5" x2="15" y2="5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-          <circle cx="12" cy="17.5" r="1.2" fill="currentColor"/>
-        </svg>
-        <span className={styles.kidsText}>키즈폰</span>
-      </div>
-    ),
-  },
 ] as const;
 
 export function Step1Brand() {
   const selectedBrand = useQuoteStore((s) => s.selectedBrand);
   const setBrand = useQuoteStore((s) => s.setBrand);
+  const setSubscriptionType = useQuoteStore((s) => s.setSubscriptionType);
   const setStep = useQuoteStore((s) => s.setStep);
   const currentStep = useQuoteStore((s) => s.currentStep);
+
+  const isKidsPath = selectedBrand === '키즈';
 
   const [searching, setSearching] = useState(false);
   const [dots, setDots] = useState('');
@@ -69,7 +57,11 @@ export function Step1Brand() {
     hapticMedium();
     setSearching(true);
     timerRef.current = window.setTimeout(() => {
-      setBrand(filter);
+      if (isKidsPath) {
+        setSubscriptionType('신규가입');
+      } else {
+        setBrand(filter);
+      }
       setStep(currentStep + 1);
     }, 1000);
   };

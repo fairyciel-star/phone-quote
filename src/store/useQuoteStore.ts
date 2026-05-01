@@ -55,6 +55,7 @@ export const useQuoteStore = create<QuoteState & QuoteActions>((set) => ({
 
   startKidsPath: () =>
     set({
+      selectedBrand: '키즈',
       carrierId: null,
       subscriptionType: null,
       previousCarrier: null,

@@ -13,6 +13,12 @@ import styles from './Step3Phone.module.css';
 
 const phones = phonesData as unknown as Phone[];
 
+const KIDS_MODEL_INFO: Record<string, { name: string; imageId: string }> = {
+  'galaxy-a175n-zem': { name: '포켓피스', imageId: 'a175n_zem' },
+  'galaxy-a175n-kp': { name: '폼폼푸린', imageId: 'a175nk-kp' },
+  'galaxy-a175n-m2': { name: '무너2', imageId: 'a175n-m2' },
+};
+
 type BrandFilter = '전체' | '삼성' | 'Apple';
 
 interface Alternative {
@@ -227,7 +233,9 @@ export function Step3Phone() {
     });
   }, [kidsPhones, carrierId, subscriptionType]);
 
-  if (selectedBrand === '키즈') {
+  const isKidsSection = selectedBrand === '키즈' || (subscriptionType === '신규가입' && selectedBrand !== 'Apple');
+
+  if (isKidsSection) {
     return (
       <div className={styles.container}>
         <h2 className={styles.title}>키즈폰을 선택해주세요!</h2>
@@ -239,6 +247,9 @@ export function Step3Phone() {
           ) : (
             kidsModels.map((model) => {
               const isSelected = selectedPhoneId === model.모델ID;
+              const kidsInfo = KIDS_MODEL_INFO[model.모델ID];
+              const imageId = kidsInfo?.imageId ?? model.모델ID.toLowerCase();
+              const displayName = kidsInfo?.name ?? model.모델ID;
               return (
                 <Card
                   key={model.모델ID}
@@ -252,23 +263,28 @@ export function Step3Phone() {
                   className={styles.phoneCard}
                 >
                   <div className={styles.phoneRow}>
+                    <div className={styles.phoneImage}>
+                      <img
+                        src={`/images/phones/${imageId}/${imageId}.png`}
+                        alt={displayName}
+                        className={styles.phoneImg}
+                      />
+                    </div>
                     <div className={styles.phoneInfo}>
-                      <span className={styles.phoneBrand}>키즈폰</span>
+                      <span className={styles.phoneBrand}>삼성 키즈폰</span>
                       <div className={styles.phoneNameRow}>
-                        <span className={styles.phoneName}>{model.모델ID}</span>
+                        <span className={styles.phoneName}>{displayName}</span>
                       </div>
                       {model.배지 && (
                         <span className={styles.lowestPriceBadge}>{model.배지}</span>
                       )}
                     </div>
                     <div className={styles.lowestPrice}>
-                      {model.lowestPrice > 0 ? (
+                      {model.retailPrice > 0 ? (
                         <>
                           <span className={styles.lowestPriceBadge}>▼ 오늘 최저가</span>
                           <span className={styles.lowestPriceValue}>{formatWon(model.lowestPrice)}</span>
-                          {model.retailPrice > 0 && (
-                            <span className={styles.lowestPriceRetail}>{formatWon(model.retailPrice)}</span>
-                          )}
+                          <span className={styles.lowestPriceRetail}>{formatWon(model.retailPrice)}</span>
                         </>
                       ) : (
                         <span className={styles.lowestPriceNone}>가격 준비중</span>
@@ -336,7 +352,7 @@ export function Step3Phone() {
                       </div>
                     </div>
                     <div className={styles.lowestPrice}>
-                      {lowestDevicePrice > 0 ? (
+                      {retailPrice > 0 ? (
                         <>
                           <span className={styles.lowestPriceBadge}>▼ 오늘 최저가</span>
                           <span className={styles.lowestPriceValue}>{formatWon(lowestDevicePrice)}</span>

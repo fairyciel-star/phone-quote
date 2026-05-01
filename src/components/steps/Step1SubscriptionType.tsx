@@ -8,6 +8,7 @@ import styles from './Step1SubscriptionType.module.css';
 const OPTIONS: readonly { type: SubscriptionType; icon: string; label: string; desc: string }[] = [
   { type: '번호이동', icon: '🔄', label: '통신사변경', desc: '다른 통신사로 변경해요' },
   { type: '기기변경', icon: '📱', label: '기기변경', desc: '같은 통신사에서 기기만 바꿔요' },
+  { type: '신규가입', icon: '✨', label: '신규가입', desc: '처음으로 개통해요 (키즈)' },
 ];
 
 export function Step1SubscriptionType() {
