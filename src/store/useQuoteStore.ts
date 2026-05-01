@@ -64,7 +64,7 @@ export const useQuoteStore = create<QuoteState & QuoteActions>((set) => ({
       selectedColor: null,
       selectedPlanId: null,
       selectedDiscountIds: [],
-      currentStep: 4,
+      currentStep: 3,
     }),
 
   setBrand: (brand) =>

@@ -79,8 +79,9 @@ function App() {
       if (window.location.hash === '#/admin') return;
       const { currentStep, showLanding: onLanding, setStep, selectedBrand } = useQuoteStore.getState();
       if (onLanding) return;
-      if (selectedBrand === '키즈' && currentStep === 4) {
-        useQuoteStore.setState({ showLanding: true });
+      // 키즈 경로: 제조사(3) → 통신사(1)로 직행
+      if (selectedBrand === '키즈' && currentStep === 3) {
+        setStep(1);
       } else if (currentStep > 1) {
         setStep(currentStep - 1);
       } else {

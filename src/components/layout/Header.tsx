@@ -11,7 +11,8 @@ export function Header() {
 
   const handleBack = () => {
     if (currentStep === 1) return reset();
-    if (selectedBrand === '키즈' && currentStep === 4) return reset();
+    // 키즈 경로: 제조사(3) → 통신사(1)로 직행
+    if (selectedBrand === '키즈' && currentStep === 3) return setStep(1);
     setStep(currentStep - 1);
   };
 
