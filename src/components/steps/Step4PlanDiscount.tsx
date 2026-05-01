@@ -74,7 +74,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
     if (!sheetLoaded || !carrierId) return [];
     const kidsIds = new Set(
       allSheetPlans
-        .filter((p) => (p.전용요금제?.trim().toUpperCase() ?? '') === 'KIDS')
+        .filter((p) => { const v = p.전용요금제?.trim() ?? ''; return v.toUpperCase() === 'KIDS' || v === '키즈'; })
         .map((p) => p.id)
     );
     return getSheetPlans(carrierId).filter((p) => kidsIds.has(p.id));
