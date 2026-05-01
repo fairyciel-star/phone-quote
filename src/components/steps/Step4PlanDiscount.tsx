@@ -237,7 +237,10 @@ export function Step4PlanDiscount() {
   }, [selectedPhone, plan, selectedStorage, carrierId, discountType, selectedDiscounts, 할부개월, activeSheetSubsidy]);
 
   const kidsPlans = useMemo(
-    () => allSheetPlans.filter((p) => p.전용요금제?.toUpperCase() === 'KIDS'),
+    () => allSheetPlans.filter((p) => {
+      const val = p.전용요금제?.trim() ?? '';
+      return val.toUpperCase() === 'KIDS' || val.includes('키즈');
+    }),
     [allSheetPlans]
   );
 

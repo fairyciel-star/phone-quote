@@ -77,9 +77,11 @@ function App() {
 
     const handlePopState = () => {
       if (window.location.hash === '#/admin') return;
-      const { currentStep, showLanding: onLanding, setStep } = useQuoteStore.getState();
-      if (onLanding) return; // 랜딩에서는 자연스럽게 종료
-      if (currentStep > 1) {
+      const { currentStep, showLanding: onLanding, setStep, selectedBrand } = useQuoteStore.getState();
+      if (onLanding) return;
+      if (selectedBrand === '키즈' && currentStep === 4) {
+        useQuoteStore.setState({ showLanding: true });
+      } else if (currentStep > 1) {
         setStep(currentStep - 1);
       } else {
         useQuoteStore.setState({ showLanding: true });

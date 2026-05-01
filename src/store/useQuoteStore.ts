@@ -57,14 +57,14 @@ export const useQuoteStore = create<QuoteState & QuoteActions>((set) => ({
     set({
       selectedBrand: '키즈',
       carrierId: null,
-      subscriptionType: null,
+      subscriptionType: '신규가입',
       previousCarrier: null,
       selectedPhoneId: null,
       selectedStorage: null,
       selectedColor: null,
       selectedPlanId: null,
       selectedDiscountIds: [],
-      currentStep: 3,
+      currentStep: 4,
     }),
 
   setBrand: (brand) =>
