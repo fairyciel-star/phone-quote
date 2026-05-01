@@ -6,6 +6,7 @@ import phonesData from '../../data/phones.json';
 import carriersData from '../../data/carriers.json';
 import type { Phone, SubscriptionType } from '../../types';
 import type { CarrierId } from '../../types';
+import type { KidsPhoneRow } from '../../utils/sheets';
 import { formatWon } from '../../utils/format';
 import { hapticMedium } from '../../utils/haptic';
 import { calculateLowestDevicePrice } from '../../utils/price';
@@ -38,6 +39,7 @@ export function Step3Phone() {
 
   const sheetLoaded = useSheetStore((s) => s.loaded);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
+  const kidsPhones = useSheetStore((s) => s.kidsPhones);
 
   const selectedBrand = useQuoteStore((s) => s.selectedBrand);
   const [brandFilter, setBrandFilter] = useState<BrandFilter>(
@@ -187,6 +189,72 @@ export function Step3Phone() {
   }, [phonesWithData, sortByPrice]);
 
   const currentCarrierName = carriersData.find((c) => c.id === carrierId)?.name ?? carrierId ?? '';
+
+  const handleSelectKidsPhone = (phone: KidsPhoneRow) => {
+    hapticMedium();
+    setPhone(phone.모델ID);
+    setStorage(phone.용량 || '기본');
+    setStep(currentStep + 1);
+  };
+
+  if (selectedBrand === '키즈') {
+    return (
+      <div className={styles.container}>
+        <h2 className={styles.title}>키즈폰을 선택해주세요!</h2>
+        <div className={styles.list}>
+          {kidsPhones.length === 0 ? (
+            <p className={styles.lowestPriceNone}>
+              {sheetLoaded ? '키즈폰 정보가 없습니다' : '정보 로딩중...'}
+            </p>
+          ) : (
+            kidsPhones.map((phone) => {
+              const isSelected = selectedPhoneId === phone.모델ID;
+              return (
+                <Card
+                  key={phone.모델ID}
+                  selected={isSelected}
+                  onClick={() => handleSelectKidsPhone(phone)}
+                  className={styles.phoneCard}
+                >
+                  <div className={styles.phoneRow}>
+                    {phone.이미지 && (
+                      <div className={styles.phoneImage}>
+                        <img src={phone.이미지} alt={phone.모델명} className={styles.phoneImg} />
+                      </div>
+                    )}
+                    <div className={styles.phoneInfo}>
+                      <span className={styles.phoneBrand}>키즈폰</span>
+                      <div className={styles.phoneNameRow}>
+                        <span className={styles.phoneName}>{phone.모델명}</span>
+                      </div>
+                      {phone.배지 && (
+                        <span className={styles.lowestPriceBadge}>{phone.배지}</span>
+                      )}
+                    </div>
+                    <div className={styles.lowestPrice}>
+                      {phone.기기가격 > 0 ? (
+                        <>
+                          <span className={styles.lowestPriceBadge}>▼ 기기가격</span>
+                          <span className={styles.lowestPriceValue}>{formatWon(phone.기기가격)}</span>
+                          {phone.출고가 > 0 && phone.출고가 !== phone.기기가격 && (
+                            <span className={styles.lowestPriceRetail}>{formatWon(phone.출고가)}</span>
+                          )}
+                        </>
+                      ) : phone.출고가 > 0 ? (
+                        <span className={styles.lowestPriceValue}>{formatWon(phone.출고가)}</span>
+                      ) : (
+                        <span className={styles.lowestPriceNone}>가격 준비중</span>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              );
+            })
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

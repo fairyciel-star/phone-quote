@@ -14,6 +14,7 @@ export function Step2Carrier() {
   const setCarrier = useQuoteStore((s) => s.setCarrier);
   const setStep = useQuoteStore((s) => s.setStep);
   const currentStep = useQuoteStore((s) => s.currentStep);
+  const startKidsPath = useQuoteStore((s) => s.startKidsPath);
 
   const handleSelect = (carrierId: CarrierId) => {
     hapticMedium();
@@ -44,6 +45,21 @@ export function Step2Carrier() {
             </Card>
           ))}
         </div>
+
+        <div className={styles.divider}>
+          <span className={styles.dividerLine} />
+          <span className={styles.dividerText}>또는</span>
+          <span className={styles.dividerLine} />
+        </div>
+
+        <button
+          className={styles.kidsBtn}
+          onClick={() => { hapticMedium(); startKidsPath(); }}
+        >
+          <span className={styles.kidsBtnSub}>없어요</span>
+          <span className={styles.kidsBtnMain}>신규가입</span>
+          <span className={styles.kidsBtnTag}>-키즈폰 전용-</span>
+        </button>
       </div>
     </>
   );

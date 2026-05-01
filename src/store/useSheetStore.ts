@@ -7,12 +7,14 @@ import {
   fetchAddons,
   fetchUsedPhones,
   fetchSelectAgreementSubsidies,
+  fetchKidsPhones,
   type SubsidyRow,
   type CardDiscountRow,
   type PlanRow,
   type AddonRow,
   type UsedPhoneRow,
   type SelectAgreementSubsidyRow,
+  type KidsPhoneRow,
 } from '../utils/sheets';
 
 interface SheetState {
@@ -25,6 +27,7 @@ interface SheetState {
   readonly addons: readonly AddonRow[];
   readonly usedPhones: readonly UsedPhoneRow[];
   readonly selectAgreementSubsidies: readonly SelectAgreementSubsidyRow[];
+  readonly kidsPhones: readonly KidsPhoneRow[];
   loadFromSheet: (sheetId: string) => Promise<void>;
   getSubsidy: (모델ID: string, 통신사: CarrierId, 용량: string, 가입유형: SubscriptionType) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number };
   getPhoneBadge: (모델ID: string, 통신사: CarrierId) => string;
@@ -35,6 +38,7 @@ interface SheetState {
   getUsedPhoneList: () => UsedPhoneRow[];
   getStoragesForPhone: (모델ID: string, 통신사: CarrierId) => { size: string; price: number }[];
   getSelectAgreementSubsidy: (모델ID: string, 통신사: CarrierId, 용량: string, 가입유형: SubscriptionType) => { 출고가: number; 추가지원금: number; 특별지원: number };
+  getKidsPhones: () => KidsPhoneRow[];
 }
 
 export const useSheetStore = create<SheetState>((set, get) => ({
@@ -47,6 +51,7 @@ export const useSheetStore = create<SheetState>((set, get) => ({
   addons: [],
   usedPhones: [],
   selectAgreementSubsidies: [],
+  kidsPhones: [],
 
   loadFromSheet: async (sheetId: string) => {
     set({ loading: true, error: null });
@@ -58,6 +63,7 @@ export const useSheetStore = create<SheetState>((set, get) => ({
         fetchAddons(sheetId),
         fetchUsedPhones(sheetId),
         fetchSelectAgreementSubsidies(sheetId),
+        fetchKidsPhones(sheetId),
       ]);
 
       set({
@@ -67,6 +73,7 @@ export const useSheetStore = create<SheetState>((set, get) => ({
         addons: results[3].status === 'fulfilled' ? results[3].value : [],
         usedPhones: results[4].status === 'fulfilled' ? results[4].value : [],
         selectAgreementSubsidies: results[5].status === 'fulfilled' ? results[5].value : [],
+        kidsPhones: results[6].status === 'fulfilled' ? results[6].value : [],
         loaded: true,
         loading: false,
       });
@@ -181,4 +188,6 @@ export const useSheetStore = create<SheetState>((set, get) => ({
       특별지원: row?.선택약정_특별지원 ?? 0,
     };
   },
+
+  getKidsPhones: () => [...get().kidsPhones],
 }));

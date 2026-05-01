@@ -5,6 +5,7 @@ interface QuoteActions {
   showLanding: boolean;
   enterQuote: () => void;
   setStep: (step: number) => void;
+  startKidsPath: () => void;
   setBrand: (brand: string) => void;
   setSubscriptionType: (type: SubscriptionType) => void;
   setPreviousCarrier: (carrier: CarrierId) => void;
@@ -51,6 +52,19 @@ export const useQuoteStore = create<QuoteState & QuoteActions>((set) => ({
   enterQuote: () => set({ showLanding: false }),
 
   setStep: (step) => set({ currentStep: step }),
+
+  startKidsPath: () =>
+    set({
+      carrierId: null,
+      subscriptionType: null,
+      previousCarrier: null,
+      selectedPhoneId: null,
+      selectedStorage: null,
+      selectedColor: null,
+      selectedPlanId: null,
+      selectedDiscountIds: [],
+      currentStep: 3,
+    }),
 
   setBrand: (brand) =>
     set({

@@ -25,6 +25,7 @@ const SHEET_GIDS = {
   부가서비스: '528526412',
   중고폰시세: '1666746914',
   선택약정: '',
+  키즈전용: '', // ★ 키즈전용 탭의 GID를 여기에 입력하세요
 } as const;
 
 function parseCsvLine(line: string): string[] {
@@ -229,6 +230,34 @@ export async function fetchSelectAgreementSubsidies(
     출고가: Number(row['출고가']) || 0,
     추가지원금: Number(row['추가지원금']) || 0,
     특별지원: Number(row['특별지원']) || 0,
+  }));
+}
+
+// ── 키즈전용 폰 ──
+// 키즈전용 시트 컬럼: 모델ID | 모델명 | 이미지 | 용량 | 출고가 | 기기가격 | 배지
+
+export interface KidsPhoneRow {
+  readonly 모델ID: string;
+  readonly 모델명: string;
+  readonly 이미지: string;
+  readonly 용량: string;
+  readonly 출고가: number;
+  readonly 기기가격: number;
+  readonly 배지: string;
+}
+
+export async function fetchKidsPhones(sheetIdOrUrl: string): Promise<KidsPhoneRow[]> {
+  if (!SHEET_GIDS.키즈전용) return [];
+  const pubKey = extractPubKey(sheetIdOrUrl);
+  const rows = await fetchCsv(pubKey, SHEET_GIDS.키즈전용);
+  return rows.map((row) => ({
+    모델ID: row['모델ID'] ?? '',
+    모델명: row['모델명'] ?? '',
+    이미지: row['이미지'] ?? '',
+    용량: row['용량'] ?? '',
+    출고가: Number(row['출고가']) || 0,
+    기기가격: Number(row['기기가격']) || 0,
+    배지: row['배지'] ?? '',
   }));
 }
 
