@@ -110,6 +110,8 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
       추가지원금: best.추가지원금,
       특별지원: best.특별지원,
       실구매가: lowestPrice === Infinity ? 0 : lowestPrice,
+      선택약정_추가지원금: best.선택약정_추가지원금,
+      선택약정_특별지원: best.선택약정_특별지원,
     };
   }, [isKidsPhone, selectedPhoneId, selectedStorage, kidsPhones, carrierId]);
 
@@ -153,6 +155,9 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
   // Subsidy (mode-aware: 공통지원금 vs 선택약정)
   const getSubsidyData = (): { 공통지원금: number; 추가지원금: number; 특별지원: number } => {
     if (isKidsPhone && kidsPhoneData) {
+      if (discountType === '선택약정') {
+        return { 공통지원금: 0, 추가지원금: kidsPhoneData.선택약정_추가지원금, 특별지원: kidsPhoneData.선택약정_특별지원 };
+      }
       return { 공통지원금: kidsPhoneData.공통지원금, 추가지원금: kidsPhoneData.추가지원금, 특별지원: kidsPhoneData.특별지원 };
     }
     if (!selectedPhone || !carrierId || !selectedStorage || !subscriptionType) return { 공통지원금: 0, 추가지원금: 0, 특별지원: 0 };
@@ -311,15 +316,18 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
     if (isKidsPhone) {
       if (!kidsPhoneData || !plan) return null;
       const 공통지원금 = discountType === '공통지원금' ? kidsPhoneData.공통지원금 : 0;
-      const 추가지원금 = kidsPhoneData.추가지원금;
-      const 특별지원 = kidsPhoneData.특별지원;
+      const 추가지원금 = discountType === '선택약정' ? kidsPhoneData.선택약정_추가지원금 : kidsPhoneData.추가지원금;
+      const 특별지원 = discountType === '선택약정' ? kidsPhoneData.선택약정_특별지원 : kidsPhoneData.특별지원;
+      const 기기실구매가 = discountType === '선택약정'
+        ? Math.max(0, kidsPhoneData.출고가 - 추가지원금 - 특별지원)
+        : kidsPhoneData.실구매가;
       const cardDiscountObjs = selectedDiscounts.filter((d) => d.type === '제휴카드');
       const 월카드할인 = cardDiscountObjs.reduce((sum, d) => sum + (d.monthlyDiscount ?? 0), 0);
       const 제휴카드24개월할인 = 월카드할인 * 24;
       const 선택약정할인 = discountType === '선택약정'
         ? calculate선택약정할인(plan.monthlyFee, plan.선택약정할인율 ?? 0.25)
         : 0;
-      const 할부원금 = Math.max(0, kidsPhoneData.실구매가 - 제휴카드24개월할인);
+      const 할부원금 = Math.max(0, 기기실구매가 - 제휴카드24개월할인);
       const 월할부금 = calculate월할부금(할부원금, 할부개월);
       const 월요금제 = plan.monthlyFee - 선택약정할인;
       return {
