@@ -66,14 +66,36 @@ export const useSheetStore = create<SheetState>((set, get) => ({
         fetchKidsPhones(sheetId),
       ]);
 
+      const subsidies = results[0].status === 'fulfilled' ? results[0].value : [];
+      let kidsPhones = results[6].status === 'fulfilled' ? results[6].value : [];
+
+      // 키즈전용 시트가 비어있으면 공통지원금에서 배지='키즈'인 행을 사용
+      if (kidsPhones.length === 0 && subsidies.length > 0) {
+        kidsPhones = subsidies
+          .filter((r) => r.배지 === '키즈')
+          .map((r) => ({
+            모델ID: r.모델ID,
+            통신사: r.통신사,
+            용량: r.용량,
+            가입유형: r.가입유형,
+            출고가: r.출고가,
+            공통지원금: r.공통지원금,
+            추가지원금: r.추가지원금,
+            배지: r.배지,
+            특별지원: r.특별지원,
+            선택약정_추가지원금: r.선택약정_추가지원금,
+            선택약정_특별지원: r.선택약정_특별지원 ?? 0,
+          }));
+      }
+
       set({
-        subsidies: results[0].status === 'fulfilled' ? results[0].value : [],
+        subsidies,
         cardDiscounts: results[1].status === 'fulfilled' ? results[1].value : [],
         plans: results[2].status === 'fulfilled' ? results[2].value : [],
         addons: results[3].status === 'fulfilled' ? results[3].value : [],
         usedPhones: results[4].status === 'fulfilled' ? results[4].value : [],
         selectAgreementSubsidies: results[5].status === 'fulfilled' ? results[5].value : [],
-        kidsPhones: results[6].status === 'fulfilled' ? results[6].value : [],
+        kidsPhones,
         loaded: true,
         loading: false,
       });
