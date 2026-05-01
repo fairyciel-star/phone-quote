@@ -25,7 +25,7 @@ const SHEET_GIDS = {
   부가서비스: '528526412',
   중고폰시세: '1666746914',
   선택약정: '',
-  키즈전용: '', // ★ 키즈전용 탭의 GID를 여기에 입력하세요
+  키즈전용: '1925986786',
 } as const;
 
 function parseCsvLine(line: string): string[] {
@@ -234,16 +234,20 @@ export async function fetchSelectAgreementSubsidies(
 }
 
 // ── 키즈전용 폰 ──
-// 키즈전용 시트 컬럼: 모델ID | 모델명 | 이미지 | 용량 | 출고가 | 기기가격 | 배지
+// 키즈전용 시트 컬럼: 모델ID | 통신사 | 용량 | 가입유형 | 출고가 | 공통지원금 | 추가지원금 | 배지 | 특별지원 | 선택약정_추가지원금 | 선택약정_특별지원
 
 export interface KidsPhoneRow {
   readonly 모델ID: string;
-  readonly 모델명: string;
-  readonly 이미지: string;
+  readonly 통신사: CarrierId;
   readonly 용량: string;
+  readonly 가입유형: string;
   readonly 출고가: number;
-  readonly 기기가격: number;
+  readonly 공통지원금: number;
+  readonly 추가지원금: number;
   readonly 배지: string;
+  readonly 특별지원: number;
+  readonly 선택약정_추가지원금: number;
+  readonly 선택약정_특별지원: number;
 }
 
 export async function fetchKidsPhones(sheetIdOrUrl: string): Promise<KidsPhoneRow[]> {
@@ -252,12 +256,16 @@ export async function fetchKidsPhones(sheetIdOrUrl: string): Promise<KidsPhoneRo
   const rows = await fetchCsv(pubKey, SHEET_GIDS.키즈전용);
   return rows.map((row) => ({
     모델ID: row['모델ID'] ?? '',
-    모델명: row['모델명'] ?? '',
-    이미지: row['이미지'] ?? '',
+    통신사: (row['통신사'] ?? '') as CarrierId,
     용량: row['용량'] ?? '',
+    가입유형: row['가입유형'] ?? '',
     출고가: Number(row['출고가']) || 0,
-    기기가격: Number(row['기기가격']) || 0,
+    공통지원금: Number(row['공통지원금']) || 0,
+    추가지원금: Number(row['추가지원금']) || 0,
     배지: row['배지'] ?? '',
+    특별지원: Number(row['특별지원']) || 0,
+    선택약정_추가지원금: Number(row['선택약정_추가지원금']) || 0,
+    선택약정_특별지원: Number(row['선택약정_특별지원']) || 0,
   }));
 }
 
