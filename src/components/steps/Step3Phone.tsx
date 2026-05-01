@@ -13,10 +13,10 @@ import styles from './Step3Phone.module.css';
 
 const phones = phonesData as unknown as Phone[];
 
-const KIDS_MODEL_INFO: Record<string, { name: string; imageId: string }> = {
-  'galaxy-a175n-zem': { name: '포켓피스', imageId: 'a175n_zem' },
-  'galaxy-a175n-kp': { name: '폼폼푸린', imageId: 'a175nk-kp' },
-  'galaxy-a175n-m2': { name: '무너2', imageId: 'a175n-m2' },
+const KIDS_MODEL_INFO: Record<string, { name: string; imageId: string; emoji: string }> = {
+  'galaxy-a175n-zem': { name: '포켓피스', imageId: 'a175n_zem', emoji: '🐣' },
+  'galaxy-a175n-kp': { name: '폼폼푸린', imageId: 'a175nk-kp', emoji: '🍮' },
+  'galaxy-a175n-m2': { name: '무너2', imageId: 'a175n-m2', emoji: '🐰' },
 };
 
 type BrandFilter = '전체' | '삼성' | 'Apple';
@@ -225,6 +225,7 @@ export function Step3Phone() {
       }
       return {
         모델ID,
+        통신사: bestRow?.통신사 ?? '',
         용량: bestRow?.용량 ?? '',
         배지: bestRow?.배지 ?? '',
         lowestPrice: lowestPrice === Infinity ? 0 : lowestPrice,
@@ -238,11 +239,11 @@ export function Step3Phone() {
   if (isKidsSection) {
     return (
       <div className={styles.container}>
-        <h2 className={styles.title}>키즈폰을 선택해주세요!</h2>
+        <h2 className={styles.title}>🧒 키즈폰을 선택해주세요!</h2>
         <div className={styles.list}>
           {kidsModels.length === 0 ? (
             <p className={styles.lowestPriceNone}>
-              {sheetLoaded ? '키즈폰 정보가 없습니다' : '정보 로딩중...'}
+              {sheetLoaded ? '키즈폰 정보가 없습니다' : '⏳ 정보 로딩중...'}
             </p>
           ) : (
             kidsModels.map((model) => {
@@ -250,6 +251,8 @@ export function Step3Phone() {
               const kidsInfo = KIDS_MODEL_INFO[model.모델ID];
               const imageId = kidsInfo?.imageId ?? model.모델ID.toLowerCase();
               const displayName = kidsInfo?.name ?? model.모델ID;
+              const emoji = kidsInfo?.emoji ?? '📱';
+              const carrier = carriersData.find((c) => c.id === model.통신사);
               return (
                 <Card
                   key={model.모델ID}
@@ -258,6 +261,9 @@ export function Step3Phone() {
                     hapticMedium();
                     setPhone(model.모델ID);
                     setStorage(model.용량 || '기본');
+                    if (model.통신사) {
+                      switchCarrier(model.통신사 as CarrierId);
+                    }
                     setStep(currentStep + 1);
                   }}
                   className={styles.phoneCard}
@@ -271,7 +277,19 @@ export function Step3Phone() {
                       />
                     </div>
                     <div className={styles.phoneInfo}>
-                      <span className={styles.phoneBrand}>삼성 키즈폰</span>
+                      <div className={styles.phoneNameRow}>
+                        <span className={styles.phoneBrand}>
+                          {emoji} 삼성 키즈폰
+                        </span>
+                        {carrier && (
+                          <img
+                            src={`/images/${carrier.id}.png`}
+                            alt={carrier.name}
+                            className={styles.phoneImg}
+                            style={{ width: 20, height: 20, objectFit: 'contain', marginLeft: 4 }}
+                          />
+                        )}
+                      </div>
                       <div className={styles.phoneNameRow}>
                         <span className={styles.phoneName}>{displayName}</span>
                       </div>
@@ -282,7 +300,7 @@ export function Step3Phone() {
                     <div className={styles.lowestPrice}>
                       {model.retailPrice > 0 ? (
                         <>
-                          <span className={styles.lowestPriceBadge}>▼ 오늘 최저가</span>
+                          <span className={styles.lowestPriceBadge}>✨ 오늘 최저가</span>
                           <span className={styles.lowestPriceValue}>{formatWon(model.lowestPrice)}</span>
                           <span className={styles.lowestPriceRetail}>{formatWon(model.retailPrice)}</span>
                         </>
