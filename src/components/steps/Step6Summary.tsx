@@ -6,7 +6,7 @@ import phonesData from '../../data/phones.json';
 import plansData from '../../data/plans.json';
 import discountsData from '../../data/discounts.json';
 import carriersData from '../../data/carriers.json';
-import type { Discount, Phone, Plan } from '../../types';
+import type { Discount, Phone, Plan, PlanTier } from '../../types';
 import { calculateFullQuote } from '../../utils/price';
 import { formatWon } from '../../utils/format';
 import styles from './Step6Summary.module.css';
@@ -21,6 +21,7 @@ export function Step6Summary() {
 
   const sheetLoaded = useSheetStore((s) => s.loaded);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
+  const getSelectAgreementSubsidy = useSheetStore((s) => s.getSelectAgreementSubsidy);
   const getSheetCards = useSheetStore((s) => s.getCardDiscountsForCarrier);
   const getSheetPlans = useSheetStore((s) => s.getPlansForCarrier);
   const getSheetAddons = useSheetStore((s) => s.getAddonsForCarrier);
@@ -32,6 +33,7 @@ export function Step6Summary() {
   const sheetPlans = sheetLoaded && carrierId ? getSheetPlans(carrierId) : [];
   const allPlans = sheetPlans.length > 0 ? sheetPlans : plans;
   const plan = allPlans.find((p) => p.id === selectedPlanId);
+  const planTier: PlanTier = plan?.구간 ?? '고가';
 
   // Discounts: sheet cards + sheet addons, JSON fallback
   const sheetCards = sheetLoaded && carrierId ? getSheetCards(carrierId) : [];
@@ -42,12 +44,23 @@ export function Step6Summary() {
   ];
   const selectedDiscounts = allDiscounts.filter((d) => selectedDiscountIds.includes(d.id));
 
-  // 시트 공통지원금/추가지원금 (가입유형별)
-  const sheetSubsidy = sheetLoaded && selectedPhoneId && carrierId && selectedStorage && subscriptionType
-    ? getSubsidy(selectedPhoneId, carrierId, selectedStorage, subscriptionType)
+  // 공시지원금 / 선택약정 지원금 (요금제 구간별)
+  const hasConditions = sheetLoaded && !!selectedPhoneId && !!carrierId && !!selectedStorage && !!subscriptionType;
+  const commonSheetSubsidy = hasConditions
+    ? getSubsidy(selectedPhoneId!, carrierId!, selectedStorage!, subscriptionType!, planTier)
+    : null;
+  const saSheetSubsidy = hasConditions
+    ? getSelectAgreementSubsidy(selectedPhoneId!, carrierId!, selectedStorage!, subscriptionType!, planTier)
     : null;
 
-  const specialSupport = sheetSubsidy?.특별지원 ?? 0;
+  // discountType에 따라 올바른 시트 값 선택
+  const activeSheetSubsidy = discountType === '선택약정'
+    ? (saSheetSubsidy
+        ? { 출고가: saSheetSubsidy.출고가 || commonSheetSubsidy?.출고가 || 0, 공통지원금: 0, 추가지원금: saSheetSubsidy.추가지원금, 특별지원: saSheetSubsidy.특별지원 }
+        : commonSheetSubsidy)
+    : commonSheetSubsidy;
+
+  const specialSupport = activeSheetSubsidy?.특별지원 ?? 0;
 
   const quote = useMemo(() => {
     if (!phone || !plan || !selectedStorage || !carrierId) return null;
@@ -59,12 +72,12 @@ export function Step6Summary() {
       discountType,
       selectedDiscounts,
       할부개월,
-      출고가Override: sheetSubsidy?.출고가,
-      공통지원금Override: sheetSubsidy?.공통지원금,
-      추가지원금Override: sheetSubsidy?.추가지원금,
-      특별지원Override: sheetSubsidy?.특별지원,
+      출고가Override: activeSheetSubsidy?.출고가,
+      공통지원금Override: activeSheetSubsidy?.공통지원금,
+      추가지원금Override: activeSheetSubsidy?.추가지원금,
+      특별지원Override: activeSheetSubsidy?.특별지원,
     });
-  }, [phone, plan, selectedStorage, carrierId, discountType, selectedDiscounts, 할부개월, sheetSubsidy]);
+  }, [phone, plan, selectedStorage, carrierId, discountType, selectedDiscounts, 할부개월, activeSheetSubsidy]);
 
   if (!quote || !phone || !plan) {
     return (

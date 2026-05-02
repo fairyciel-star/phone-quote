@@ -165,7 +165,7 @@ function SubsidyCell({ phone, carrier, storage }: { phone: Phone; carrier: strin
 
   // Use sheet value if loaded, else JSON
   const sheetVal = sheetLoaded
-    ? getSubsidy(phone.id, carrier as 'SKT' | 'KT' | 'LGU', storage, '번호이동').공통지원금
+    ? getSubsidy(phone.id, carrier as 'SKT' | 'KT' | 'LGU', storage, '번호이동', '고가').공통지원금
     : null;
 
   const baseVal = sheetVal ?? jsonVal;
@@ -551,12 +551,12 @@ function SheetDebugTab() {
                   <td><span className={`${styles.badge} ${styles[r.통신사.toLowerCase() as 'skt' | 'kt' | 'lgu']}`}>{r.통신사}</span></td>
                   <td>{r.용량}</td>
                   <td>{r.가입유형}</td>
-                  <td>{r.출고가.toLocaleString()}</td>
-                  <td style={{ fontWeight: r.공통지원금 > 0 ? 700 : undefined, color: r.공통지원금 > 0 ? '#16a34a' : '#94a3b8' }}>
-                    {r.공통지원금.toLocaleString()}
+                  <td>-</td>
+                  <td style={{ fontWeight: r.고가_공시지원금 > 0 ? 700 : undefined, color: r.고가_공시지원금 > 0 ? '#16a34a' : '#94a3b8' }}>
+                    {r.고가_공시지원금.toLocaleString()}
                   </td>
-                  <td style={{ color: r.추가지원금 > 0 ? '#16a34a' : '#94a3b8' }}>{r.추가지원금.toLocaleString()}</td>
-                  <td style={{ color: r.특별지원 > 0 ? '#f59e0b' : '#94a3b8' }}>{r.특별지원.toLocaleString()}</td>
+                  <td style={{ color: r.고가_추가지원금 > 0 ? '#16a34a' : '#94a3b8' }}>{r.고가_추가지원금.toLocaleString()}</td>
+                  <td style={{ color: r.고가_특별지원금 > 0 ? '#f59e0b' : '#94a3b8' }}>{r.고가_특별지원금.toLocaleString()}</td>
                 </tr>
               );
             })}

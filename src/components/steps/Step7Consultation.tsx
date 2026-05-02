@@ -9,7 +9,7 @@ import { useSheetStore } from '../../store/useSheetStore';
 import phonesData from '../../data/phones.json';
 import plansData from '../../data/plans.json';
 import carriersData from '../../data/carriers.json';
-import type { Phone, Plan } from '../../types';
+import type { Phone, Plan, PlanTier } from '../../types';
 import { calculateFullQuote } from '../../utils/price';
 import discountsData from '../../data/discounts.json';
 import type { Discount } from '../../types';
@@ -67,13 +67,13 @@ export function Step7Consultation() {
 
   const sheetLoaded = useSheetStore((s) => s.loaded);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
+  const getSelectAgreementSubsidy = useSheetStore((s) => s.getSelectAgreementSubsidy);
   const getSheetPlans = useSheetStore((s) => s.getPlansForCarrier);
   const getSheetCards = useSheetStore((s) => s.getCardDiscountsForCarrier);
   const getSheetAddons = useSheetStore((s) => s.getAddonsForCarrier);
 
   const displaySheetPlans = sheetLoaded && carrierId ? getSheetPlans(carrierId) : [];
   const plan = (displaySheetPlans.length > 0 ? displaySheetPlans : plans).find((p) => p.id === selectedPlanId);
-
   const handleSubmit = async () => {
     if (!validate()) return;
     setSending(true);
@@ -97,18 +97,28 @@ export function Step7Consultation() {
     ];
     const selectedDiscounts = allDiscounts.filter((d) => selectedDiscountIds.includes(d.id));
 
-    const sheetSubsidy = sheetLoaded && selectedPhoneId && carrierId && selectedStorage && subscriptionType
-      ? getSubsidy(selectedPhoneId, carrierId, selectedStorage, subscriptionType)
+    const innerPlanTier: PlanTier = allPlans.find((p) => p.id === selectedPlanId)?.구간 ?? '고가';
+    const hasConditions = sheetLoaded && !!selectedPhoneId && !!carrierId && !!selectedStorage && !!subscriptionType;
+    const commonSheetSubsidy = hasConditions
+      ? getSubsidy(selectedPhoneId!, carrierId!, selectedStorage!, subscriptionType!, innerPlanTier)
       : null;
+    const saSheetSubsidy = hasConditions
+      ? getSelectAgreementSubsidy(selectedPhoneId!, carrierId!, selectedStorage!, subscriptionType!, innerPlanTier)
+      : null;
+    const activeSheetSubsidy = discountType === '선택약정'
+      ? (saSheetSubsidy
+          ? { 출고가: saSheetSubsidy.출고가 || commonSheetSubsidy?.출고가 || 0, 공통지원금: 0, 추가지원금: saSheetSubsidy.추가지원금, 특별지원: saSheetSubsidy.특별지원 }
+          : commonSheetSubsidy)
+      : commonSheetSubsidy;
 
     let quoteText = '';
     if (phone && plan && selectedStorage && carrierId) {
       const quote = calculateFullQuote({
         phone, storage: selectedStorage, carrierId, plan, discountType, selectedDiscounts, 할부개월,
-        출고가Override: sheetSubsidy?.출고가,
-        공통지원금Override: sheetSubsidy?.공통지원금,
-        추가지원금Override: sheetSubsidy?.추가지원금,
-        특별지원Override: sheetSubsidy?.특별지원,
+        출고가Override: activeSheetSubsidy?.출고가,
+        공통지원금Override: activeSheetSubsidy?.공통지원금,
+        추가지원금Override: activeSheetSubsidy?.추가지원금,
+        특별지원Override: activeSheetSubsidy?.특별지원,
       });
       quoteText = `
 <b>📱 견적 정보</b>

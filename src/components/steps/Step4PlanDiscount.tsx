@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Discount, DiscountType, Phone, Plan, PriceBreakdown } from '../../types';
+import type { Discount, DiscountType, Phone, Plan, PlanTier, PriceBreakdown } from '../../types';
 import { useQuoteStore } from '../../store/useQuoteStore';
 import { useSheetStore } from '../../store/useSheetStore';
 import { Card } from '../ui/Card';
@@ -137,6 +137,18 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
     (best, p) => (!best || p.monthlyFee > best.monthlyFee ? p : best),
     null
   );
+  // 선택된 요금제의 구간 — 공시지원금 조회 키로 사용 (미선택 시 '고가' 기본값)
+  const planTier: PlanTier = carrierPlans.find((p) => p.id === selectedPlanId)?.구간 ?? '고가';
+
+  // 구간별 요금제 맵 (고가/중가/저가 각 1개)
+  const TIER_ORDER: PlanTier[] = ['고가', '중가', '저가'];
+  const tierPlansMap = new Map<PlanTier, Plan>(
+    TIER_ORDER.flatMap((tier) => {
+      const p = carrierPlans.find((pl) => pl.구간 === tier);
+      return p ? [[tier, p] as [PlanTier, Plan]] : [];
+    })
+  );
+  const hasTierPlans = !isKidsPhone && tierPlansMap.size > 0;
 
   useEffect(() => {
     if (!premiumPlan) return;
@@ -160,16 +172,16 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
       }
       return { 공통지원금: kidsPhoneData.공통지원금, 추가지원금: kidsPhoneData.추가지원금, 특별지원: kidsPhoneData.특별지원 };
     }
-    if (!selectedPhone || !carrierId || !selectedStorage || !subscriptionType) return { 공통지원금: 0, 추가지원금: 0, 특별지원: 0 };
+    if (!selectedPhoneId || !carrierId || !selectedStorage || !subscriptionType) return { 공통지원금: 0, 추가지원금: 0, 특별지원: 0 };
     if (sheetLoaded && discountType === '선택약정') {
-      // 선택약정 모드: 선택약정 시트의 추가/특별지원 사용 (공통지원금은 0)
-      const sa = getSelectAgreementSubsidy(selectedPhone.id, carrierId, selectedStorage, subscriptionType);
+      const sa = getSelectAgreementSubsidy(selectedPhoneId, carrierId, selectedStorage, subscriptionType, planTier);
       return { 공통지원금: 0, 추가지원금: sa.추가지원금, 특별지원: sa.특별지원 };
     }
     if (sheetLoaded) {
-      const sheet = getSubsidy(selectedPhone.id, carrierId, selectedStorage, subscriptionType);
-      if (sheet.공통지원금 > 0) return { 공통지원금: sheet.공통지원금, 추가지원금: sheet.추가지원금, 특별지원: sheet.특별지원 };
+      const sheet = getSubsidy(selectedPhoneId, carrierId, selectedStorage, subscriptionType, planTier);
+      return { 공통지원금: sheet.공통지원금, 추가지원금: sheet.추가지원금, 특별지원: sheet.특별지원 };
     }
+    if (!selectedPhone) return { 공통지원금: 0, 추가지원금: 0, 특별지원: 0 };
     const jsonSubsidy = selectedPhone.공통지원금[carrierId];
     return { 공통지원금: jsonSubsidy?.[selectedStorage] ?? 0, 추가지원금: 0, 특별지원: 0 };
   };
@@ -293,11 +305,11 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
   const selectedDiscounts = allDiscounts.filter((d) => selectedIds.includes(d.id));
 
   const commonSheetSubsidy = sheetLoaded && selectedPhoneId && carrierId && selectedStorage && subscriptionType
-    ? getSubsidy(selectedPhoneId, carrierId, selectedStorage, subscriptionType)
+    ? getSubsidy(selectedPhoneId, carrierId, selectedStorage, subscriptionType, planTier)
     : null;
 
   const saSheetSubsidy = sheetLoaded && selectedPhoneId && carrierId && selectedStorage && subscriptionType
-    ? getSelectAgreementSubsidy(selectedPhoneId, carrierId, selectedStorage, subscriptionType)
+    ? getSelectAgreementSubsidy(selectedPhoneId, carrierId, selectedStorage, subscriptionType, planTier)
     : null;
 
   // 선택약정 모드: 선택약정 시트값 우선, 공통지원금 모드: 공통지원금 시트값
@@ -550,7 +562,80 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
           {carrierId === 'LGU' && '6개월 이후 47,000원 이상 요금제로 변경 가능'}
         </p>
 
-        {discountType === '공통지원금' && premiumPlan && (
+        {/* ── 구간별 요금제 카드 (시트 연동 시) ── */}
+        {hasTierPlans && TIER_ORDER.map((tier) => {
+          const tierPlan = tierPlansMap.get(tier);
+          if (!tierPlan) return null;
+          const isSelected = selectedPlanId === tierPlan.id;
+          const canQuery = sheetLoaded && !!selectedPhoneId && !!carrierId && !!selectedStorage && !!subscriptionType;
+          const commonSub = canQuery ? getSubsidy(selectedPhoneId!, carrierId!, selectedStorage!, subscriptionType!, tier) : null;
+          const saSub = canQuery ? getSelectAgreementSubsidy(selectedPhoneId!, carrierId!, selectedStorage!, subscriptionType!, tier) : null;
+          const 공통지원금 = discountType === '공통지원금' ? (commonSub?.공통지원금 ?? 0) : 0;
+          const 추가지원금 = discountType === '선택약정' ? (saSub?.추가지원금 ?? 0) : (commonSub?.추가지원금 ?? 0);
+          const 특별지원 = discountType === '선택약정' ? (saSub?.특별지원 ?? 0) : (commonSub?.특별지원 ?? 0);
+          const 선택약정할인 = discountType === '선택약정' ? calculate선택약정할인(tierPlan.monthlyFee, tierPlan.선택약정할인율 || 0.25) : 0;
+          const totalSupport = 공통지원금 + 추가지원금 + 특별지원;
+          const tierLabel = tier === '고가' ? '프리미엄' : tier === '중가' ? '스탠다드' : '베이직';
+
+          return (
+            <Card key={tier} selected={isSelected} onClick={() => setPlan(tierPlan.id)} className={styles.planCard}>
+              <div className={styles.planLayout}>
+                <div className={styles.planLeft}>
+                  <div className={styles.planNameRow}>
+                    <span className={styles.planName}>{tierPlan.name}</span>
+                    <Badge>{tierLabel}</Badge>
+                  </div>
+                  <div className={styles.planPriceRow}>
+                    <span className={styles.planPriceLabel}>월</span>
+                    <span className={styles.planPrice}>{formatWon(tierPlan.monthlyFee)}</span>
+                  </div>
+                  {discountType === '선택약정' && 선택약정할인 > 0 && (
+                    <div className={styles.planAfterDiscount}>
+                      <span className={styles.planAfterLabel}>25% 할인 후</span>
+                      <span className={styles.planAfterPrice}>{formatWon(tierPlan.monthlyFee - 선택약정할인)}</span>
+                    </div>
+                  )}
+                </div>
+                <div className={styles.planRight}>
+                  <div className={styles.planBadges}>
+                    <Badge>데이터</Badge>
+                    <Badge>{tierPlan.data}</Badge>
+                    <Badge>6개월 유지</Badge>
+                  </div>
+                  {totalSupport > 0 && (
+                    <div className={styles.subsidyColumn}>
+                      {공통지원금 > 0 && (
+                        <div className={styles.subsidyItem}>
+                          <span className={styles.subsidyLabel}>공통지원금</span>
+                          <span className={styles.subsidyAmount}>{formatWon(공통지원금)}</span>
+                        </div>
+                      )}
+                      {추가지원금 > 0 && (
+                        <div className={styles.subsidyItem}>
+                          <span className={styles.subsidyLabel}>최대 매장지원금</span>
+                          <span className={styles.subsidyAmount}>{formatWon(추가지원금)}</span>
+                        </div>
+                      )}
+                      {특별지원 > 0 && (
+                        <div className={styles.subsidyItem}>
+                          <span className={styles.subsidyLabel}>동네폰 특별지원</span>
+                          <span className={styles.subsidyAmount}>{formatWon(특별지원)}</span>
+                        </div>
+                      )}
+                      <div className={styles.subsidyItem}>
+                        <span className={styles.subsidyTotalLabel}>최대 지원금</span>
+                        <span className={styles.subsidyTotalAmount}>{formatWon(totalSupport)}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Card>
+          );
+        })}
+
+        {/* ── 폴백: 시트 구간 정보 없을 때 기존 단일 카드 ── */}
+        {!hasTierPlans && discountType === '공통지원금' && premiumPlan && (
           <Card selected={true} onClick={() => setPlan(premiumPlan.id)} className={styles.planCard}>
             <div className={styles.planLayout}>
               <div className={styles.planLeft}>
@@ -595,7 +680,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
           </Card>
         )}
 
-        {discountType === '선택약정' && premiumPlan && (
+        {!hasTierPlans && discountType === '선택약정' && premiumPlan && (
           <Card selected={true} onClick={() => setPlan(premiumPlan.id)} className={styles.planCard}>
             <div className={styles.planLayout}>
               <div className={styles.planLeft}>
@@ -642,7 +727,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
           </Card>
         )}
 
-        {discountType === '선택약정' && (
+        {!hasTierPlans && discountType === '선택약정' && (
           <div className={styles.discountInfo}>
             다른 요금제를 희망하시는 경우 상담신청을 통해 문의 바랍니다.
           </div>

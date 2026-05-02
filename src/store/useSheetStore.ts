@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { CarrierId, Discount, Plan, SubscriptionType } from '../types';
+import type { CarrierId, Discount, Plan, PlanTier, SubscriptionType } from '../types';
 import {
   fetchSubsidies,
   fetchCardDiscounts,
@@ -8,6 +8,10 @@ import {
   fetchUsedPhones,
   fetchSelectAgreementSubsidies,
   fetchKidsPhones,
+  fetchPhoneMasters,
+  fetchColorStorages,
+  getSubsidyByTier,
+  getSelectAgreementByTier,
   type SubsidyRow,
   type CardDiscountRow,
   type PlanRow,
@@ -15,6 +19,8 @@ import {
   type UsedPhoneRow,
   type SelectAgreementSubsidyRow,
   type KidsPhoneRow,
+  type PhoneMasterRow,
+  type ColorStorageRow,
 } from '../utils/sheets';
 
 interface SheetState {
@@ -28,8 +34,17 @@ interface SheetState {
   readonly usedPhones: readonly UsedPhoneRow[];
   readonly selectAgreementSubsidies: readonly SelectAgreementSubsidyRow[];
   readonly kidsPhones: readonly KidsPhoneRow[];
+  readonly phoneMasters: readonly PhoneMasterRow[];
+  readonly colorStorages: readonly ColorStorageRow[];
   loadFromSheet: (sheetId: string) => Promise<void>;
-  getSubsidy: (모델ID: string, 통신사: CarrierId, 용량: string, 가입유형: SubscriptionType) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number };
+  // planTier: 요금제 구간 ('고가'|'중가'|'저가'). 미지정 시 '고가' 기본값 (폰 목록 프리뷰용)
+  getSubsidy: (
+    모델ID: string,
+    통신사: CarrierId,
+    용량: string,
+    가입유형: SubscriptionType,
+    planTier?: PlanTier
+  ) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number };
   getPhoneBadge: (모델ID: string, 통신사: CarrierId) => string;
   getCardDiscountsForCarrier: (통신사: CarrierId) => Discount[];
   getPlansForCarrier: (통신사: CarrierId) => Plan[];
@@ -37,8 +52,15 @@ interface SheetState {
   getUsedPhonePrice: (모델ID: string, 용량: string) => UsedPhoneRow | null;
   getUsedPhoneList: () => UsedPhoneRow[];
   getStoragesForPhone: (모델ID: string, 통신사: CarrierId) => { size: string; price: number }[];
-  getSelectAgreementSubsidy: (모델ID: string, 통신사: CarrierId, 용량: string, 가입유형: SubscriptionType) => { 출고가: number; 추가지원금: number; 특별지원: number };
+  getSelectAgreementSubsidy: (
+    모델ID: string,
+    통신사: CarrierId,
+    용량: string,
+    가입유형: SubscriptionType,
+    planTier?: PlanTier
+  ) => { 출고가: number; 추가지원금: number; 특별지원: number };
   getKidsPhones: () => KidsPhoneRow[];
+  getColorsForPhone: (모델ID: string, 용량: string) => { name: string; hex: string; image?: string }[];
 }
 
 export const useSheetStore = create<SheetState>((set, get) => ({
@@ -52,6 +74,8 @@ export const useSheetStore = create<SheetState>((set, get) => ({
   usedPhones: [],
   selectAgreementSubsidies: [],
   kidsPhones: [],
+  phoneMasters: [],
+  colorStorages: [],
 
   loadFromSheet: async (sheetId: string) => {
     set({ loading: true, error: null });
@@ -64,29 +88,12 @@ export const useSheetStore = create<SheetState>((set, get) => ({
         fetchUsedPhones(sheetId),
         fetchSelectAgreementSubsidies(sheetId),
         fetchKidsPhones(sheetId),
+        fetchPhoneMasters(sheetId),
+        fetchColorStorages(sheetId),
       ]);
 
       const subsidies = results[0].status === 'fulfilled' ? results[0].value : [];
-      let kidsPhones = results[6].status === 'fulfilled' ? results[6].value : [];
-
-      // 키즈전용 시트가 비어있으면 공통지원금에서 배지='키즈'인 행을 사용
-      if (kidsPhones.length === 0 && subsidies.length > 0) {
-        kidsPhones = subsidies
-          .filter((r) => r.배지 === '키즈')
-          .map((r) => ({
-            모델ID: r.모델ID,
-            통신사: r.통신사,
-            용량: r.용량,
-            가입유형: r.가입유형,
-            출고가: r.출고가,
-            공통지원금: r.공통지원금,
-            추가지원금: r.추가지원금,
-            배지: r.배지,
-            특별지원: r.특별지원,
-            선택약정_추가지원금: r.선택약정_추가지원금,
-            선택약정_특별지원: r.선택약정_특별지원 ?? 0,
-          }));
-      }
+      const kidsPhones = results[6].status === 'fulfilled' ? results[6].value : [];
 
       set({
         subsidies,
@@ -96,6 +103,8 @@ export const useSheetStore = create<SheetState>((set, get) => ({
         usedPhones: results[4].status === 'fulfilled' ? results[4].value : [],
         selectAgreementSubsidies: results[5].status === 'fulfilled' ? results[5].value : [],
         kidsPhones,
+        phoneMasters: results[7].status === 'fulfilled' ? results[7].value : [],
+        colorStorages: results[8].status === 'fulfilled' ? results[8].value : [],
         loaded: true,
         loading: false,
       });
@@ -105,30 +114,32 @@ export const useSheetStore = create<SheetState>((set, get) => ({
     }
   },
 
-  getSubsidy: (모델ID, 통신사, 용량, 가입유형) => {
+  getSubsidy: (모델ID, 통신사, 용량, 가입유형, planTier = '고가') => {
     const row = get().subsidies.find(
       (r) => r.모델ID === 모델ID && r.통신사 === 통신사 && r.용량 === 용량 && r.가입유형 === 가입유형
     );
-    // 출고가는 가입유형과 무관한 기기 속성 — 해당 row가 없거나 0이면 같은 폰·통신사·용량의 다른 row에서 조회
-    const 출고가Raw = row?.출고가 ?? 0;
-    const 출고가 = 출고가Raw > 0
-      ? 출고가Raw
-      : (get().subsidies.find(
-          (r) => r.모델ID === 모델ID && r.통신사 === 통신사 && r.용량 === 용량 && r.출고가 > 0
-        )?.출고가 ?? 0);
+
+    // 출고가: 색상_용량 시트 우선, 없으면 0 (price.ts가 phones.json 폴백 처리)
+    const 출고가 = get().colorStorages.find(
+      (r) => r.모델ID === 모델ID && r.용량 === 용량
+    )?.출고가 ?? 0;
+
+    const tier = getSubsidyByTier(row, planTier);
     return {
       출고가,
-      공통지원금: row?.공통지원금 ?? 0,
-      추가지원금: row?.추가지원금 ?? 0,
-      특별지원: row?.특별지원 ?? 0,
+      공통지원금: tier.공시지원금,
+      추가지원금: tier.추가지원금,
+      특별지원: tier.특별지원금,
     };
   },
 
   getPhoneBadge: (모델ID, 통신사) => {
-    const row = get().subsidies.find(
-      (r) => r.모델ID === 모델ID && r.통신사 === 통신사 && r.배지
-    );
-    return row?.배지 ?? '';
+    // 휴대폰_마스터 시트 우선
+    const master = get().phoneMasters.find((r) => r.모델ID === 모델ID);
+    if (master) return master.배지;
+    // 하위 호환: 키즈전용 시트에서 배지 읽기
+    const kidsRow = get().kidsPhones.find((r) => r.모델ID === 모델ID && r.통신사 === 통신사);
+    return kidsRow?.배지 ?? '';
   },
 
   getCardDiscountsForCarrier: (통신사) => {
@@ -150,6 +161,8 @@ export const useSheetStore = create<SheetState>((set, get) => ({
       .map((r) => ({
         id: r.id,
         carrier: r.통신사,
+        구간: r.구간,
+        카테고리: r.카테고리,
         name: r.요금제명,
         monthlyFee: r.월요금,
         data: r.데이터,
@@ -171,16 +184,30 @@ export const useSheetStore = create<SheetState>((set, get) => ({
   },
 
   getStoragesForPhone: (모델ID, 통신사) => {
+    // 색상_용량 시트 우선 (출고가 포함)
+    const colorRows = get().colorStorages.filter((r) => r.모델ID === 모델ID);
+    if (colorRows.length > 0) {
+      const seen = new Set<string>();
+      const result: { size: string; price: number }[] = [];
+      for (const row of colorRows) {
+        if (row.용량 && !seen.has(row.용량)) {
+          seen.add(row.용량);
+          result.push({ size: row.용량, price: row.출고가 });
+        }
+      }
+      return result;
+    }
+
+    // 폴백: 공시지원금 시트에서 용량 목록만 추출 (출고가 0)
     const rows = get().subsidies.filter(
       (r) => r.모델ID === 모델ID && r.통신사 === 통신사
     );
-    // 용량별로 중복 제거하고 출고가 반환
     const seen = new Set<string>();
     const result: { size: string; price: number }[] = [];
     for (const row of rows) {
       if (row.용량 && !seen.has(row.용량)) {
         seen.add(row.용량);
-        result.push({ size: row.용량, price: row.출고가 });
+        result.push({ size: row.용량, price: 0 });
       }
     }
     return result;
@@ -200,16 +227,32 @@ export const useSheetStore = create<SheetState>((set, get) => ({
       }));
   },
 
-  getSelectAgreementSubsidy: (모델ID, 통신사, 용량, 가입유형) => {
-    const row = get().subsidies.find(
+  getSelectAgreementSubsidy: (모델ID, 통신사, 용량, 가입유형, planTier = '고가') => {
+    const saRow = get().selectAgreementSubsidies.find(
       (r) => r.모델ID === 모델ID && r.통신사 === 통신사 && r.용량 === 용량 && r.가입유형 === 가입유형
     );
+
+    const 출고가 = get().colorStorages.find(
+      (r) => r.모델ID === 모델ID && r.용량 === 용량
+    )?.출고가 ?? 0;
+
+    const tier = getSelectAgreementByTier(saRow, planTier);
     return {
-      출고가: row?.출고가 ?? 0,
-      추가지원금: row?.선택약정_추가지원금 ?? 0,
-      특별지원: row?.선택약정_특별지원 ?? 0,
+      출고가,
+      추가지원금: tier.추가지원금,
+      특별지원: tier.특별지원금,
     };
   },
 
   getKidsPhones: () => [...get().kidsPhones],
+
+  getColorsForPhone: (모델ID, 용량) => {
+    return get().colorStorages
+      .filter((r) => r.모델ID === 모델ID && r.용량 === 용량)
+      .map((r) => ({
+        name: r.색상명,
+        hex: r.색상HEX,
+        image: r.색상이미지URL || undefined,
+      }));
+  },
 }));

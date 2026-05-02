@@ -38,6 +38,8 @@ export interface Phone {
 export interface Plan {
   readonly id: string;
   readonly carrier: CarrierId;
+  readonly 구간?: PlanTier;
+  readonly 카테고리?: string;
   readonly name: string;
   readonly monthlyFee: number;
   readonly data: string;
@@ -62,6 +64,8 @@ export interface Discount {
 }
 
 export type DiscountType = '공통지원금' | '선택약정';
+
+export type PlanTier = '고가' | '중가' | '저가';
 
 export interface PriceBreakdown {
   readonly 출고가: number;

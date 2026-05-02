@@ -1,4 +1,4 @@
-import type { CarrierId, Discount, DiscountType, Phone, Plan, PriceBreakdown, SubscriptionType } from '../types';
+import type { CarrierId, Discount, DiscountType, Phone, Plan, PlanTier, PriceBreakdown, SubscriptionType } from '../types';
 
 const 연이율 = 0.059;
 
@@ -40,17 +40,20 @@ export function calculateLowestDevicePrice(params: {
   phone: Phone;
   carriers: readonly CarrierId[];
   subscriptionType?: SubscriptionType | null;
+  planTier?: PlanTier;
   getSubsidy?: (
     모델ID: string,
     통신사: CarrierId,
     용량: string,
-    가입유형: SubscriptionType
+    가입유형: SubscriptionType,
+    planTier?: PlanTier
   ) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number };
   getSelectAgreementSubsidy?: (
     모델ID: string,
     통신사: CarrierId,
     용량: string,
-    가입유형: SubscriptionType
+    가입유형: SubscriptionType,
+    planTier?: PlanTier
   ) => { 출고가: number; 추가지원금: number; 특별지원: number };
   sheetLoaded?: boolean;
 }): LowestDevicePriceResult {
@@ -72,7 +75,7 @@ export function calculateLowestDevicePrice(params: {
         let 특별지원 = 0;
 
         if (sheetLoaded && getSubsidy) {
-          const sheet = getSubsidy(phone.id, carrierId, storageOption.size, subType);
+          const sheet = getSubsidy(phone.id, carrierId, storageOption.size, subType, params.planTier ?? '고가');
           if (sheet.출고가 > 0) 출고가 = sheet.출고가;
           if (sheet.공통지원금 > 0) 공통지원금 = sheet.공통지원금;
           if (sheet.추가지원금 > 0) 추가지원금 = sheet.추가지원금;
@@ -86,7 +89,7 @@ export function calculateLowestDevicePrice(params: {
         let 사용된지원금 = 공통지원금 + 추가지원금 + 특별지원;
 
         if (sheetLoaded && params.getSelectAgreementSubsidy) {
-          const sa = params.getSelectAgreementSubsidy(phone.id, carrierId, storageOption.size, subType);
+          const sa = params.getSelectAgreementSubsidy(phone.id, carrierId, storageOption.size, subType, params.planTier ?? '고가');
           const sa지원금 = (sa.추가지원금 || 0) + (sa.특별지원 || 0);
           if (sa지원금 > 0) {
             const 선택실구매가 = Math.max(0, 출고가 - sa지원금);
