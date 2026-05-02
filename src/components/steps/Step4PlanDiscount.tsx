@@ -575,15 +575,12 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
           const 특별지원 = discountType === '선택약정' ? (saSub?.특별지원 ?? 0) : (commonSub?.특별지원 ?? 0);
           const 선택약정할인 = discountType === '선택약정' ? calculate선택약정할인(tierPlan.monthlyFee, tierPlan.선택약정할인율 || 0.25) : 0;
           const totalSupport = 공통지원금 + 추가지원금 + 특별지원;
-          const tierLabel = tier === '고가' ? '프리미엄' : tier === '중가' ? '스탠다드' : '베이직';
-
           return (
             <Card key={tier} selected={isSelected} onClick={() => setPlan(tierPlan.id)} className={styles.planCard}>
               <div className={styles.planLayout}>
                 <div className={styles.planLeft}>
                   <div className={styles.planNameRow}>
                     <span className={styles.planName}>{tierPlan.name}</span>
-                    <Badge>{tierLabel}</Badge>
                   </div>
                   <div className={styles.planPriceRow}>
                     <span className={styles.planPriceLabel}>월</span>
