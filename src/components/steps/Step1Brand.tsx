@@ -23,16 +23,29 @@ const BRANDS = [
       </div>
     ),
   },
+  {
+    id: 'kids',
+    label: '키즈폰',
+    filter: '키즈',
+    logo: (
+      <div className={styles.kidsLogo}>
+        <span style={{ fontSize: 26, lineHeight: 1 }}>🧒</span>
+        <span className={styles.kidsText}>키즈폰</span>
+      </div>
+    ),
+  },
 ] as const;
 
 export function Step1Brand() {
   const selectedBrand = useQuoteStore((s) => s.selectedBrand);
+  const carrierId = useQuoteStore((s) => s.carrierId);
   const setBrand = useQuoteStore((s) => s.setBrand);
   const setSubscriptionType = useQuoteStore((s) => s.setSubscriptionType);
   const setStep = useQuoteStore((s) => s.setStep);
   const currentStep = useQuoteStore((s) => s.currentStep);
 
-  const isKidsPath = selectedBrand === '키즈';
+  // startKidsPath()는 carrierId=null로 시작 → carrierId가 없을 때만 키즈 전용 경로
+  const isKidsPath = selectedBrand === '키즈' && carrierId === null;
 
   const [searching, setSearching] = useState(false);
   const [dots, setDots] = useState('');
@@ -71,7 +84,7 @@ export function Step1Brand() {
       <h2 className={styles.title}>제조사를 선택해주세요!</h2>
 
       <div className={styles.brandList}>
-        {BRANDS.map((brand) => (
+        {BRANDS.filter((b) => !isKidsPath || b.id !== 'kids').map((brand) => (
           <button
             key={brand.id}
             className={`${styles.brandCard} ${selectedBrand === brand.filter ? styles.active : ''}`}

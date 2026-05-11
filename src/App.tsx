@@ -77,10 +77,10 @@ function App() {
 
     const handlePopState = () => {
       if (window.location.hash === '#/admin') return;
-      const { currentStep, showLanding: onLanding, setStep, selectedBrand } = useQuoteStore.getState();
+      const { currentStep, showLanding: onLanding, setStep, selectedBrand, carrierId } = useQuoteStore.getState();
       if (onLanding) return;
-      // 키즈 경로: 제조사(3) → 통신사(1)로 직행
-      if (selectedBrand === '키즈' && currentStep === 3) {
+      // startKidsPath() 전용 경로(carrierId=null): 제조사(3) → 통신사(1)로 직행
+      if (selectedBrand === '키즈' && carrierId === null && currentStep === 3) {
         setStep(1);
       } else if (currentStep > 1) {
         setStep(currentStep - 1);
