@@ -83,6 +83,10 @@ function App() {
       if (selectedBrand === '키즈' && carrierId === null && currentStep === 3) {
         setStep(1);
       } else if (currentStep > 1) {
+        // 키즈 경로에서 뒤로가기 시 carrierId 초기화
+        if (selectedBrand === '키즈' && carrierId !== null) {
+          useQuoteStore.setState({ carrierId: null, selectedPhoneId: null, selectedStorage: null, selectedColor: null, selectedPlanId: null, selectedDiscountIds: [] });
+        }
         setStep(currentStep - 1);
       } else {
         useQuoteStore.setState({ showLanding: true });

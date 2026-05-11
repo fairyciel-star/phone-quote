@@ -8,11 +8,16 @@ export function Header() {
   const currentStep = useQuoteStore((s) => s.currentStep);
   const setStep = useQuoteStore((s) => s.setStep);
   const selectedBrand = useQuoteStore((s) => s.selectedBrand);
+  const carrierId = useQuoteStore((s) => s.carrierId);
 
   const handleBack = () => {
     if (currentStep === 1) return reset();
     // 키즈 경로: 제조사(3) → 통신사(1)로 직행
     if (selectedBrand === '키즈' && currentStep === 3) return setStep(1);
+    // 키즈 경로에서 뒤로가기 시 carrierId 초기화 (모델 선택으로 오염된 통신사 제거)
+    if (selectedBrand === '키즈' && carrierId !== null) {
+      useQuoteStore.setState({ carrierId: null, selectedPhoneId: null, selectedStorage: null, selectedColor: null, selectedPlanId: null, selectedDiscountIds: [] });
+    }
     setStep(currentStep - 1);
   };
 
