@@ -218,7 +218,8 @@ export function Step3Phone() {
       // 색상_용량 시트에서 출고가·용량 확인
       const storageRow = colorStorages.find((r) => r.모델ID === 모델ID);
       const 용량 = storageRow?.용량 ?? '';
-      const carriersToCheck = carrierId ? [carrierId] : ALL_CARRIERS;
+      // 키즈폰은 뒤로가기 후 carrierId 오염 방지를 위해 항상 전체 통신사 순회
+      const carriersToCheck = ALL_CARRIERS;
       let lowestPrice = Infinity;
       let retailPrice = 0;
       let bestCarrier = carrierId ?? '';

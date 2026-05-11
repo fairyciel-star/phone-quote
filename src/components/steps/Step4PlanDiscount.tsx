@@ -89,19 +89,25 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
     if (!isKidsPhone || !selectedPhoneId) return null;
 
     // 표준 시트(공시지원금 + 선택약정_지원금) 기준 신규가입 조회
-    if (sheetLoaded && carrierId && selectedStorage) {
-      const sub = getSubsidy(selectedPhoneId, carrierId, selectedStorage, '신규가입');
-      const sa = getSelectAgreementSubsidy(selectedPhoneId, carrierId, selectedStorage, '신규가입');
-      if (sub.출고가 > 0) {
-        return {
-          출고가: sub.출고가,
-          공통지원금: sub.공통지원금,
-          추가지원금: sub.추가지원금,
-          특별지원: sub.특별지원,
-          실구매가: Math.max(0, sub.출고가 - sub.공통지원금 - sub.추가지원금 - sub.특별지원),
-          선택약정_추가지원금: sa.추가지원금,
-          선택약정_특별지원: sa.특별지원,
-        };
+    // carrierId가 오염된 경우를 대비해 현재 통신사 우선, 없으면 전체 순회
+    if (sheetLoaded && selectedStorage) {
+      const ALL_CARRIERS_ORDER: CarrierId[] = carrierId
+        ? [carrierId, ...(['SKT', 'KT', 'LGU'] as CarrierId[]).filter(c => c !== carrierId)]
+        : ['SKT', 'KT', 'LGU'];
+      for (const c of ALL_CARRIERS_ORDER) {
+        const sub = getSubsidy(selectedPhoneId, c, selectedStorage, '신규가입');
+        if (sub.출고가 > 0 && (sub.공통지원금 > 0 || sub.추가지원금 > 0)) {
+          const sa = getSelectAgreementSubsidy(selectedPhoneId, c, selectedStorage, '신규가입');
+          return {
+            출고가: sub.출고가,
+            공통지원금: sub.공통지원금,
+            추가지원금: sub.추가지원금,
+            특별지원: sub.특별지원,
+            실구매가: Math.max(0, sub.출고가 - sub.공통지원금 - sub.추가지원금 - sub.특별지원),
+            선택약정_추가지원금: sa.추가지원금,
+            선택약정_특별지원: sa.특별지원,
+          };
+        }
       }
     }
 
