@@ -74,6 +74,7 @@ export function Step1Brand() {
         setSubscriptionType('신규가입');
       } else {
         setBrand(filter);
+        if (filter === '키즈') setSubscriptionType('신규가입');
       }
       setStep(currentStep + 1);
     }, 1000);

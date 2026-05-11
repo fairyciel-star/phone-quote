@@ -47,6 +47,7 @@ export function Step3Phone() {
   const getSelectAgreementSubsidy = useSheetStore((s) => s.getSelectAgreementSubsidy);
   const kidsPhones = useSheetStore((s) => s.kidsPhones);
   const phoneMasters = useSheetStore((s) => s.phoneMasters);
+  const colorStorages = useSheetStore((s) => s.colorStorages);
 
   const selectedBrand = useQuoteStore((s) => s.selectedBrand);
   const [brandFilter, setBrandFilter] = useState<BrandFilter>(
@@ -200,7 +201,7 @@ export function Step3Phone() {
 
   const currentCarrierName = carriersData.find((c) => c.id === carrierId)?.name ?? carrierId ?? '';
 
-  // 키즈폰: 휴대폰_마스터 키즈전용=Y 모델 우선, 없으면 키즈전용 시트 기반
+  // 키즈폰: 휴대폰_마스터 키즈전용=Y 기준, 색상_용량·공시지원금·선택약정 시트로 가격 계산
   const kidsModels = useMemo(() => {
     const masterKidsIds = phoneMasters
       .filter((m) => m.키즈전용)
@@ -210,39 +211,55 @@ export function Step3Phone() {
       : [...new Set(kidsPhones.map((r) => r.모델ID))];
 
     return modelIds.map((모델ID) => {
-      let rows = kidsPhones.filter((r) => r.모델ID === 모델ID);
+      const master = phoneMasters.find((m) => m.모델ID === 모델ID);
 
-      if (carrierId) {
-        const byCarrier = rows.filter((r) => r.통신사 === carrierId);
-        if (byCarrier.length > 0) rows = byCarrier;
-      }
-      if (subscriptionType) {
-        const byType = rows.filter((r) => r.가입유형 === subscriptionType);
-        if (byType.length > 0) rows = byType;
-      }
-
+      // 색상_용량 시트에서 출고가·용량 확인
+      const storageRow = colorStorages.find((r) => r.모델ID === 모델ID);
+      const 용량 = storageRow?.용량 ?? '';
+      const effectiveCarrier = carrierId ?? '';
       let lowestPrice = Infinity;
       let retailPrice = 0;
-      let bestRow = rows[0] ?? null;
-      for (const row of rows) {
-        const 실구매가 = Math.max(0, row.출고가 - row.공통지원금 - row.추가지원금 - row.특별지원);
-        if (row.출고가 > 0 && 실구매가 < lowestPrice) {
-          lowestPrice = 실구매가;
-          retailPrice = row.출고가;
-          bestRow = row;
+      let 통신사 = effectiveCarrier;
+
+      // 공시지원금 시트 기준 신규가입 가격 계산 (우선)
+      if (sheetLoaded && effectiveCarrier && 용량) {
+        const sub = getSubsidy(모델ID, effectiveCarrier as CarrierId, 용량, '신규가입');
+        if (sub.출고가 > 0) {
+          retailPrice = sub.출고가;
+          lowestPrice = Math.max(0, sub.출고가 - sub.공통지원금 - sub.추가지원금 - sub.특별지원);
+          통신사 = effectiveCarrier;
         }
       }
-      const master = phoneMasters.find((m) => m.모델ID === 모델ID);
+
+      // 폴백: 키즈전용 시트
+      if (lowestPrice === Infinity) {
+        let rows = kidsPhones.filter((r) => r.모델ID === 모델ID);
+        if (carrierId) {
+          const byCarrier = rows.filter((r) => r.통신사 === carrierId);
+          if (byCarrier.length > 0) rows = byCarrier;
+        }
+        const byType = rows.filter((r) => r.가입유형 === '신규가입');
+        if (byType.length > 0) rows = byType;
+        for (const row of rows) {
+          const 실구매가 = Math.max(0, row.출고가 - row.공통지원금 - row.추가지원금 - row.특별지원);
+          if (row.출고가 > 0 && 실구매가 < lowestPrice) {
+            lowestPrice = 실구매가;
+            retailPrice = row.출고가;
+            통신사 = row.통신사;
+          }
+        }
+      }
+
       return {
         모델ID,
-        통신사: bestRow?.통신사 ?? '',
-        용량: bestRow?.용량 ?? '',
-        배지: (master?.배지 || bestRow?.배지) ?? '',
+        통신사,
+        용량,
+        배지: master?.배지 ?? '',
         lowestPrice: lowestPrice === Infinity ? 0 : lowestPrice,
         retailPrice,
       };
     });
-  }, [phoneMasters, kidsPhones, carrierId, subscriptionType]);
+  }, [phoneMasters, kidsPhones, carrierId, sheetLoaded, getSubsidy, colorStorages]);
 
   const isKidsSection = selectedBrand === '키즈' || (subscriptionType === '신규가입' && selectedBrand !== 'Apple');
 

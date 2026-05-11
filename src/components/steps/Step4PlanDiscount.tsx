@@ -69,20 +69,43 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
   const kidsPhones = useSheetStore((s) => s.kidsPhones);
   const allSheetPlans = useSheetStore((s) => s.plans);
 
-  // 키즈 플랜 (Plan 타입으로 변환, 해당 통신사 필터)
+  // 키즈 플랜 (전용요금제='KIDS'|'키즈' 또는 카테고리='키즈')
   const kidsPlans = useMemo((): Plan[] => {
     if (!sheetLoaded || !carrierId) return [];
     const kidsIds = new Set(
       allSheetPlans
-        .filter((p) => { const v = p.전용요금제?.trim() ?? ''; return v.toUpperCase() === 'KIDS' || v === '키즈'; })
+        .filter((p) => {
+          const v = p.전용요금제?.trim() ?? '';
+          const cat = p.카테고리?.trim() ?? '';
+          return v.toUpperCase() === 'KIDS' || v === '키즈' || cat === '키즈';
+        })
         .map((p) => p.id)
     );
     return getSheetPlans(carrierId).filter((p) => kidsIds.has(p.id));
   }, [sheetLoaded, carrierId, allSheetPlans, getSheetPlans]);
 
-  // 키즈폰 가격 데이터 (키즈전용 시트)
+  // 키즈폰 가격 데이터: 공시지원금·선택약정 시트(신규가입) 우선, 키즈전용 시트 폴백
   const kidsPhoneData = useMemo(() => {
     if (!isKidsPhone || !selectedPhoneId) return null;
+
+    // 표준 시트(공시지원금 + 선택약정_지원금) 기준 신규가입 조회
+    if (sheetLoaded && carrierId && selectedStorage) {
+      const sub = getSubsidy(selectedPhoneId, carrierId, selectedStorage, '신규가입');
+      const sa = getSelectAgreementSubsidy(selectedPhoneId, carrierId, selectedStorage, '신규가입');
+      if (sub.출고가 > 0) {
+        return {
+          출고가: sub.출고가,
+          공통지원금: sub.공통지원금,
+          추가지원금: sub.추가지원금,
+          특별지원: sub.특별지원,
+          실구매가: Math.max(0, sub.출고가 - sub.공통지원금 - sub.추가지원금 - sub.특별지원),
+          선택약정_추가지원금: sa.추가지원금,
+          선택약정_특별지원: sa.특별지원,
+        };
+      }
+    }
+
+    // 폴백: 키즈전용 시트
     let rows = kidsPhones.filter((r) => r.모델ID === selectedPhoneId);
     if (carrierId) {
       const byCarrier = rows.filter((r) => r.통신사 === carrierId);
@@ -113,7 +136,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
       선택약정_추가지원금: best.선택약정_추가지원금,
       선택약정_특별지원: best.선택약정_특별지원,
     };
-  }, [isKidsPhone, selectedPhoneId, selectedStorage, kidsPhones, carrierId]);
+  }, [isKidsPhone, selectedPhoneId, selectedStorage, kidsPhones, carrierId, sheetLoaded, getSubsidy, getSelectAgreementSubsidy]);
 
   // 키즈폰 표시 정보
   const kidsModelInfo = isKidsPhone ? KIDS_MODEL_INFO[selectedPhoneId ?? ''] : undefined;
@@ -465,10 +488,12 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
               {/* 용량 선택 — 항상 고정 표시 */}
               {isKidsPhone ? (
                 (() => {
-                  const kidsStorages = kidsPhones
-                    .filter((r) => r.모델ID === selectedPhoneId && (!carrierId || r.통신사 === carrierId))
-                    .map((r) => r.용량)
-                    .filter((v, i, arr) => arr.indexOf(v) === i);
+                  const kidsStorages = (sheetLoaded && selectedPhoneId && carrierId
+                    ? getStoragesForPhone(selectedPhoneId, carrierId).map((s) => s.size)
+                    : kidsPhones
+                        .filter((r) => r.모델ID === selectedPhoneId && (!carrierId || r.통신사 === carrierId))
+                        .map((r) => r.용량)
+                        .filter((v, i, arr) => arr.indexOf(v) === i));
                   return kidsStorages.length > 1 ? (
                     <div className={styles.storageSelector}>
                       <div className={styles.storageSelectorLabel}>용량을 선택해주세요</div>
