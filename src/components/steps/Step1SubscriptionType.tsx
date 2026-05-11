@@ -34,7 +34,8 @@ export function Step1SubscriptionType() {
 
   // 통신사변경: carrierId가 originalCarrier와 다르면 진행 가능
   const newCarrierSelected = carrierId !== null && carrierId !== originalCarrier;
-  const canProceed = selected !== null && (selected !== '번호이동' || newCarrierSelected);
+  const validType = selected === '번호이동' || selected === '기기변경';
+  const canProceed = validType && (selected !== '번호이동' || newCarrierSelected);
 
   return (
     <>
