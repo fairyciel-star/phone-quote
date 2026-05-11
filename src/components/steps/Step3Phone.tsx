@@ -46,6 +46,7 @@ export function Step3Phone() {
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
   const getSelectAgreementSubsidy = useSheetStore((s) => s.getSelectAgreementSubsidy);
   const kidsPhones = useSheetStore((s) => s.kidsPhones);
+  const phoneMasters = useSheetStore((s) => s.phoneMasters);
 
   const selectedBrand = useQuoteStore((s) => s.selectedBrand);
   const [brandFilter, setBrandFilter] = useState<BrandFilter>(
@@ -199,18 +200,22 @@ export function Step3Phone() {
 
   const currentCarrierName = carriersData.find((c) => c.id === carrierId)?.name ?? carrierId ?? '';
 
-  // 키즈폰: 모델ID 기준으로 중복 제거 후 통신사·가입유형 조건에 맞는 최저가 계산
+  // 키즈폰: 휴대폰_마스터 키즈전용=Y 모델 우선, 없으면 키즈전용 시트 기반
   const kidsModels = useMemo(() => {
-    const modelIds = [...new Set(kidsPhones.map((r) => r.모델ID))];
+    const masterKidsIds = phoneMasters
+      .filter((m) => m.키즈전용)
+      .map((m) => m.모델ID);
+    const modelIds = masterKidsIds.length > 0
+      ? masterKidsIds
+      : [...new Set(kidsPhones.map((r) => r.모델ID))];
+
     return modelIds.map((모델ID) => {
       let rows = kidsPhones.filter((r) => r.모델ID === 모델ID);
 
-      // 통신사 선택 시 해당 통신사 행 우선
       if (carrierId) {
         const byCarrier = rows.filter((r) => r.통신사 === carrierId);
         if (byCarrier.length > 0) rows = byCarrier;
       }
-      // 가입유형 선택 시 해당 가입유형 행 우선
       if (subscriptionType) {
         const byType = rows.filter((r) => r.가입유형 === subscriptionType);
         if (byType.length > 0) rows = byType;
@@ -218,7 +223,7 @@ export function Step3Phone() {
 
       let lowestPrice = Infinity;
       let retailPrice = 0;
-      let bestRow = rows[0];
+      let bestRow = rows[0] ?? null;
       for (const row of rows) {
         const 실구매가 = Math.max(0, row.출고가 - row.공통지원금 - row.추가지원금 - row.특별지원);
         if (row.출고가 > 0 && 실구매가 < lowestPrice) {
@@ -227,16 +232,17 @@ export function Step3Phone() {
           bestRow = row;
         }
       }
+      const master = phoneMasters.find((m) => m.모델ID === 모델ID);
       return {
         모델ID,
         통신사: bestRow?.통신사 ?? '',
         용량: bestRow?.용량 ?? '',
-        배지: bestRow?.배지 ?? '',
+        배지: (master?.배지 || bestRow?.배지) ?? '',
         lowestPrice: lowestPrice === Infinity ? 0 : lowestPrice,
         retailPrice,
       };
     });
-  }, [kidsPhones, carrierId, subscriptionType]);
+  }, [phoneMasters, kidsPhones, carrierId, subscriptionType]);
 
   const isKidsSection = selectedBrand === '키즈' || (subscriptionType === '신규가입' && selectedBrand !== 'Apple');
 
