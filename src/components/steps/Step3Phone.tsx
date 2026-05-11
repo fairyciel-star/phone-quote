@@ -201,6 +201,8 @@ export function Step3Phone() {
 
   const currentCarrierName = carriersData.find((c) => c.id === carrierId)?.name ?? carrierId ?? '';
 
+  const ALL_CARRIERS: CarrierId[] = ['SKT', 'KT', 'LGU'];
+
   // 키즈폰: 휴대폰_마스터 키즈전용=Y 기준, 색상_용량·공시지원금·선택약정 시트로 가격 계산
   const kidsModels = useMemo(() => {
     const masterKidsIds = phoneMasters
@@ -216,18 +218,23 @@ export function Step3Phone() {
       // 색상_용량 시트에서 출고가·용량 확인
       const storageRow = colorStorages.find((r) => r.모델ID === 모델ID);
       const 용량 = storageRow?.용량 ?? '';
-      const effectiveCarrier = carrierId ?? '';
+      const carriersToCheck = carrierId ? [carrierId] : ALL_CARRIERS;
       let lowestPrice = Infinity;
       let retailPrice = 0;
-      let 통신사 = effectiveCarrier;
+      let bestCarrier = carrierId ?? '';
 
-      // 공시지원금 시트 기준 신규가입 가격 계산 (우선)
-      if (sheetLoaded && effectiveCarrier && 용량) {
-        const sub = getSubsidy(모델ID, effectiveCarrier as CarrierId, 용량, '신규가입');
-        if (sub.출고가 > 0) {
-          retailPrice = sub.출고가;
-          lowestPrice = Math.max(0, sub.출고가 - sub.공통지원금 - sub.추가지원금 - sub.특별지원);
-          통신사 = effectiveCarrier;
+      // 공시지원금 시트 기준 신규가입 가격 계산 (모든 통신사 순회)
+      if (sheetLoaded && 용량) {
+        for (const c of carriersToCheck) {
+          const sub = getSubsidy(모델ID, c, 용량, '신규가입');
+          if (sub.출고가 > 0) {
+            const price = Math.max(0, sub.출고가 - sub.공통지원금 - sub.추가지원금 - sub.특별지원);
+            if (price < lowestPrice) {
+              lowestPrice = price;
+              retailPrice = sub.출고가;
+              bestCarrier = c;
+            }
+          }
         }
       }
 
@@ -245,14 +252,14 @@ export function Step3Phone() {
           if (row.출고가 > 0 && 실구매가 < lowestPrice) {
             lowestPrice = 실구매가;
             retailPrice = row.출고가;
-            통신사 = row.통신사;
+            bestCarrier = row.통신사;
           }
         }
       }
 
       return {
         모델ID,
-        통신사,
+        통신사: bestCarrier,
         용량,
         배지: master?.배지 ?? '',
         lowestPrice: lowestPrice === Infinity ? 0 : lowestPrice,

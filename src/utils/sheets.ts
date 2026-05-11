@@ -51,11 +51,18 @@ function parseCsvLine(line: string): string[] {
   return result;
 }
 
+const HEADER_ALIASES: Record<string, string> = {
+  '고': '모델ID',
+};
+
 function parseCsv(text: string): Record<string, string>[] {
   const lines = text.split('\n').filter((line) => line.trim() !== '');
   if (lines.length < 2) return [];
 
-  const headers = parseCsvLine(lines[0]).map((h) => h.replace(/^"|"$/g, ''));
+  const headers = parseCsvLine(lines[0]).map((h) => {
+    const cleaned = h.replace(/^"|"$/g, '');
+    return HEADER_ALIASES[cleaned] ?? cleaned;
+  });
   return lines.slice(1).map((line) => {
     const values = parseCsvLine(line);
     const row: Record<string, string> = {};
@@ -95,7 +102,7 @@ export async function fetchPhoneMasters(sheetIdOrUrl: string): Promise<PhoneMast
     제조사: row['제조사'] ?? '',
     모델명: row['모델명'] ?? '',
     배지: row['배지'] ?? '',
-    키즈전용: (row['키즈전용'] ?? '').toUpperCase() === 'Y',
+    키즈전용: (() => { const v = (row['키즈전용'] ?? '').trim().toUpperCase(); return v === 'Y' || v === '키즈' || v === 'KIDS'; })(),
     이미지URL: row['이미지URL'] ?? '',
     출시일: row['출시일'] ?? '',
   }));
