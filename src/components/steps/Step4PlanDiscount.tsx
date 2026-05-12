@@ -639,6 +639,10 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
                         <span className={styles.subsidyTotalLabel}>최대 지원금</span>
                         <span className={styles.subsidyTotalAmount}>{formatWon(totalSupport)}</span>
                       </div>
+                      <div className={styles.finalPriceItem}>
+                        <span className={styles.finalPriceLabel}>최종 기계값</span>
+                        <span className={styles.finalPriceAmount}>{formatWon(Math.max(0, quote.출고가 - totalSupport))}</span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -676,6 +680,12 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
                     <span className={styles.subsidyTotalLabel}>최대 지원금</span>
                     <span className={styles.subsidyTotalAmount}>{formatWon(subsidyAmount + totalMaxSubsidy)}</span>
                   </div>
+                  {quote && (
+                    <div className={styles.finalPriceItem}>
+                      <span className={styles.finalPriceLabel}>최종 기계값</span>
+                      <span className={styles.finalPriceAmount}>{formatWon(Math.max(0, quote.출고가 - subsidyAmount - totalMaxSubsidy))}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -715,6 +725,12 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
                       <span className={styles.subsidyTotalLabel}>최대 지원금</span>
                       <span className={styles.subsidyTotalAmount}>{formatWon(totalMaxSubsidy)}</span>
                     </div>
+                    {quote && (
+                      <div className={styles.finalPriceItem}>
+                        <span className={styles.finalPriceLabel}>최종 기계값</span>
+                        <span className={styles.finalPriceAmount}>{formatWon(Math.max(0, quote.출고가 - totalMaxSubsidy))}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
