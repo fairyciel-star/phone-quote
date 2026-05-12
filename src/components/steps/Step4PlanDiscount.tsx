@@ -637,7 +637,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
                       </div>
                       <div className={styles.subsidyItem}>
                         <span className={styles.subsidyTotalLabel}>최대 지원금</span>
-                        <span className={styles.subsidyTotalAmount}>{formatWon(totalSupport)}</span>
+                        <span className={styles.subsidyTotalAmount}>{formatWon(Math.min(totalSupport, quote.출고가))}</span>
                       </div>
                       <div className={styles.finalPriceItem}>
                         <span className={styles.finalPriceLabel}>최종 기계값</span>
@@ -678,7 +678,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
                   )}
                   <div className={styles.subsidyItem}>
                     <span className={styles.subsidyTotalLabel}>최대 지원금</span>
-                    <span className={styles.subsidyTotalAmount}>{formatWon(subsidyAmount + totalMaxSubsidy)}</span>
+                    <span className={styles.subsidyTotalAmount}>{quote ? formatWon(Math.min(subsidyAmount + totalMaxSubsidy, quote.출고가)) : formatWon(subsidyAmount + totalMaxSubsidy)}</span>
                   </div>
                   {quote && (
                     <div className={styles.finalPriceItem}>
@@ -723,7 +723,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
                     )}
                     <div className={styles.subsidyItem}>
                       <span className={styles.subsidyTotalLabel}>최대 지원금</span>
-                      <span className={styles.subsidyTotalAmount}>{formatWon(totalMaxSubsidy)}</span>
+                      <span className={styles.subsidyTotalAmount}>{quote ? formatWon(Math.min(totalMaxSubsidy, quote.출고가)) : formatWon(totalMaxSubsidy)}</span>
                     </div>
                     {quote && (
                       <div className={styles.finalPriceItem}>
