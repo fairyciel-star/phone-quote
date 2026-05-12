@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Discount, DiscountType, Phone, Plan, PlanTier, PriceBreakdown } from '../../types';
+import type { CarrierId, Discount, DiscountType, Phone, Plan, PlanTier, PriceBreakdown } from '../../types';
 import { useQuoteStore } from '../../store/useQuoteStore';
 import { useSheetStore } from '../../store/useSheetStore';
 import { Card } from '../ui/Card';
