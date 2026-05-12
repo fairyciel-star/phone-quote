@@ -15,6 +15,7 @@ import discountsData from '../../data/discounts.json';
 import type { Discount } from '../../types';
 import styles from './Step7Consultation.module.css';
 import summaryStyles from './Step6Summary.module.css';
+import { KakaoChannelBanner } from '../ui/KakaoChannelBanner';
 
 const phones = phonesData as unknown as Phone[];
 const plans = plansData as unknown as Plan[];
@@ -294,9 +295,15 @@ ${quoteText}
               빠른 시간 내에 연락드리겠습니다.<br />
               감사합니다.
             </p>
-            <Button fullWidth onClick={() => { setSubmitted(false); reset(); }}>
-              처음으로 돌아가기
-            </Button>
+            <KakaoChannelBanner
+              title="채널 추가하고 혜택 받기"
+              subtitle="다음 이벤트·할인 소식을 가장 먼저 받아보세요"
+            />
+            <div style={{ marginTop: 'var(--space-md)' }}>
+              <Button fullWidth onClick={() => { setSubmitted(false); reset(); }}>
+                처음으로 돌아가기
+              </Button>
+            </div>
           </div>
         </div>
       )}

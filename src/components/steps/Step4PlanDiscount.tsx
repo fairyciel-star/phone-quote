@@ -14,6 +14,7 @@ import { detectDevice, findMatchingUsedPhone } from '../../utils/detectDevice';
 import { formatWon } from '../../utils/format';
 import styles from './Step4PlanDiscount.module.css';
 import summaryStyles from './Step6Summary.module.css';
+import { KakaoChannelBanner } from '../ui/KakaoChannelBanner';
 
 const plans = plansData as unknown as Plan[];
 const phones = phonesData as unknown as Phone[];
@@ -1104,6 +1105,9 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
             </a>
           </>
         )}
+      </div>
+      <div style={{ padding: '0 var(--space-lg)' }}>
+        <KakaoChannelBanner />
       </div>
       <StepNavigation
         canProceed={selectedPlanId !== null}
