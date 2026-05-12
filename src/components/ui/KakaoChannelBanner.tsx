@@ -1,6 +1,6 @@
 import styles from './KakaoChannelBanner.module.css';
 
-const KAKAO_CHANNEL_URL = 'https://pf.kakao.com/_YOUR_CHANNEL_ID';
+const KAKAO_CHANNEL_URL = 'https://pf.kakao.com/_xmpfxcn';
 
 interface KakaoChannelBannerProps {
   title?: string;
