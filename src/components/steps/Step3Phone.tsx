@@ -222,7 +222,7 @@ export function Step3Phone() {
       const carriersToCheck = ALL_CARRIERS;
       let lowestPrice = Infinity;
       let retailPrice = 0;
-      let bestCarrier = carrierId ?? '';
+      let bestCarrier = '';
 
       // 공시지원금 시트 기준 신규가입 가격 계산 (모든 통신사 순회)
       if (sheetLoaded && 용량) {
@@ -242,10 +242,6 @@ export function Step3Phone() {
       // 폴백: 키즈전용 시트
       if (lowestPrice === Infinity) {
         let rows = kidsPhones.filter((r) => r.모델ID === 모델ID);
-        if (carrierId) {
-          const byCarrier = rows.filter((r) => r.통신사 === carrierId);
-          if (byCarrier.length > 0) rows = byCarrier;
-        }
         const byType = rows.filter((r) => r.가입유형 === '신규가입');
         if (byType.length > 0) rows = byType;
         for (const row of rows) {
@@ -267,7 +263,8 @@ export function Step3Phone() {
         retailPrice,
       };
     });
-  }, [phoneMasters, kidsPhones, carrierId, sheetLoaded, getSubsidy, colorStorages]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phoneMasters, kidsPhones, sheetLoaded, getSubsidy, colorStorages]);
 
   const isKidsSection = selectedBrand === '키즈' || (subscriptionType === '신규가입' && selectedBrand !== 'Apple');
 
