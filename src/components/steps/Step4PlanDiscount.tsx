@@ -630,26 +630,11 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
                     <Badge>{tierPlan.data}</Badge>
                     <Badge>6개월 유지</Badge>
                   </div>
-                  {totalSupport > 0 && (
+                  {totalSupport > 0 && quote && (
                     <div className={styles.subsidyColumn}>
-                      {공통지원금 > 0 && (
-                        <div className={styles.subsidyItem}>
-                          <span className={styles.subsidyLabel}>공통지원금</span>
-                          <span className={styles.subsidyAmount}>{formatWon(공통지원금)}</span>
-                        </div>
-                      )}
-                      {추가지원금 > 0 && (
-                        <div className={styles.subsidyItem}>
-                          <span className={styles.subsidyLabel}>최대 매장지원금</span>
-                          <span className={styles.subsidyAmount}>{formatWon(추가지원금)}</span>
-                        </div>
-                      )}
-                      {특별지원 > 0 && (
-                        <div className={styles.subsidyItem}>
-                          <span className={styles.subsidyLabel}>동네폰 특별지원</span>
-                          <span className={styles.subsidyAmount}>{formatWon(특별지원)}</span>
-                        </div>
-                      )}
+                      <div className={styles.subsidyItem}>
+                        <span className={styles.subsidyLabel} style={{ textDecoration: 'line-through', color: 'var(--color-text-secondary)' }}>{formatWon(quote.출고가)}</span>
+                      </div>
                       <div className={styles.subsidyItem}>
                         <span className={styles.subsidyTotalLabel}>최대 지원금</span>
                         <span className={styles.subsidyTotalAmount}>{formatWon(totalSupport)}</span>
@@ -682,20 +667,9 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
                   <Badge>6개월 유지</Badge>
                 </div>
                 <div className={styles.subsidyColumn}>
-                  <div className={styles.subsidyItem}>
-                    <span className={styles.subsidyLabel}>공통지원금</span>
-                    <span className={styles.subsidyAmount}>{formatWon(subsidyAmount)}</span>
-                  </div>
-                  {extraSubsidy > 0 && (
+                  {quote && (
                     <div className={styles.subsidyItem}>
-                      <span className={styles.subsidyLabel}>최대 매장지원금</span>
-                      <span className={styles.subsidyAmount}>{formatWon(extraSubsidy)}</span>
-                    </div>
-                  )}
-                  {specialSupport > 0 && (
-                    <div className={styles.subsidyItem}>
-                      <span className={styles.subsidyLabel}>동네폰 특별지원</span>
-                      <span className={styles.subsidyAmount}>{formatWon(specialSupport)}</span>
+                      <span className={styles.subsidyLabel} style={{ textDecoration: 'line-through', color: 'var(--color-text-secondary)' }}>{formatWon(quote.출고가)}</span>
                     </div>
                   )}
                   <div className={styles.subsidyItem}>
@@ -732,16 +706,9 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
                 </div>
                 {(extraSubsidy > 0 || specialSupport > 0) && (
                   <div className={styles.subsidyColumn}>
-                    {extraSubsidy > 0 && (
+                    {quote && (
                       <div className={styles.subsidyItem}>
-                        <span className={styles.subsidyLabel}>최대 매장지원금</span>
-                        <span className={styles.subsidyAmount}>{formatWon(extraSubsidy)}</span>
-                      </div>
-                    )}
-                    {specialSupport > 0 && (
-                      <div className={styles.subsidyItem}>
-                        <span className={styles.subsidyLabel}>동네폰 특별지원</span>
-                        <span className={styles.subsidyAmount}>{formatWon(specialSupport)}</span>
+                        <span className={styles.subsidyLabel} style={{ textDecoration: 'line-through', color: 'var(--color-text-secondary)' }}>{formatWon(quote.출고가)}</span>
                       </div>
                     )}
                     <div className={styles.subsidyItem}>
