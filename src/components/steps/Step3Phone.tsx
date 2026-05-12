@@ -462,8 +462,23 @@ export function Step3Phone() {
                       })}
                     </div>
 
-                    <button className={styles.proceedCurrentBtn} onClick={handleProceedWithCurrent}>
-                      현재 조건({currentCarrierName} {subscriptionType})으로 진행
+                    <button className={styles.alternativeRow} onClick={handleProceedWithCurrent}>
+                      {carrierId && (
+                        <img
+                          src={`/images/${carrierId}.png`}
+                          alt={currentCarrierName}
+                          className={styles.altCarrierLogo}
+                        />
+                      )}
+                      <div className={styles.altInfo}>
+                        <span className={styles.altCarrierName}>
+                          {currentCarrierName} {subscriptionType}
+                        </span>
+                        <span className={styles.altPrice}>{formatWon(comparisonData.currentPrice)}</span>
+                      </div>
+                      <div className={styles.altRight}>
+                        <span className={styles.selectLabel}>선택 →</span>
+                      </div>
                     </button>
                   </div>
                 )}
