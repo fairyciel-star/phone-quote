@@ -5,9 +5,9 @@ import carriersData from '../../data/carriers.json';
 import { hapticLight, hapticMedium } from '../../utils/haptic';
 import styles from './Step1SubscriptionType.module.css';
 
-const OPTIONS: readonly { type: SubscriptionType; icon: string; label: string; desc: string }[] = [
-  { type: '번호이동', icon: '🔄', label: '통신사변경', desc: '다른 통신사로 변경해요' },
-  { type: '기기변경', icon: '📱', label: '기기변경', desc: '같은 통신사에서 기기만 바꿔요' },
+const OPTIONS: readonly { type: SubscriptionType; label: string; desc: string }[] = [
+  { type: '번호이동', label: '통신사변경', desc: '다른 통신사로 변경해요' },
+  { type: '기기변경', label: '기기변경', desc: '같은 통신사에서 기기만 바꿔요' },
 ];
 
 export function Step1SubscriptionType() {
@@ -50,7 +50,6 @@ export function Step1SubscriptionType() {
               className={`${styles.typeBtn} ${selected === opt.type ? styles.typeBtnActive : ''}`}
               onClick={() => { hapticLight(); setType(opt.type); }}
             >
-              <span className={styles.typeIcon}>{opt.icon}</span>
               <span className={styles.typeLabel}>{opt.label}</span>
               <span className={styles.typeDesc}>{opt.desc}</span>
             </button>
