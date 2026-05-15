@@ -1,73 +1,45 @@
 .wrapper {
-  padding: 8px 12px;
+  padding: 10px var(--space-lg) 0;
   background: var(--color-surface);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.counter {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.counter strong {
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.track {
+  width: 100%;
+  height: 3px;
+  background: var(--color-border);
+  border-radius: 2px;
   overflow: hidden;
 }
 
-.steps {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-}
-
-.step {
-  display: flex;
-  align-items: center;
-  gap: 1px;
-  white-space: nowrap;
-}
-
-.stepNumber {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9px;
-  font-weight: 700;
-  flex-shrink: 0;
-  background: var(--color-border);
-  color: var(--color-text-tertiary);
-  transition: all 0.3s ease;
-}
-
-.stepNumber.active {
+.fill {
+  height: 100%;
   background: var(--color-primary);
-  color: white;
-}
-
-.stepNumber.completed {
-  background: var(--color-success);
-  color: white;
-}
-
-.stepLabel {
-  font-size: 9px;
-  color: var(--color-text-tertiary);
-  font-weight: 500;
-  transition: color 0.3s ease;
-}
-
-.stepLabel.active {
-  color: var(--color-primary);
-  font-weight: 700;
-}
-
-.stepLabel.completed {
-  color: var(--color-success);
-}
-
-.connector {
-  width: 6px;
-  height: 1.5px;
-  background: var(--color-border);
-  flex-shrink: 0;
-  margin: 0 1px;
-  transition: background 0.3s ease;
-}
-
-.connector.completed {
-  background: var(--color-success);
+  border-radius: 2px;
+  transition: width 0.3s ease;
 }
