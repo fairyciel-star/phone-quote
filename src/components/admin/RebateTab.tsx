@@ -94,8 +94,8 @@ export function RebateTab() {
       setError('모든 항목을 입력해주세요.');
       return;
     }
-    const subsidyAmt = parseInt((form.subsidy_rebate || '0').replace(/,/g, ''), 10);
-    const installmentAmt = parseInt((form.installment_rebate || '0').replace(/,/g, ''), 10);
+    const subsidyAmt = parseInt((form.subsidy_rebate || '0').replace(/,/g, ''), 10) * 10000;
+    const installmentAmt = parseInt((form.installment_rebate || '0').replace(/,/g, ''), 10) * 10000;
     if ((isNaN(subsidyAmt) || subsidyAmt < 0) || (isNaN(installmentAmt) || installmentAmt < 0)) {
       setError('리베이트 금액을 올바르게 입력해주세요.');
       return;
@@ -253,21 +253,21 @@ export function RebateTab() {
         {/* 리베이트 금액 2개 */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 12 }}>
           <div className={styles.settingsField}>
-            <label className={styles.settingsLabel}>공시지원금 리베이트 (원)</label>
+            <label className={styles.settingsLabel}>공시지원금 리베이트 (만원)</label>
             <input
               type="text"
               className={styles.settingsInput}
-              placeholder="예: 100000"
+              placeholder="예: 10 → 100,000원"
               value={form.subsidy_rebate}
               onChange={(e) => setForm((prev) => ({ ...prev, subsidy_rebate: e.target.value }))}
             />
           </div>
           <div className={styles.settingsField}>
-            <label className={styles.settingsLabel}>선택약정 리베이트 (원)</label>
+            <label className={styles.settingsLabel}>선택약정 리베이트 (만원)</label>
             <input
               type="text"
               className={styles.settingsInput}
-              placeholder="예: 50000"
+              placeholder="예: 5 → 50,000원"
               value={form.installment_rebate}
               onChange={(e) => setForm((prev) => ({ ...prev, installment_rebate: e.target.value }))}
               onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
