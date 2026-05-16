@@ -59,10 +59,14 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
   const setColor = useQuoteStore((s) => s.setColor);
   const setStorage = useQuoteStore((s) => s.setStorage);
 
-  // Supabase 리베이트 로드
+  // Supabase 리베이트 로드 (30초마다 자동 갱신)
   const [rebateMap, setRebateMap] = useState<Map<string, StoreRebate>>(new Map());
   useEffect(() => {
     loadAllRebates().then(setRebateMap);
+    const interval = setInterval(() => {
+      loadAllRebates().then(setRebateMap);
+    }, 30_000);
+    return () => clearInterval(interval);
   }, []);
 
   const sheetLoaded = useSheetStore((s) => s.loaded);

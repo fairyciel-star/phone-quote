@@ -10,7 +10,7 @@ const DEFAULT_STORE_ID = '00000000-0000-0000-0000-000000000001';
 
 let cache: Map<string, StoreRebate> | null = null;
 let cacheTimestamp = 0;
-const CACHE_TTL = 60_000;
+const CACHE_TTL = 30_000;
 
 export let lastLoadError: string | null = null;
 export let lastLoadCount = 0;
