@@ -40,6 +40,7 @@ export function RebateTab() {
     plan_tier: '고가' as string,
     subsidy_rebate: '',
     installment_rebate: '',
+    margin: '',
   });
 
   const supabaseReady = isSupabaseConfigured();
@@ -94,12 +95,15 @@ export function RebateTab() {
       setError('모든 항목을 입력해주세요.');
       return;
     }
-    const subsidyAmt = parseInt((form.subsidy_rebate || '0').replace(/,/g, ''), 10) * 10000;
-    const installmentAmt = parseInt((form.installment_rebate || '0').replace(/,/g, ''), 10) * 10000;
-    if ((isNaN(subsidyAmt) || subsidyAmt < 0) || (isNaN(installmentAmt) || installmentAmt < 0)) {
-      setError('리베이트 금액을 올바르게 입력해주세요.');
+    const subsidyInput = parseInt((form.subsidy_rebate || '0').replace(/,/g, ''), 10);
+    const installmentInput = parseInt((form.installment_rebate || '0').replace(/,/g, ''), 10);
+    const marginInput = parseInt((form.margin || '0').replace(/,/g, ''), 10);
+    if (isNaN(subsidyInput) || isNaN(installmentInput) || isNaN(marginInput) || marginInput < 0) {
+      setError('금액을 올바르게 입력해주세요.');
       return;
     }
+    const subsidyAmt = Math.max(0, subsidyInput - marginInput) * 10000;
+    const installmentAmt = Math.max(0, installmentInput - marginInput) * 10000;
     if (subsidyAmt === 0 && installmentAmt === 0) {
       setError('공시지원금 또는 선택약정 리베이트 중 하나 이상 입력해주세요.');
       return;
@@ -130,7 +134,7 @@ export function RebateTab() {
       setError('저장 실패: ' + error.message);
     } else {
       setSuccess('저장되었습니다!');
-      setForm((prev) => ({ ...prev, subsidy_rebate: '', installment_rebate: '' }));
+      setForm((prev) => ({ ...prev, subsidy_rebate: '', installment_rebate: '', margin: '' }));
       loadRebates();
       setTimeout(() => setSuccess(''), 3000);
     }
@@ -250,6 +254,18 @@ export function RebateTab() {
           </div>
         </div>
 
+        {/* 마진 */}
+        <div className={styles.settingsField} style={{ marginTop: 12 }}>
+          <label className={styles.settingsLabel}>마진 (만원) — 리베이트에서 차감됨</label>
+          <input
+            type="text"
+            className={styles.settingsInput}
+            placeholder="예: 10 → 리베이트에서 100,000원 차감"
+            value={form.margin}
+            onChange={(e) => setForm((prev) => ({ ...prev, margin: e.target.value }))}
+          />
+        </div>
+
         {/* 리베이트 금액 2개 */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 12 }}>
           <div className={styles.settingsField}>
@@ -261,6 +277,15 @@ export function RebateTab() {
               value={form.subsidy_rebate}
               onChange={(e) => setForm((prev) => ({ ...prev, subsidy_rebate: e.target.value }))}
             />
+            {(() => {
+              const s = parseInt(form.subsidy_rebate || '0', 10);
+              const m = parseInt(form.margin || '0', 10);
+              if (!isNaN(s) && !isNaN(m) && (s > 0 || m > 0)) {
+                const net = Math.max(0, s - m);
+                return <div style={{ fontSize: 11, color: '#3b82f6', marginTop: 4 }}>실제 반영: {net}만원 ({(net * 10000).toLocaleString()}원)</div>;
+              }
+              return null;
+            })()}
           </div>
           <div className={styles.settingsField}>
             <label className={styles.settingsLabel}>선택약정 리베이트 (만원)</label>
@@ -272,6 +297,15 @@ export function RebateTab() {
               onChange={(e) => setForm((prev) => ({ ...prev, installment_rebate: e.target.value }))}
               onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
             />
+            {(() => {
+              const s = parseInt(form.installment_rebate || '0', 10);
+              const m = parseInt(form.margin || '0', 10);
+              if (!isNaN(s) && !isNaN(m) && (s > 0 || m > 0)) {
+                const net = Math.max(0, s - m);
+                return <div style={{ fontSize: 11, color: '#3b82f6', marginTop: 4 }}>실제 반영: {net}만원 ({(net * 10000).toLocaleString()}원)</div>;
+              }
+              return null;
+            })()}
           </div>
         </div>
 
