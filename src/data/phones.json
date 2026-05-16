@@ -6,7 +6,8 @@
     "image": "/images/phones/galaxy-s26-ultra/galaxy-s26-ultra.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
-      { "size": "256GB", "price": 1797400 }
+      { "size": "256GB", "price": 1797400 },
+      { "size": "512GB", "price": 2050400 }
     ],
     "colors": [
       { "name": "코발트 바이올렛", "hex": "#5B4B8A", "image": "/images/phones/galaxy-s26-ultra/cobat%20violet.png" },
@@ -15,9 +16,9 @@
       { "name": "스카이 블루", "hex": "#87CEEB", "image": "/images/phones/galaxy-s26-ultra/sky-blue.png" }
     ],
     "공통지원금": {
-      "SKT": { "256GB": 500000 },
-      "KT": { "256GB": 500000 },
-      "LGU": { "256GB": 500000 }
+      "SKT": { "256GB": 500000, "512GB": 500000 },
+      "KT": { "256GB": 500000, "512GB": 500000 },
+      "LGU": { "256GB": 500000, "512GB": 500000 }
     }
   },
   {
@@ -27,7 +28,8 @@
     "image": "/images/phones/s26-plus/galaxy-s26-plus.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
-      { "size": "256GB", "price": 1452000 }
+      { "size": "256GB", "price": 1452000 },
+      { "size": "512GB", "price": 1705000 }
     ],
     "colors": [
       { "name": "코발트 바이올렛", "hex": "#5B4B8A", "image": "/images/phones/s26-plus/galaxy-s26-plus-cobalt-violet.png" },
@@ -36,9 +38,9 @@
       { "name": "스카이 블루", "hex": "#87CEEB", "image": "/images/phones/s26-plus/galaxy-s26-plus-sky-blue.png" }
     ],
     "공통지원금": {
-      "SKT": { "256GB": 500000 },
-      "KT": { "256GB": 500000 },
-      "LGU": { "256GB": 500000 }
+      "SKT": { "256GB": 500000, "512GB": 500000 },
+      "KT": { "256GB": 500000, "512GB": 500000 },
+      "LGU": { "256GB": 500000, "512GB": 500000 }
     }
   },
   {
@@ -48,7 +50,8 @@
     "image": "/images/phones/s26/galaxy-s26.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
-      { "size": "256GB", "price": 1254000 }
+      { "size": "256GB", "price": 1254000 },
+      { "size": "512GB", "price": 1507000 }
     ],
     "colors": [
       { "name": "코발트 바이올렛", "hex": "#5B4B8A", "image": "/images/phones/s26/galaxy-s26-cobalt-violet.png" },
@@ -57,9 +60,9 @@
       { "name": "스카이 블루", "hex": "#87CEEB", "image": "/images/phones/s26/galaxy-s26-sky-blue.png" }
     ],
     "공통지원금": {
-      "SKT": { "256GB": 500000 },
-      "KT": { "256GB": 500000 },
-      "LGU": { "256GB": 500000 }
+      "SKT": { "256GB": 500000, "512GB": 500000 },
+      "KT": { "256GB": 500000, "512GB": 500000 },
+      "LGU": { "256GB": 500000, "512GB": 500000 }
     }
   },
   {
@@ -69,7 +72,8 @@
     "image": "/images/phones/galaxy-zfold7/galaxy-zfold7.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
-      { "size": "256GB", "price": 2299000 }
+      { "size": "256GB", "price": 2379300 },
+      { "size": "512GB", "price": 2537700 }
     ],
     "colors": [
       { "name": "제트블랙", "hex": "#1A1A1A", "image": "/images/phones/galaxy-zfold7/black.png" },
@@ -77,9 +81,9 @@
       { "name": "실버 쉐도우", "hex": "#C0C0C8", "image": "/images/phones/galaxy-zfold7/silver.png" }
     ],
     "공통지원금": {
-      "SKT": { "256GB": 0 },
-      "KT": { "256GB": 0 },
-      "LGU": { "256GB": 0 }
+      "SKT": { "256GB": 0, "512GB": 0 },
+      "KT": { "256GB": 0, "512GB": 0 },
+      "LGU": { "256GB": 0, "512GB": 0 }
     }
   },
   {
@@ -89,7 +93,8 @@
     "image": "/images/phones/galaxy-zflip7/galaxy-zflip7.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
-      { "size": "256GB", "price": 1299000 }
+      { "size": "256GB", "price": 1485000 },
+      { "size": "512GB", "price": 1643400 }
     ],
     "colors": [
       { "name": "블루 쉐도우", "hex": "#4A6FA5", "image": "/images/phones/galaxy-zflip7/blue.png" },
@@ -97,9 +102,9 @@
       { "name": "제트블랙", "hex": "#1A1A1A", "image": "/images/phones/galaxy-zflip7/black.png" }
     ],
     "공통지원금": {
-      "SKT": { "256GB": 0 },
-      "KT": { "256GB": 0 },
-      "LGU": { "256GB": 0 }
+      "SKT": { "256GB": 0, "512GB": 0 },
+      "KT": { "256GB": 0, "512GB": 0 },
+      "LGU": { "256GB": 0, "512GB": 0 }
     }
   },
   {
@@ -109,7 +114,7 @@
     "image": "/images/phones/galaxy-s25fe/galaxy-s25fe.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
-      { "size": "256GB", "price": 0 }
+      { "size": "256GB", "price": 946000 }
     ],
     "colors": [
       { "name": "아이스 블루", "hex": "#A8D8EA", "image": "/images/phones/galaxy-s25fe/blue.png" },
@@ -130,7 +135,8 @@
     "image": "/images/phones/iphone-17-pro/iphone-17-pro.webp",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
-      { "size": "256GB", "price": 1782000 }
+      { "size": "256GB", "price": 1782000 },
+      { "size": "512GB", "price": 2090000 }
     ],
     "colors": [
       { "name": "실버", "hex": "#C0C0C8", "image": "/images/phones/iphone-17-pro/silver.png" },
@@ -138,9 +144,9 @@
       { "name": "코스믹 오렌지", "hex": "#C05830", "image": "/images/phones/iphone-17-pro/orange.png" }
     ],
     "공통지원금": {
-      "SKT": { "256GB": 450000 },
-      "KT": { "256GB": 450000 },
-      "LGU": { "256GB": 450000 }
+      "SKT": { "256GB": 450000, "512GB": 450000 },
+      "KT": { "256GB": 450000, "512GB": 450000 },
+      "LGU": { "256GB": 450000, "512GB": 450000 }
     }
   },
   {
@@ -150,7 +156,8 @@
     "image": "/images/phones/iphone-17-air/iphone-17-air.webp",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
-      { "size": "256GB", "price": 1584000 }
+      { "size": "256GB", "price": 1584000 },
+      { "size": "512GB", "price": 1881000 }
     ],
     "colors": [
       { "name": "라이트골드", "hex": "#D4B896", "image": "/images/phones/iphone-17-air/gold.png" },
@@ -159,9 +166,9 @@
       { "name": "클라우드 화이트", "hex": "#F0F0F0", "image": "/images/phones/iphone-17-air/white.png" }
     ],
     "공통지원금": {
-      "SKT": { "256GB": 450000 },
-      "KT": { "256GB": 450000 },
-      "LGU": { "256GB": 450000 }
+      "SKT": { "256GB": 450000, "512GB": 450000 },
+      "KT": { "256GB": 450000, "512GB": 450000 },
+      "LGU": { "256GB": 450000, "512GB": 450000 }
     }
   },
   {
@@ -171,7 +178,8 @@
     "image": "/images/phones/iphone-17/iphone-17.webp",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
-      { "size": "256GB", "price": 1287000 }
+      { "size": "256GB", "price": 1287000 },
+      { "size": "512GB", "price": 1584000 }
     ],
     "colors": [
       { "name": "블랙", "hex": "#1A1A1A", "image": "/images/phones/iphone-17/black.png" },
@@ -181,9 +189,9 @@
       { "name": "화이트", "hex": "#F5F5F0", "image": "/images/phones/iphone-17/white.png" }
     ],
     "공통지원금": {
-      "SKT": { "256GB": 450000 },
-      "KT": { "256GB": 450000 },
-      "LGU": { "256GB": 450000 }
+      "SKT": { "256GB": 450000, "512GB": 450000 },
+      "KT": { "256GB": 450000, "512GB": 450000 },
+      "LGU": { "256GB": 450000, "512GB": 450000 }
     }
   },
   {
@@ -193,7 +201,8 @@
     "image": "/images/phones/iphone-17e/iphone-17e.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
-      { "size": "256GB", "price": 0 }
+      { "size": "256GB", "price": 990000 },
+      { "size": "512GB", "price": 1287000 }
     ],
     "colors": [
       { "name": "핑크", "hex": "#F2A7B0", "image": "/images/phones/iphone-17e/pink.png" },
@@ -201,9 +210,9 @@
       { "name": "화이트", "hex": "#F5F5F0", "image": "/images/phones/iphone-17e/white.png" }
     ],
     "공통지원금": {
-      "SKT": { "256GB": 0 },
-      "KT": { "256GB": 0 },
-      "LGU": { "256GB": 0 }
+      "SKT": { "256GB": 0, "512GB": 0 },
+      "KT": { "256GB": 0, "512GB": 0 },
+      "LGU": { "256GB": 0, "512GB": 0 }
     }
   }
 ]
