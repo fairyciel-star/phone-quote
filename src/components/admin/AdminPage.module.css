@@ -103,9 +103,17 @@
 }
 
 /* ── Admin Shell ── */
+/* #root의 max-width: 480px를 관리자 페이지에서 해제 */
+.adminPage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
 .shell {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
 }
 
 .sidebar {
@@ -116,6 +124,7 @@
   display: flex;
   flex-direction: column;
   padding: 24px 0;
+  overflow-y: auto;
 }
 
 .sidebarBrand {
