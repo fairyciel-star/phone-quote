@@ -5,6 +5,7 @@ import phonesData from '../../data/phones.json';
 import plansData from '../../data/plans.json';
 import discountsData from '../../data/discounts.json';
 import type { Phone, Plan, Discount } from '../../types';
+import { RebateTab } from './RebateTab';
 import styles from './AdminPage.module.css';
 
 const phones = phonesData as unknown as Phone[];
@@ -672,6 +673,7 @@ function SettingsTab() {
 // ────────────────────────────────────
 const NAV_ITEMS: { tab: AdminTab; icon: string; label: string }[] = [
   { tab: 'dashboard', icon: '📊', label: '대시보드' },
+  { tab: 'rebates', icon: '💰', label: '리베이트 관리' },
   { tab: 'phones', icon: '📱', label: '기기 관리' },
   { tab: 'plans', icon: '📋', label: '요금제' },
   { tab: 'discounts', icon: '💳', label: '할인 관리' },
@@ -716,6 +718,7 @@ export function AdminPage() {
         {/* Main */}
         <main className={styles.main}>
           {activeTab === 'dashboard' && <Dashboard />}
+          {activeTab === 'rebates' && <RebateTab />}
           {activeTab === 'phones' && <PhonesTab />}
           {activeTab === 'plans' && <PlansTab />}
           {activeTab === 'discounts' && <DiscountsTab />}

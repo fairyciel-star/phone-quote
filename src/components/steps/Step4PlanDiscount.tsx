@@ -15,6 +15,7 @@ import { formatWon } from '../../utils/format';
 import styles from './Step4PlanDiscount.module.css';
 import summaryStyles from './Step6Summary.module.css';
 import { KakaoChannelBanner } from '../ui/KakaoChannelBanner';
+import { loadAllRebates, getRebate, type StoreRebate } from '../../lib/supabase-rebate';
 
 const plans = plansData as unknown as Plan[];
 const phones = phonesData as unknown as Phone[];
@@ -57,6 +58,12 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
   const toggleDiscount = useQuoteStore((s) => s.toggleDiscount);
   const setColor = useQuoteStore((s) => s.setColor);
   const setStorage = useQuoteStore((s) => s.setStorage);
+
+  // Supabase 리베이트 로드
+  const [rebateMap, setRebateMap] = useState<Map<string, StoreRebate>>(new Map());
+  useEffect(() => {
+    loadAllRebates().then(setRebateMap);
+  }, []);
 
   const sheetLoaded = useSheetStore((s) => s.loaded);
   const getSheetCards = useSheetStore((s) => s.getCardDiscountsForCarrier);
@@ -194,26 +201,33 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
     if (info?.colors.length) setColor(info.colors[0].name);
   }, [isKidsPhone, selectedPhoneId, selectedColor, setColor]);
 
-  // Subsidy (mode-aware: 공통지원금 vs 선택약정)
+  // Supabase 리베이트 조회 (현재 조건에 맞는)
+  const currentRebate = (selectedPhoneId && carrierId && selectedStorage && subscriptionType)
+    ? getRebate(rebateMap, selectedPhoneId, carrierId, selectedStorage, subscriptionType, planTier)
+    : { subsidy_rebate: 0, installment_rebate: 0 };
+
+  // Subsidy (mode-aware: 공통지원금 vs 선택약정) + 리베이트 반영
   const getSubsidyData = (): { 공통지원금: number; 추가지원금: number; 특별지원: number } => {
+    const rebateAmount = discountType === '선택약정' ? currentRebate.installment_rebate : currentRebate.subsidy_rebate;
+
     if (isKidsPhone && kidsPhoneData) {
       if (discountType === '선택약정') {
-        return { 공통지원금: 0, 추가지원금: kidsPhoneData.선택약정_추가지원금, 특별지원: kidsPhoneData.선택약정_특별지원 };
+        return { 공통지원금: 0, 추가지원금: kidsPhoneData.선택약정_추가지원금 + rebateAmount, 특별지원: kidsPhoneData.선택약정_특별지원 };
       }
-      return { 공통지원금: kidsPhoneData.공통지원금, 추가지원금: kidsPhoneData.추가지원금, 특별지원: kidsPhoneData.특별지원 };
+      return { 공통지원금: kidsPhoneData.공통지원금, 추가지원금: kidsPhoneData.추가지원금 + rebateAmount, 특별지원: kidsPhoneData.특별지원 };
     }
     if (!selectedPhoneId || !carrierId || !selectedStorage || !subscriptionType) return { 공통지원금: 0, 추가지원금: 0, 특별지원: 0 };
     if (sheetLoaded && discountType === '선택약정') {
       const sa = getSelectAgreementSubsidy(selectedPhoneId, carrierId, selectedStorage, subscriptionType, planTier);
-      return { 공통지원금: 0, 추가지원금: sa.추가지원금, 특별지원: sa.특별지원 };
+      return { 공통지원금: 0, 추가지원금: sa.추가지원금 + rebateAmount, 특별지원: sa.특별지원 };
     }
     if (sheetLoaded) {
       const sheet = getSubsidy(selectedPhoneId, carrierId, selectedStorage, subscriptionType, planTier);
-      return { 공통지원금: sheet.공통지원금, 추가지원금: sheet.추가지원금, 특별지원: sheet.특별지원 };
+      return { 공통지원금: sheet.공통지원금, 추가지원금: sheet.추가지원금 + rebateAmount, 특별지원: sheet.특별지원 };
     }
-    if (!selectedPhone) return { 공통지원금: 0, 추가지원금: 0, 특별지원: 0 };
+    if (!selectedPhone) return { 공통지원금: 0, 추가지원금: rebateAmount, 특별지원: 0 };
     const jsonSubsidy = selectedPhone.공통지원금[carrierId];
-    return { 공통지원금: jsonSubsidy?.[selectedStorage] ?? 0, 추가지원금: 0, 특별지원: 0 };
+    return { 공통지원금: jsonSubsidy?.[selectedStorage] ?? 0, 추가지원금: rebateAmount, 특별지원: 0 };
   };
   const subsidyData = getSubsidyData();
   const subsidyAmount = subsidyData.공통지원금;
@@ -343,14 +357,21 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
     : null;
 
   // 선택약정 모드: 선택약정 시트값 우선, 공통지원금 모드: 공통지원금 시트값
+  // + Supabase 리베이트를 추가지원금에 합산
   const activeSheetSubsidy = discountType === '선택약정'
     ? (saSheetSubsidy ? {
         출고가: saSheetSubsidy.출고가 || commonSheetSubsidy?.출고가 || 0,
         공통지원금: 0,
-        추가지원금: saSheetSubsidy.추가지원금,
+        추가지원금: saSheetSubsidy.추가지원금 + currentRebate.installment_rebate,
         특별지원: saSheetSubsidy.특별지원,
-      } : commonSheetSubsidy)
-    : commonSheetSubsidy;
+      } : (commonSheetSubsidy ? {
+        ...commonSheetSubsidy,
+        추가지원금: commonSheetSubsidy.추가지원금 + currentRebate.installment_rebate,
+      } : null))
+    : (commonSheetSubsidy ? {
+        ...commonSheetSubsidy,
+        추가지원금: commonSheetSubsidy.추가지원금 + currentRebate.subsidy_rebate,
+      } : null);
 
   const plan = carrierPlans.find((p) => p.id === selectedPlanId) ?? premiumPlan;
 
@@ -403,7 +424,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
       추가지원금Override: activeSheetSubsidy?.추가지원금,
       특별지원Override: activeSheetSubsidy?.특별지원,
     });
-  }, [isKidsPhone, kidsPhoneData, selectedPhone, plan, selectedStorage, carrierId, discountType, selectedDiscounts, 할부개월, activeSheetSubsidy]);
+  }, [isKidsPhone, kidsPhoneData, selectedPhone, plan, selectedStorage, carrierId, discountType, selectedDiscounts, 할부개월, activeSheetSubsidy, rebateMap]);
 
 
 
@@ -602,8 +623,12 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
           const canQuery = sheetLoaded && !!selectedPhoneId && !!carrierId && !!selectedStorage && !!subscriptionType;
           const commonSub = canQuery ? getSubsidy(selectedPhoneId!, carrierId!, selectedStorage!, subscriptionType!, tier) : null;
           const saSub = canQuery ? getSelectAgreementSubsidy(selectedPhoneId!, carrierId!, selectedStorage!, subscriptionType!, tier) : null;
+          const tierRebate = (selectedPhoneId && carrierId && selectedStorage && subscriptionType)
+            ? getRebate(rebateMap, selectedPhoneId, carrierId, selectedStorage, subscriptionType, tier)
+            : { subsidy_rebate: 0, installment_rebate: 0 };
           const 공통지원금 = discountType === '공통지원금' ? (commonSub?.공통지원금 ?? 0) : 0;
-          const 추가지원금 = discountType === '선택약정' ? (saSub?.추가지원금 ?? 0) : (commonSub?.추가지원금 ?? 0);
+          const rebateForTier = discountType === '선택약정' ? tierRebate.installment_rebate : tierRebate.subsidy_rebate;
+          const 추가지원금 = (discountType === '선택약정' ? (saSub?.추가지원금 ?? 0) : (commonSub?.추가지원금 ?? 0)) + rebateForTier;
           const 특별지원 = discountType === '선택약정' ? (saSub?.특별지원 ?? 0) : (commonSub?.특별지원 ?? 0);
           const 선택약정할인 = discountType === '선택약정' ? calculate선택약정할인(tierPlan.monthlyFee, tierPlan.선택약정할인율 || 0.25) : 0;
           const totalSupport = 공통지원금 + 추가지원금 + 특별지원;
