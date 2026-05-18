@@ -151,9 +151,15 @@ export function RebateTab() {
     }
   }
 
-  const filtered = filterCarrier === 'ALL'
-    ? rebates
-    : rebates.filter((r) => r.carrier === filterCarrier);
+  // 폼 선택값 기준 자동 필터 + 통신사 필터 조합
+  const filtered = rebates.filter((r) => {
+    if (filterCarrier !== 'ALL' && r.carrier !== filterCarrier) return false;
+    if (r.carrier !== form.carrier) return false;
+    if (r.model_id !== form.model_id) return false;
+    if (form.storage && r.storage !== form.storage) return false;
+    if (r.subscription_type !== form.subscription_type) return false;
+    return true;
+  });
 
   const getPhoneName = (modelId: string) => {
     const phone = phones.find((p) => p.id === modelId);
@@ -328,9 +334,14 @@ export function RebateTab() {
       {/* 리베이트 목록 */}
       <div className={styles.tableWrap}>
         <div className={styles.tableHeader}>
-          <span className={styles.tableTitle}>
-            등록된 리베이트 ({filtered.length}건)
-          </span>
+          <div>
+            <span className={styles.tableTitle}>
+              등록된 리베이트 ({filtered.length}건)
+            </span>
+            <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
+              {form.carrier} · {getPhoneName(form.model_id)} · {form.storage} · {form.subscription_type}
+            </div>
+          </div>
           <div className={styles.filterRow}>
             <select
               className={styles.filterSelect}
