@@ -12,7 +12,7 @@ export function Step2Carrier() {
   const setCarrier = useQuoteStore((s) => s.setCarrier);
   const setStep = useQuoteStore((s) => s.setStep);
   const currentStep = useQuoteStore((s) => s.currentStep);
-  const startKidsPath = useQuoteStore((s) => s.startKidsPath);
+  // const startKidsPath = useQuoteStore((s) => s.startKidsPath); // TODO: 신규가입 활성화 시 해제
 
   const handleSelect = (carrierId: CarrierId) => {
     hapticMedium();
@@ -20,10 +20,8 @@ export function Step2Carrier() {
     setStep(currentStep + 1);
   };
 
-  const handleKids = () => {
-    hapticMedium();
-    startKidsPath();
-  };
+  // TODO: 신규가입(키즈폰) 기능 추가 후 아래 주석 해제
+  // const handleKids = () => { hapticMedium(); startKidsPath(); };
 
   return (
     <div className={styles.container}>
