@@ -31,6 +31,7 @@ export interface LowestDevicePriceResult {
   readonly price: number;
   readonly carrierId: CarrierId | null;
   readonly subscriptionType: SubscriptionType | null;
+  readonly storage: string | null;
   readonly retailPrice: number;
   readonly totalSubsidy: number;
   readonly conditions: readonly LowestCondition[];
@@ -56,6 +57,13 @@ export function calculateLowestDevicePrice(params: {
     planTier?: PlanTier
   ) => { 출고가: number; 추가지원금: number; 특별지원: number };
   sheetLoaded?: boolean;
+  /** Supabase 리베이트 조회 함수 (선택). 반환값은 리베이트 원화 금액. */
+  getRebateAmount?: (
+    modelId: string,
+    carrierId: CarrierId,
+    storage: string,
+    subscriptionType: SubscriptionType,
+  ) => number;
 }): LowestDevicePriceResult {
   const { phone, carriers, subscriptionType, getSubsidy, sheetLoaded } = params;
   // 가입유형이 지정된 경우 해당 유형만 계산, 아니면 전체 유형 중 최저가
@@ -64,6 +72,7 @@ export function calculateLowestDevicePrice(params: {
   let lowest = Infinity;
   let lowestRetailPrice = 0;
   let lowestTotalSubsidy = 0;
+  let lowestStorage: string | null = null;
   const matchMap = new Map<string, LowestCondition>();
 
   for (const carrierId of carriers) {
@@ -84,13 +93,18 @@ export function calculateLowestDevicePrice(params: {
 
         if (출고가 === 0) continue;
 
-        const 공통실구매가 = Math.max(0, 출고가 - 공통지원금 - 추가지원금 - 특별지원);
+        // 리베이트 금액 조회 (공시지원금/선택약정 공통으로 추가지원금에 합산)
+        const rebateAmount = params.getRebateAmount
+          ? params.getRebateAmount(phone.id, carrierId, storageOption.size, subType)
+          : 0;
+
+        const 공통실구매가 = Math.max(0, 출고가 - 공통지원금 - 추가지원금 - 특별지원 - rebateAmount);
         let 실구매가 = 공통실구매가;
-        let 사용된지원금 = 공통지원금 + 추가지원금 + 특별지원;
+        let 사용된지원금 = 공통지원금 + 추가지원금 + 특별지원 + rebateAmount;
 
         if (sheetLoaded && params.getSelectAgreementSubsidy) {
           const sa = params.getSelectAgreementSubsidy(phone.id, carrierId, storageOption.size, subType, params.planTier ?? '고가');
-          const sa지원금 = (sa.추가지원금 || 0) + (sa.특별지원 || 0);
+          const sa지원금 = (sa.추가지원금 || 0) + (sa.특별지원 || 0) + rebateAmount;
           if (sa지원금 > 0) {
             const 선택실구매가 = Math.max(0, 출고가 - sa지원금);
             if (선택실구매가 < 실구매가) {
@@ -104,6 +118,7 @@ export function calculateLowestDevicePrice(params: {
           lowest = 실구매가;
           lowestRetailPrice = 출고가;
           lowestTotalSubsidy = 사용된지원금;
+          lowestStorage = storageOption.size;
           matchMap.clear();
         }
         if (실구매가 === lowest) {
@@ -119,6 +134,7 @@ export function calculateLowestDevicePrice(params: {
     price: lowest === Infinity ? 0 : lowest,
     carrierId: conditions[0]?.carrierId ?? null,
     subscriptionType: conditions[0]?.subscriptionType ?? null,
+    storage: lowestStorage,
     retailPrice: lowestRetailPrice,
     totalSubsidy: lowestTotalSubsidy,
     conditions,

@@ -1102,7 +1102,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
                   <div>월 할부금액({할부개월}개월)</div>
                   <div style={{ fontSize: '11px', fontWeight: 'normal', opacity: 0.7 }}>할부이자 5.9% 포함</div>
                 </div>
-                <span>{formatWon(Math.max(0, Math.round((quote.할부원금 - gradePrice) / 할부개월)))}</span>
+                <span>{formatWon(calculate월할부금(Math.max(0, quote.할부원금 - gradePrice), 할부개월))}</span>
               </div>
             </div>
 

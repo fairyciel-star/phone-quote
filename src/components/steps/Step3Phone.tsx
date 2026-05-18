@@ -9,6 +9,7 @@ import type { CarrierId } from '../../types';
 import { formatWon } from '../../utils/format';
 import { hapticMedium } from '../../utils/haptic';
 import { calculateLowestDevicePrice } from '../../utils/price';
+import { loadAllRebates, type StoreRebate } from '../../lib/supabase-rebate';
 import styles from './Step3Phone.module.css';
 
 const phones = phonesData as unknown as Phone[];
@@ -81,6 +82,33 @@ export function Step3Phone() {
   const setStep = useQuoteStore((s) => s.setStep);
   const currentStep = useQuoteStore((s) => s.currentStep);
 
+  // Supabase 리베이트 로드 (30초 자동 갱신)
+  const [rebateMap, setRebateMap] = useState<Map<string, StoreRebate>>(new Map());
+  useEffect(() => {
+    loadAllRebates().then(setRebateMap);
+    const interval = setInterval(() => {
+      loadAllRebates().then(setRebateMap);
+    }, 30_000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // 최저가 계산에 쓸 리베이트 금액 조회 함수 (고가/중가/저가 중 최대값 사용)
+  const getRebateAmount = useMemo(() => {
+    return (modelId: string, carrierId: CarrierId, storage: string, subType: SubscriptionType): number => {
+      const tiers = ['고가', '중가', '저가'] as const;
+      let best = 0;
+      for (const tier of tiers) {
+        const key = `${modelId}|${carrierId}|${storage}|${subType}|${tier}`;
+        const r = rebateMap.get(key);
+        if (r) {
+          const amt = Math.max(r.subsidy_rebate, r.installment_rebate);
+          if (amt > best) best = amt;
+        }
+      }
+      return best;
+    };
+  }, [rebateMap]);
+
   // 선택된 모델의 타 통신사 최저가 비교 데이터
   const comparisonData: ComparisonData | null = useMemo(() => {
     if (!selectedPhoneId || !carrierId || !subscriptionType || !sheetLoaded) return null;
@@ -94,6 +122,7 @@ export function Step3Phone() {
       sheetLoaded,
       getSubsidy,
       getSelectAgreementSubsidy,
+      getRebateAmount,
     });
 
     if (currentResult.price === 0) return null;
@@ -109,6 +138,7 @@ export function Step3Phone() {
           sheetLoaded,
           getSubsidy,
           getSelectAgreementSubsidy,
+          getRebateAmount,
         });
         return {
           carrierId: altCarrierId as CarrierId,
@@ -121,7 +151,7 @@ export function Step3Phone() {
 
     return { currentPrice: currentResult.price, alternatives };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPhoneId, carrierId, subscriptionType, sheetLoaded]);
+  }, [selectedPhoneId, carrierId, subscriptionType, sheetLoaded, getRebateAmount]);
 
   // 비교 데이터 준비 후 저렴한 대안이 없으면 자동으로 다음 스텝 진행
   useEffect(() => {
@@ -148,8 +178,11 @@ export function Step3Phone() {
     }
     setPhone(phoneId);
     const phone = phones.find((p) => p.id === phoneId);
-    if (phone?.storage.length === 1) {
-      setStorage(phone.storage[0].size);
+    // 최저가 기준 용량 자동 선택 (여러 용량이 있어도 최저가 용량으로 세팅)
+    const phoneData = phonesWithData.find((d) => d.phone.id === phoneId);
+    const autoStorage = phoneData?.lowestStorage ?? phone?.storage[0]?.size;
+    if (autoStorage) {
+      setStorage(autoStorage);
     }
     if (phone?.colors.length === 1) {
       setColor(phone.colors[0].name);
@@ -182,17 +215,19 @@ export function Step3Phone() {
         sheetLoaded,
         getSubsidy,
         getSelectAgreementSubsidy,
+        getRebateAmount,
       });
       return {
         phone,
         lowestDevicePrice: result.price,
+        lowestStorage: result.storage ?? phone.storage[0]?.size ?? null,
         retailPrice: result.retailPrice > 0 ? result.retailPrice : getDisplayPrice(phone, phone.storage[0].size),
         totalSubsidy: result.totalSubsidy,
         conditions: result.conditions,
       };
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [filteredPhones, sheetLoaded, carrierId, subscriptionType]);
+    [filteredPhones, sheetLoaded, carrierId, subscriptionType, getRebateAmount]);
 
   const displayPhones = useMemo(() => {
     if (!sortByPrice) return phonesWithData;
@@ -378,7 +413,7 @@ export function Step3Phone() {
         )}
 
         <div className={styles.list}>
-          {displayPhones.map(({ phone, retailPrice, lowestDevicePrice }) => {
+          {displayPhones.map(({ phone, retailPrice, lowestDevicePrice, lowestStorage: _ls }) => {
             const isSelected = selectedPhoneId === phone.id;
             return (
               <div key={phone.id}>
