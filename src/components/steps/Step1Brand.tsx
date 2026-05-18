@@ -86,7 +86,7 @@ export function Step1Brand() {
       <h2 className={styles.title}>제조사를 선택해주세요!</h2>
 
       <div className={styles.brandList}>
-        {BRANDS.filter((b) => !isKidsPath || b.id !== 'kids').map((brand) => (
+        {BRANDS.filter((b) => !isKidsPath || b.id !== 'kids' as string).map((brand) => (
           <button
             key={brand.id}
             className={`${styles.brandCard} ${selectedBrand === brand.filter ? styles.active : ''}`}
