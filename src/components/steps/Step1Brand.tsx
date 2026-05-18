@@ -23,17 +23,18 @@ const BRANDS = [
       </div>
     ),
   },
-  {
-    id: 'kids',
-    label: '키즈폰',
-    filter: '키즈',
-    logo: (
-      <div className={styles.kidsLogo}>
-        <span style={{ fontSize: 26, lineHeight: 1 }}>🧒</span>
-        <span className={styles.kidsText}>키즈폰</span>
-      </div>
-    ),
-  },
+  // TODO: 키즈폰 기능 추가 후 아래 주석 해제
+  // {
+  //   id: 'kids',
+  //   label: '키즈폰',
+  //   filter: '키즈',
+  //   logo: (
+  //     <div className={styles.kidsLogo}>
+  //       <span style={{ fontSize: 26, lineHeight: 1 }}>🧒</span>
+  //       <span className={styles.kidsText}>키즈폰</span>
+  //     </div>
+  //   ),
+  // },
 ] as const;
 
 export function Step1Brand() {
