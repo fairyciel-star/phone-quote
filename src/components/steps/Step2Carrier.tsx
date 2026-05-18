@@ -46,6 +46,7 @@ export function Step2Carrier() {
             </div>
           </Card>
         ))}
+        {/* TODO: 신규가입(키즈폰) 기능 추가 후 아래 주석 해제
         <Card onClick={handleKids}>
           <div className={styles.cardContent}>
             <div className={styles.kidsIcon}>🧸</div>
@@ -55,6 +56,7 @@ export function Step2Carrier() {
             </div>
           </div>
         </Card>
+        */}
       </div>
     </div>
   );
