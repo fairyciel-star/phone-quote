@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useQuoteStore } from './store/useQuoteStore';
 import { useSheetStore } from './store/useSheetStore';
+import { loadAllRebates } from './lib/supabase-rebate';
 import { Landing } from './components/Landing';
 import { Header } from './components/layout/Header';
 import { StepProgress } from './components/layout/StepProgress';
@@ -62,6 +63,13 @@ function App() {
       loadFromSheet(SHEET_ID);
     }
   }, [loadFromSheet]);
+
+  // 앱 시작 시 리베이트 즉시 로드 → 헤더 날짜가 스텝 1부터 표시됨
+  useEffect(() => {
+    loadAllRebates();
+    const id = setInterval(() => loadAllRebates(), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     const handleHash = () => setHash(window.location.hash);
