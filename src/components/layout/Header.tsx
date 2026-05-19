@@ -30,7 +30,10 @@ export function Header() {
         >
           ←
         </button>
-        <span className={styles.navTitle}>오늘 실시간 시세 확인하기</span>
+        <div className={styles.navTitleWrap}>
+          <span className={styles.navTitle}>오늘의 시세</span>
+          <span className={styles.navDate}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} 기준</span>
+        </div>
         <button className={styles.navHomeBtn} onClick={reset}>
           처음부터
         </button>
