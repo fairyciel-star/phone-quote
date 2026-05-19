@@ -205,10 +205,22 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
     if (info?.colors.length) setColor(info.colors[0].name);
   }, [isKidsPhone, selectedPhoneId, selectedColor, setColor]);
 
-  // Supabase 리베이트 조회 (현재 조건에 맞는)
-  const currentRebate = (selectedPhoneId && carrierId && selectedStorage && subscriptionType)
-    ? getRebate(rebateMap, selectedPhoneId, carrierId, selectedStorage, subscriptionType, planTier)
-    : { subsidy_rebate: 0, installment_rebate: 0 };
+  // Supabase 리베이트 조회 - 고가/중가/저가 전체 티어 중 최대값 사용
+  // (스텝4 리스트와 동일 로직 → 가격 일치)
+  const currentRebate = useMemo(() => {
+    if (!selectedPhoneId || !carrierId || !selectedStorage || !subscriptionType) {
+      return { subsidy_rebate: 0, installment_rebate: 0 };
+    }
+    const tiers = ['고가', '중가', '저가'] as const;
+    let best_subsidy = 0;
+    let best_installment = 0;
+    for (const tier of tiers) {
+      const r = getRebate(rebateMap, selectedPhoneId, carrierId, selectedStorage, subscriptionType, tier);
+      if (r.subsidy_rebate > best_subsidy) best_subsidy = r.subsidy_rebate;
+      if (r.installment_rebate > best_installment) best_installment = r.installment_rebate;
+    }
+    return { subsidy_rebate: best_subsidy, installment_rebate: best_installment };
+  }, [rebateMap, selectedPhoneId, carrierId, selectedStorage, subscriptionType]);
 
   // Subsidy (mode-aware: 공통지원금 vs 선택약정) + 리베이트 반영
   const getSubsidyData = (): { 공통지원금: number; 추가지원금: number; 특별지원: number } => {
