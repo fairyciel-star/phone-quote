@@ -1,7 +1,16 @@
+import { useEffect, useState } from 'react';
 import { useQuoteStore } from '../../store/useQuoteStore';
+import { lastRebateUpdatedAt } from '../../lib/supabase-rebate';
 import styles from './Header.module.css';
 
 const NAV_STEPS = [1, 2, 3, 4, 5];
+
+function formatRebateDate(isoStr: string | null): string {
+  if (!isoStr) return '';
+  const d = new Date(isoStr);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }) + ' 업데이트';
+}
 
 export function Header() {
   const reset = useQuoteStore((s) => s.reset);
@@ -9,6 +18,16 @@ export function Header() {
   const setStep = useQuoteStore((s) => s.setStep);
   const selectedBrand = useQuoteStore((s) => s.selectedBrand);
   const carrierId = useQuoteStore((s) => s.carrierId);
+
+  // 리베이트 최종 수정일 (1초 간격 폴링으로 갱신 감지)
+  const [rebateDate, setRebateDate] = useState(() => formatRebateDate(lastRebateUpdatedAt));
+  useEffect(() => {
+    const id = setInterval(() => {
+      const next = formatRebateDate(lastRebateUpdatedAt);
+      setRebateDate((prev) => prev !== next ? next : prev);
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
 
   const handleBack = () => {
     if (currentStep === 1) return reset();
@@ -32,7 +51,7 @@ export function Header() {
         </button>
         <div className={styles.navTitleWrap}>
           <span className={styles.navTitle}>오늘의 시세</span>
-          <span className={styles.navDate}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} 기준</span>
+          {rebateDate && <span className={styles.navDate}>{rebateDate}</span>}
         </div>
         <button className={styles.navHomeBtn} onClick={reset}>
           처음부터

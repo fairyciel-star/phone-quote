@@ -14,6 +14,7 @@ const CACHE_TTL = 30_000;
 
 export let lastLoadError: string | null = null;
 export let lastLoadCount = 0;
+export let lastRebateUpdatedAt: string | null = null;
 
 function cacheKey(modelId: string, carrier: string, storage: string, subscriptionType: string, planTier: string): string {
   return `${modelId}|${carrier}|${storage}|${subscriptionType}|${planTier}`;
@@ -46,6 +47,14 @@ export async function loadAllRebates(): Promise<Map<string, StoreRebate>> {
     lastLoadError = null;
     const rows = (data ?? []) as unknown as Record<string, unknown>[];
     lastLoadCount = rows.length;
+
+    // 최신 수정 시간 추적
+    let maxUpdated = '';
+    for (const row of rows) {
+      const updatedAt = String(row.updated_at ?? row.created_at ?? '');
+      if (updatedAt > maxUpdated) maxUpdated = updatedAt;
+    }
+    lastRebateUpdatedAt = maxUpdated || null;
 
     for (const row of rows) {
       const modelId = String(row.model_id ?? '');
