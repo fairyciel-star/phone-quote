@@ -158,6 +158,7 @@ export function RebateTab() {
       subsidy_rebate: subsidyAmt,
       installment_rebate: installmentAmt,
       margin: marginInput, // 항상 포함 (만원 단위)
+      updated_at: new Date().toISOString(),
     };
   }
 
