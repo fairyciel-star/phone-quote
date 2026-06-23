@@ -47,7 +47,7 @@
     "id": "galaxy-s26",
     "name": "갤럭시 S26",
     "brand": "삼성",
-    "image": "/images/phones/s26/galaxy-s26.png",
+    "image": "/images/phones/s26/galaxy-s26-cobalt-violet.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
       { "size": "256GB", "price": 1254000 },

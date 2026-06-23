@@ -1,15 +1,6 @@
 import { create } from 'zustand';
 import type { CarrierId, Discount, Plan, PlanTier, SubscriptionType } from '../types';
 import {
-  fetchSubsidies,
-  fetchCardDiscounts,
-  fetchPlans,
-  fetchAddons,
-  fetchUsedPhones,
-  fetchSelectAgreementSubsidies,
-  fetchKidsPhones,
-  fetchPhoneMasters,
-  fetchColorStorages,
   getSubsidyByTier,
   getSelectAgreementByTier,
   type SubsidyRow,
@@ -22,6 +13,7 @@ import {
   type PhoneMasterRow,
   type ColorStorageRow,
 } from '../utils/sheets';
+import { usePriceTableStore } from './usePriceTableStore';
 
 interface SheetState {
   readonly loaded: boolean;
@@ -37,6 +29,7 @@ interface SheetState {
   readonly phoneMasters: readonly PhoneMasterRow[];
   readonly colorStorages: readonly ColorStorageRow[];
   loadFromSheet: (sheetId: string) => Promise<void>;
+  setLoaded: () => void;
   // planTier: 요금제 구간 ('고가'|'중가'|'저가'). 미지정 시 '고가' 기본값 (폰 목록 프리뷰용)
   getSubsidy: (
     모델ID: string,
@@ -44,7 +37,7 @@ interface SheetState {
     용량: string,
     가입유형: SubscriptionType,
     planTier?: PlanTier
-  ) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number };
+  ) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number; isPriceTableData?: boolean };
   getPhoneBadge: (모델ID: string, 통신사: CarrierId) => string;
   getCardDiscountsForCarrier: (통신사: CarrierId) => Discount[];
   getPlansForCarrier: (통신사: CarrierId) => Plan[];
@@ -77,54 +70,29 @@ export const useSheetStore = create<SheetState>((set, get) => ({
   phoneMasters: [],
   colorStorages: [],
 
-  loadFromSheet: async (sheetId: string) => {
-    set({ loading: true, error: null });
-    try {
-      const results = await Promise.allSettled([
-        fetchSubsidies(sheetId),
-        fetchCardDiscounts(sheetId),
-        fetchPlans(sheetId),
-        fetchAddons(sheetId),
-        fetchUsedPhones(sheetId),
-        fetchSelectAgreementSubsidies(sheetId),
-        fetchKidsPhones(sheetId),
-        fetchPhoneMasters(sheetId),
-        fetchColorStorages(sheetId),
-      ]);
-
-      const subsidies = results[0].status === 'fulfilled' ? results[0].value : [];
-      const kidsPhones = results[6].status === 'fulfilled' ? results[6].value : [];
-
-      set({
-        subsidies,
-        cardDiscounts: results[1].status === 'fulfilled' ? results[1].value : [],
-        plans: results[2].status === 'fulfilled' ? results[2].value : [],
-        addons: results[3].status === 'fulfilled' ? results[3].value : [],
-        usedPhones: results[4].status === 'fulfilled' ? results[4].value : [],
-        selectAgreementSubsidies: results[5].status === 'fulfilled' ? results[5].value : [],
-        kidsPhones,
-        phoneMasters: results[7].status === 'fulfilled' ? results[7].value : [],
-        colorStorages: results[8].status === 'fulfilled' ? results[8].value : [],
-        loaded: true,
-        loading: false,
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : '시트 로딩 실패';
-      set({ error: message, loading: false });
-    }
+  loadFromSheet: async (_sheetId: string) => {
+    // 새 구글 시트 연동은 App.tsx에서 usePriceTableStore.loadAll()로 직접 처리
+    // 이 함수는 loaded 상태만 동기화
+    set({ loaded: usePriceTableStore.getState().sktRows.length > 0, loading: false });
   },
 
-  getSubsidy: (모델ID, 통신사, 용량, 가입유형, planTier = '고가') => {
+  setLoaded: () => {
+    set({ loaded: true });
+  },
+
+  getSubsidy: (모델ID, 통신사, 용량, 가입유형, _planTier = '고가') => {
+    // 단가표 스토어에서 합계 가격 우선 조회
+    const ptData = usePriceTableStore.getState().getSubsidyData(모델ID, 통신사, 용량, 가입유형);
+    if (ptData.출고가 > 0) return ptData;
+
+    // 폴백: 기존 시트 데이터 (subsidies가 빈 경우 0 반환)
     const row = get().subsidies.find(
       (r) => r.모델ID === 모델ID && r.통신사 === 통신사 && r.용량 === 용량 && r.가입유형 === 가입유형
     );
-
-    // 출고가: 색상_용량 시트 우선, 없으면 0 (price.ts가 phones.json 폴백 처리)
     const 출고가 = get().colorStorages.find(
       (r) => r.모델ID === 모델ID && r.용량 === 용량
     )?.출고가 ?? 0;
-
-    const tier = getSubsidyByTier(row, planTier);
+    const tier = getSubsidyByTier(row, _planTier);
     return {
       출고가,
       공통지원금: tier.공시지원금,

@@ -15,7 +15,9 @@ import { formatWon } from '../../utils/format';
 import styles from './Step4PlanDiscount.module.css';
 import summaryStyles from './Step6Summary.module.css';
 import { KakaoChannelBanner } from '../ui/KakaoChannelBanner';
-import { loadAllRebates, getRebate, type StoreRebate } from '../../lib/supabase-rebate';
+import { getRebate } from '../../lib/supabase-rebate';
+import { useRebateStore } from '../../store/useRebateStore';
+import { useCarrierMarginStore } from '../../store/useCarrierMarginStore';
 
 const plans = plansData as unknown as Plan[];
 const phones = phonesData as unknown as Phone[];
@@ -59,15 +61,12 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
   const setColor = useQuoteStore((s) => s.setColor);
   const setStorage = useQuoteStore((s) => s.setStorage);
 
-  // Supabase 리베이트 로드 (30초마다 자동 갱신)
-  const [rebateMap, setRebateMap] = useState<Map<string, StoreRebate>>(new Map());
-  useEffect(() => {
-    loadAllRebates().then(setRebateMap);
-    const interval = setInterval(() => {
-      loadAllRebates().then(setRebateMap);
-    }, 30_000);
-    return () => clearInterval(interval);
-  }, []);
+  // 공유 리베이트 스토어 (App.tsx에서 30초마다 갱신)
+  const rebateMap = useRebateStore((s) => s.rebateMap);
+
+  // 통신사별 마진 스토어
+  const carrierMarginStore = useCarrierMarginStore();
+  const marginWon = carrierId ? carrierMarginStore.getMarginWon(carrierId as CarrierId) : 0;
 
   const sheetLoaded = useSheetStore((s) => s.loaded);
   const getSheetCards = useSheetStore((s) => s.getCardDiscountsForCarrier);
@@ -205,8 +204,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
     if (info?.colors.length) setColor(info.colors[0].name);
   }, [isKidsPhone, selectedPhoneId, selectedColor, setColor]);
 
-  // Supabase 리베이트 조회 - 고가/중가/저가 전체 티어 중 최대값 사용
-  // (스텝4 리스트와 동일 로직 → 가격 일치)
+  // Supabase 리베이트 조회 - 고가/중가/저가 전체 티어 중 최대값 사용 (마진 차감 전 원본)
   const currentRebate = useMemo(() => {
     if (!selectedPhoneId || !carrierId || !selectedStorage || !subscriptionType) {
       return { subsidy_rebate: 0, installment_rebate: 0 };
@@ -219,8 +217,12 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
       if (r.subsidy_rebate > best_subsidy) best_subsidy = r.subsidy_rebate;
       if (r.installment_rebate > best_installment) best_installment = r.installment_rebate;
     }
-    return { subsidy_rebate: best_subsidy, installment_rebate: best_installment };
-  }, [rebateMap, selectedPhoneId, carrierId, selectedStorage, subscriptionType]);
+    // 마진 차감: 리베이트 - 통신사 마진
+    return {
+      subsidy_rebate: Math.max(0, best_subsidy - marginWon),
+      installment_rebate: Math.max(0, best_installment - marginWon),
+    };
+  }, [rebateMap, selectedPhoneId, carrierId, selectedStorage, subscriptionType, marginWon]);
 
   // Subsidy (mode-aware: 공통지원금 vs 선택약정) + 리베이트 반영
   const getSubsidyData = (): { 공통지원금: number; 추가지원금: number; 특별지원: number } => {
@@ -239,6 +241,10 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
     }
     if (sheetLoaded) {
       const sheet = getSubsidy(selectedPhoneId, carrierId, selectedStorage, subscriptionType, planTier);
+      // 구글 시트 합계가 최종가 — 리베이트 미포함
+      if (sheet.isPriceTableData) {
+        return { 공통지원금: sheet.공통지원금, 추가지원금: sheet.추가지원금, 특별지원: sheet.특별지원 };
+      }
       return { 공통지원금: sheet.공통지원금, 추가지원금: sheet.추가지원금 + rebateAmount, 특별지원: sheet.특별지원 };
     }
     if (!selectedPhone) return { 공통지원금: 0, 추가지원금: rebateAmount, 특별지원: 0 };
@@ -373,20 +379,22 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
     : null;
 
   // 선택약정 모드: 선택약정 시트값 우선, 공통지원금 모드: 공통지원금 시트값
-  // + Supabase 리베이트를 추가지원금에 합산
+  // 구글 시트 합계가 최종가인 경우 리베이트 미합산
   const activeSheetSubsidy = discountType === '선택약정'
     ? (saSheetSubsidy ? {
         출고가: saSheetSubsidy.출고가 || commonSheetSubsidy?.출고가 || 0,
         공통지원금: 0,
-        추가지원금: saSheetSubsidy.추가지원금 + currentRebate.installment_rebate,
+        추가지원금: saSheetSubsidy.추가지원금,
         특별지원: saSheetSubsidy.특별지원,
       } : (commonSheetSubsidy ? {
         ...commonSheetSubsidy,
-        추가지원금: commonSheetSubsidy.추가지원금 + currentRebate.installment_rebate,
+        추가지원금: commonSheetSubsidy.추가지원금,
       } : null))
     : (commonSheetSubsidy ? {
         ...commonSheetSubsidy,
-        추가지원금: commonSheetSubsidy.추가지원금 + currentRebate.subsidy_rebate,
+        추가지원금: commonSheetSubsidy.isPriceTableData
+          ? commonSheetSubsidy.추가지원금
+          : commonSheetSubsidy.추가지원금 + currentRebate.subsidy_rebate,
       } : null);
 
   const plan = carrierPlans.find((p) => p.id === selectedPlanId) ?? premiumPlan;
@@ -642,10 +650,14 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
           const tierRebate = (selectedPhoneId && carrierId && selectedStorage && subscriptionType)
             ? getRebate(rebateMap, selectedPhoneId, carrierId, selectedStorage, subscriptionType, tier)
             : { subsidy_rebate: 0, installment_rebate: 0 };
+          // 마진 차감 후 순 리베이트
+          const rawRebate = discountType === '선택약정' ? tierRebate.installment_rebate : tierRebate.subsidy_rebate;
+          const netRebate = Math.max(0, rawRebate - marginWon);
+
           const 공통지원금 = discountType === '공통지원금' ? (commonSub?.공통지원금 ?? 0) : 0;
-          const rebateForTier = discountType === '선택약정' ? tierRebate.installment_rebate : tierRebate.subsidy_rebate;
-          const 추가지원금 = (discountType === '선택약정' ? (saSub?.추가지원금 ?? 0) : (commonSub?.추가지원금 ?? 0)) + rebateForTier;
+          const 추가지원금 = (discountType === '선택약정' ? (saSub?.추가지원금 ?? 0) : (commonSub?.추가지원금 ?? 0)) + netRebate;
           const 특별지원 = discountType === '선택약정' ? (saSub?.특별지원 ?? 0) : (commonSub?.특별지원 ?? 0);
+
           const 선택약정할인 = discountType === '선택약정' ? calculate선택약정할인(tierPlan.monthlyFee, tierPlan.선택약정할인율 || 0.25) : 0;
           const totalSupport = 공통지원금 + 추가지원금 + 특별지원;
           return (

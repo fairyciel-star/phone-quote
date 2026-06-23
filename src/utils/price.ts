@@ -48,7 +48,7 @@ export function calculateLowestDevicePrice(params: {
     용량: string,
     가입유형: SubscriptionType,
     planTier?: PlanTier
-  ) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number };
+  ) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number; isPriceTableData?: boolean };
   getSelectAgreementSubsidy?: (
     모델ID: string,
     통신사: CarrierId,
@@ -63,6 +63,7 @@ export function calculateLowestDevicePrice(params: {
     carrierId: CarrierId,
     storage: string,
     subscriptionType: SubscriptionType,
+    discountType: DiscountType,
   ) => number;
 }): LowestDevicePriceResult {
   const { phone, carriers, subscriptionType, getSubsidy, sheetLoaded } = params;
@@ -83,28 +84,33 @@ export function calculateLowestDevicePrice(params: {
         let 추가지원금 = 0;
         let 특별지원 = 0;
 
+        let isPriceTableData = false;
         if (sheetLoaded && getSubsidy) {
           const sheet = getSubsidy(phone.id, carrierId, storageOption.size, subType, params.planTier ?? '고가');
           if (sheet.출고가 > 0) 출고가 = sheet.출고가;
           if (sheet.공통지원금 > 0) 공통지원금 = sheet.공통지원금;
           if (sheet.추가지원금 > 0) 추가지원금 = sheet.추가지원금;
           if (sheet.특별지원 > 0) 특별지원 = sheet.특별지원;
+          isPriceTableData = sheet.isPriceTableData === true;
         }
 
         if (출고가 === 0) continue;
 
-        // 리베이트 금액 조회 (공시지원금/선택약정 공통으로 추가지원금에 합산)
-        const rebateAmount = params.getRebateAmount
-          ? params.getRebateAmount(phone.id, carrierId, storageOption.size, subType)
+        // 구글 시트 합계 가격은 최종가 — 리베이트 불필요
+        const subsidyRebate = (params.getRebateAmount && !isPriceTableData)
+          ? params.getRebateAmount(phone.id, carrierId, storageOption.size, subType, '공통지원금')
+          : 0;
+        const installmentRebate = (params.getRebateAmount && !isPriceTableData)
+          ? params.getRebateAmount(phone.id, carrierId, storageOption.size, subType, '선택약정')
           : 0;
 
-        const 공통실구매가 = Math.max(0, 출고가 - 공통지원금 - 추가지원금 - 특별지원 - rebateAmount);
+        const 공통실구매가 = Math.max(0, 출고가 - 공통지원금 - 추가지원금 - 특별지원 - subsidyRebate);
         let 실구매가 = 공통실구매가;
-        let 사용된지원금 = 공통지원금 + 추가지원금 + 특별지원 + rebateAmount;
+        let 사용된지원금 = 공통지원금 + 추가지원금 + 특별지원 + subsidyRebate;
 
         if (sheetLoaded && params.getSelectAgreementSubsidy) {
           const sa = params.getSelectAgreementSubsidy(phone.id, carrierId, storageOption.size, subType, params.planTier ?? '고가');
-          const sa지원금 = (sa.추가지원금 || 0) + (sa.특별지원 || 0) + rebateAmount;
+          const sa지원금 = (sa.추가지원금 || 0) + (sa.특별지원 || 0) + installmentRebate;
           if (sa지원금 > 0) {
             const 선택실구매가 = Math.max(0, 출고가 - sa지원금);
             if (선택실구매가 < 실구매가) {

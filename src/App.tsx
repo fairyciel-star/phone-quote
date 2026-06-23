@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { useQuoteStore } from './store/useQuoteStore';
 import { useSheetStore } from './store/useSheetStore';
-import { loadAllRebates } from './lib/supabase-rebate';
+import { useRebateStore } from './store/useRebateStore';
+import { usePriceTableStore } from './store/usePriceTableStore';
 import { Landing } from './components/Landing';
 import { Header } from './components/layout/Header';
 import { StepProgress } from './components/layout/StepProgress';
@@ -13,7 +14,8 @@ import { Step4PlanDiscount } from './components/steps/Step4PlanDiscount';
 import { Step7Consultation } from './components/steps/Step7Consultation';
 import { AdminPage } from './components/admin/AdminPage';
 
-const SHEET_ID = import.meta.env.VITE_GOOGLE_SHEET_ID || '';
+// 새 단가표 구글 시트 ID (고정값 - env var 불필요)
+const PRICE_SHEET_ID = '1MI7Fn521lWI74Y8IUqKncA5hV-ztd1OwzW4EyAnI9BQ';
 
 function getStepComponent(step: number) {
   switch (step) {
@@ -55,21 +57,25 @@ function StepContent() {
 
 function App() {
   const showLanding = useQuoteStore((s) => s.showLanding);
-  const loadFromSheet = useSheetStore((s) => s.loadFromSheet);
+  const setSheetLoaded = useSheetStore((s) => s.setLoaded);
+  const loadPriceTable = usePriceTableStore((s) => s.loadAll);
   const [hash, setHash] = useState(window.location.hash);
 
+  // 앱 시작 시 구글 시트에서 단가표 로드 (SKT/KT/LGU+ 3사)
   useEffect(() => {
-    if (SHEET_ID) {
-      loadFromSheet(SHEET_ID);
-    }
-  }, [loadFromSheet]);
+    loadPriceTable(PRICE_SHEET_ID).then(() => {
+      setSheetLoaded();
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 앱 시작 시 리베이트 즉시 로드 → 헤더 날짜가 스텝 1부터 표시됨
+  // 공유 스토어를 통해 모든 컴포넌트가 동일한 rebateMap을 참조
+  const refreshRebate = useRebateStore((s) => s.refresh);
   useEffect(() => {
-    loadAllRebates();
-    const id = setInterval(() => loadAllRebates(), 30_000);
+    refreshRebate();
+    const id = setInterval(() => refreshRebate(), 30_000);
     return () => clearInterval(id);
-  }, []);
+  }, [refreshRebate]);
 
   useEffect(() => {
     const handleHash = () => setHash(window.location.hash);

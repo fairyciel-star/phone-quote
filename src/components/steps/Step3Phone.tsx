@@ -4,15 +4,18 @@ import { useSheetStore } from '../../store/useSheetStore';
 import { Card } from '../ui/Card';
 import phonesData from '../../data/phones.json';
 import carriersData from '../../data/carriers.json';
-import type { Phone, SubscriptionType } from '../../types';
+import type { Phone, SubscriptionType, DiscountType } from '../../types';
 import type { CarrierId } from '../../types';
 import { formatWon } from '../../utils/format';
 import { hapticMedium } from '../../utils/haptic';
 import { calculateLowestDevicePrice } from '../../utils/price';
-import { loadAllRebates, type StoreRebate } from '../../lib/supabase-rebate';
+import { useRebateStore } from '../../store/useRebateStore';
 import styles from './Step3Phone.module.css';
 
 const phones = phonesData as unknown as Phone[];
+
+// 비교 패널에서 타 통신사 선택 전 원래 상태 보존 (뒤로가기 시 복원용)
+let _comparisonPrevState: { carrierId: CarrierId; subscriptionType: SubscriptionType } | null = null;
 
 const KIDS_MODEL_INFO: Record<string, { name: string; imageId: string; emoji: string }> = {
   'galaxy-a175n-zem': { name: '포켓피스', imageId: 'a175n_zem', emoji: '🐣' },
@@ -26,6 +29,7 @@ interface Alternative {
   carrierId: CarrierId;
   price: number;
   savings: number;
+  storage: string | null;
 }
 
 interface ComparisonData {
@@ -82,26 +86,29 @@ export function Step3Phone() {
   const setStep = useQuoteStore((s) => s.setStep);
   const currentStep = useQuoteStore((s) => s.currentStep);
 
-  // Supabase 리베이트 로드 (30초 자동 갱신)
-  const [rebateMap, setRebateMap] = useState<Map<string, StoreRebate>>(new Map());
+  // 뒤로가기 시 비교 패널 선택 이전 통신사·가입유형 복원
   useEffect(() => {
-    loadAllRebates().then(setRebateMap);
-    const interval = setInterval(() => {
-      loadAllRebates().then(setRebateMap);
-    }, 30_000);
-    return () => clearInterval(interval);
+    if (_comparisonPrevState) {
+      switchCarrier(_comparisonPrevState.carrierId);
+      setSubscriptionType(_comparisonPrevState.subscriptionType);
+      _comparisonPrevState = null;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 최저가 계산에 쓸 리베이트 금액 조회 함수 (고가/중가/저가 중 최대값 사용)
+  // 공유 리베이트 스토어 (App.tsx에서 30초마다 갱신)
+  const rebateMap = useRebateStore((s) => s.rebateMap);
+
+  // 최저가 계산에 쓸 리베이트 금액 조회 함수 (고가/중가/저가 중 최대값, 할인유형별 분리)
   const getRebateAmount = useMemo(() => {
-    return (modelId: string, carrierId: CarrierId, storage: string, subType: SubscriptionType): number => {
+    return (modelId: string, carrierId: CarrierId, storage: string, subType: SubscriptionType, discountType: DiscountType): number => {
       const tiers = ['고가', '중가', '저가'] as const;
       let best = 0;
       for (const tier of tiers) {
         const key = `${modelId}|${carrierId}|${storage}|${subType}|${tier}`;
         const r = rebateMap.get(key);
         if (r) {
-          const amt = Math.max(r.subsidy_rebate, r.installment_rebate);
+          const amt = discountType === '선택약정' ? r.installment_rebate : r.subsidy_rebate;
           if (amt > best) best = amt;
         }
       }
@@ -144,6 +151,7 @@ export function Step3Phone() {
           carrierId: altCarrierId as CarrierId,
           price: result.price,
           savings: currentResult.price - result.price,
+          storage: result.storage,
         };
       })
       .filter((alt) => alt.price > 0 && alt.savings > 0)
@@ -153,11 +161,10 @@ export function Step3Phone() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPhoneId, carrierId, subscriptionType, sheetLoaded, getRebateAmount]);
 
-  // 비교 데이터 준비 후 저렴한 대안이 없으면 자동으로 다음 스텝 진행
+  // 저렴한 대안이 없으면 자동으로 다음 스텝 진행
   useEffect(() => {
     if (!showComparison) return;
     if (!sheetLoaded) {
-      // 시트 미로딩 시 바로 진행
       setShowComparison(false);
       setStep(currentStep + 1);
       return;
@@ -178,9 +185,27 @@ export function Step3Phone() {
     }
     setPhone(phoneId);
     const phone = phones.find((p) => p.id === phoneId);
-    // 최저가 기준 용량 자동 선택 (여러 용량이 있어도 최저가 용량으로 세팅)
-    const phoneData = phonesWithData.find((d) => d.phone.id === phoneId);
-    const autoStorage = phoneData?.lowestStorage ?? phone?.storage[0]?.size;
+
+    // 현재 통신사·가입유형 기준으로 최저가 용량을 직접 계산
+    // (phonesWithData.lowestStorage는 subscriptionType=null 포함 전체 기준일 수 있어 불일치 발생)
+    let autoStorage: string | null = null;
+    if (phone && carrierId && subscriptionType) {
+      let bestPrice = Infinity;
+      for (const storageOpt of phone.storage) {
+        const sub = getSubsidy(phoneId, carrierId, storageOpt.size, subscriptionType);
+        if (sub.출고가 > 0) {
+          const price = sub.출고가 - sub.공통지원금 - sub.추가지원금 - sub.특별지원;
+          if (price < bestPrice) {
+            bestPrice = price;
+            autoStorage = storageOpt.size;
+          }
+        }
+      }
+    }
+    if (!autoStorage) {
+      const phoneData = phonesWithData.find((d) => d.phone.id === phoneId);
+      autoStorage = phoneData?.lowestStorage ?? phone?.storage[0]?.size ?? null;
+    }
     if (autoStorage) {
       setStorage(autoStorage);
     }
@@ -190,11 +215,16 @@ export function Step3Phone() {
     setShowComparison(true);
   };
 
-  // 타 통신사 조건 선택 → 통신사·가입유형 변경 후 다음 스텝
-  const handleSelectAlternative = (altCarrierId: CarrierId) => {
+  // 타 통신사 조건 선택 → 통신사·가입유형·용량 변경 후 다음 스텝
+  const handleSelectAlternative = (altCarrierId: CarrierId, altStorage: string | null) => {
     hapticMedium();
+    // 뒤로가기 시 복원을 위해 현재 상태 저장
+    if (carrierId && subscriptionType) {
+      _comparisonPrevState = { carrierId, subscriptionType };
+    }
     switchCarrier(altCarrierId);
     setSubscriptionType('번호이동');
+    if (altStorage) setStorage(altStorage);
     setShowComparison(false);
     setStep(currentStep + 1);
   };
@@ -459,7 +489,11 @@ export function Step3Phone() {
                     <div className={styles.comparisonHeader}>
                       <span className={styles.comparisonIcon}>💡</span>
                       <div className={styles.comparisonHeaderText}>
-                        <span className={styles.comparisonTitle}>번호이동 시 더 저렴해요</span>
+                        <span className={styles.comparisonTitle}>
+                          {comparisonData.alternatives.some((a) => a.savings > 0)
+                            ? '번호이동 시 더 저렴해요'
+                            : '통신사별 가격 비교'}
+                        </span>
                         <span className={styles.comparisonSub}>
                           현재 {currentCarrierName} {subscriptionType} {formatWon(comparisonData.currentPrice)}
                         </span>
@@ -473,7 +507,7 @@ export function Step3Phone() {
                           <button
                             key={alt.carrierId}
                             className={styles.alternativeRow}
-                            onClick={() => handleSelectAlternative(alt.carrierId)}
+                            onClick={() => handleSelectAlternative(alt.carrierId, alt.storage)}
                           >
                             <img
                               src={`/images/${alt.carrierId}.png`}
@@ -487,9 +521,11 @@ export function Step3Phone() {
                               <span className={styles.altPrice}>{formatWon(alt.price)}</span>
                             </div>
                             <div className={styles.altRight}>
-                              <span className={styles.savingsBadge}>
-                                -{formatWon(alt.savings)} ▼
-                              </span>
+                              {alt.savings > 0 && (
+                                <span className={styles.savingsBadge}>
+                                  -{formatWon(alt.savings)} ▼
+                                </span>
+                              )}
                               <span className={styles.selectLabel}>선택 →</span>
                             </div>
                           </button>

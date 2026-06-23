@@ -24,6 +24,9 @@ const SHEET_GIDS = {
   부가서비스: '528526412',
   중고폰시세: '1666746914',
   키즈전용: '1925986786',
+  단가표SKT: '265871784',
+  단가표KT: '831307265',
+  단가표LGU: '1018822358',
 } as const;
 
 function parseCsvLine(line: string): string[] {
@@ -397,4 +400,132 @@ export async function fetchKidsPhones(sheetIdOrUrl: string): Promise<KidsPhoneRo
     선택약정_추가지원금: Number(row['선택약정_추가지원금']) || 0,
     선택약정_특별지원: Number(row['선택약정_특별지원']) || 0,
   }));
+}
+
+// ── 단가표 (통신사별 단가표 시트 파싱) ──
+// 새 구글 시트: https://docs.google.com/spreadsheets/d/1MI7Fn521lWI74Y8IUqKncA5hV-ztd1OwzW4EyAnI9BQ
+// 각 통신사 탭에서 MNP합계 / 기변합계를 직접 읽음
+
+export type PriceTierKr = '고가' | '중가' | '저가'; // 하위 호환용
+
+export interface PriceTableRow {
+  readonly carrier: CarrierId;
+  readonly model_code: string;
+  readonly model_name: string;
+  readonly retail_price: number;   // 출고가 (원)
+  readonly change_subsidy: number; // 공통지원금(기변), 원 단위
+  readonly mnp_subsidy: number;    // 공통지원금(MNP), 원 단위
+  readonly mnp_price: number;      // MNP 합계 실구매가 (원)
+  readonly change_price: number;   // 기변 합계 실구매가 (원)
+}
+
+// 새 단가표 GID (일반 편집 URL 기준)
+const PRICE_TABLE_GIDS: Record<CarrierId, string> = {
+  SKT: '0',
+  KT: '13695407',
+  LGU: '1020170609',
+};
+
+// 일반 편집 URL 또는 순수 스프레드시트 ID에서 ID 추출
+function extractSpreadsheetId(urlOrId: string): string {
+  const match = urlOrId.match(/\/spreadsheets\/d\/([\w-]+)/);
+  return match ? match[1] : urlOrId;
+}
+
+// 일반 스프레드시트의 CSV 내보내기 URL
+function buildExportCsvUrl(spreadsheetId: string, gid: string): string {
+  return `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`;
+}
+
+// 쉼표 포함 숫자 문자열 → number (원 단위)
+function parsePrice(val: string): number {
+  return Number(val.replace(/,/g, '')) || 0;
+}
+
+// SKT: col0=모델코드, col1=모델명, col2=출고가, col3=공통지원금(기변), col4=공통지원금(MNP), col12=MNP합계, col13=기변합계
+function parseSktRows(lines: string[]): PriceTableRow[] {
+  const rows: PriceTableRow[] = [];
+  for (const line of lines) {
+    const cols = parseCsvLine(line);
+    const code = cols[0]?.trim() ?? '';
+    if (!code || code.startsWith('▶') || code.startsWith('SKT') || code === '모델코드') continue;
+    const retailWon = parsePrice(cols[2] ?? '');
+    if (retailWon === 0) continue;
+    rows.push({
+      carrier: 'SKT',
+      model_code: code,
+      model_name: cols[1]?.trim() ?? '',
+      retail_price: retailWon,
+      change_subsidy: parsePrice(cols[3] ?? '') * 10000,
+      mnp_subsidy: parsePrice(cols[4] ?? '') * 10000,
+      mnp_price: parsePrice(cols[12] ?? ''),
+      change_price: parsePrice(cols[13] ?? ''),
+    });
+  }
+  return rows;
+}
+
+// KT: col0=모델코드, col1=모델명, col2=출고가, col3=공통지원금(기변), col4=공통지원금(MNP), col12=MNP합계, col13=기변합계
+function parseKtRows(lines: string[]): PriceTableRow[] {
+  const rows: PriceTableRow[] = [];
+  for (const line of lines) {
+    const cols = parseCsvLine(line);
+    const code = cols[0]?.trim() ?? '';
+    if (!code || code.startsWith('▶') || code.startsWith('KT') || code === '모델코드') continue;
+    const retailWon = parsePrice(cols[2] ?? '');
+    if (retailWon === 0) continue;
+    rows.push({
+      carrier: 'KT',
+      model_code: code,
+      model_name: cols[1]?.trim() ?? '',
+      retail_price: retailWon,
+      change_subsidy: parsePrice(cols[3] ?? '') * 10000,
+      mnp_subsidy: parsePrice(cols[4] ?? '') * 10000,
+      mnp_price: parsePrice(cols[12] ?? ''),
+      change_price: parsePrice(cols[13] ?? ''),
+    });
+  }
+  return rows;
+}
+
+// LGU+: col0=모델코드, col1=모델명, col2=출고가, col3=공통지원금(기변), col4=공통지원금(MNP), col12=MNP합계, col13=기변합계
+function parseLguRows(lines: string[]): PriceTableRow[] {
+  const rows: PriceTableRow[] = [];
+  for (const line of lines) {
+    const cols = parseCsvLine(line);
+    const code = cols[0]?.trim() ?? '';
+    if (!code || code.startsWith('▶') || code.startsWith('LG') || code === '모델코드') continue;
+    const retailWon = parsePrice(cols[2] ?? '');
+    if (retailWon === 0) continue;
+    rows.push({
+      carrier: 'LGU',
+      model_code: code,
+      model_name: cols[1]?.trim() ?? '',
+      retail_price: retailWon,
+      change_subsidy: parsePrice(cols[3] ?? '') * 10000,
+      mnp_subsidy: parsePrice(cols[4] ?? '') * 10000,
+      mnp_price: parsePrice(cols[12] ?? ''),
+      change_price: parsePrice(cols[13] ?? ''),
+    });
+  }
+  return rows;
+}
+
+export async function fetchPriceTable(
+  sheetIdOrUrl: string,
+  carrier: CarrierId
+): Promise<PriceTableRow[]> {
+  const gid = PRICE_TABLE_GIDS[carrier];
+  const spreadsheetId = extractSpreadsheetId(sheetIdOrUrl);
+  const url = buildExportCsvUrl(spreadsheetId, gid);
+  const res = await fetch(url, { redirect: 'follow' });
+  if (!res.ok) throw new Error(`단가표(${carrier}) 불러오기 실패: ${res.status}`);
+  const text = await res.text();
+  const lines = text.split('\n').filter((l) => l.trim() !== '');
+
+  switch (carrier) {
+    case 'SKT': return parseSktRows(lines);
+    case 'KT': return parseKtRows(lines);
+    case 'LGU': return parseLguRows(lines);
+  }
 }
