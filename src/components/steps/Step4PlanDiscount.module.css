@@ -7,6 +7,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  text-align: center;
   margin-bottom: var(--space-lg);
 }
 
@@ -14,81 +15,126 @@
   width: 100%;
   display: flex;
   justify-content: center;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .phoneHeroImage {
-  width: 250px;
-  height: 250px;
+  width: 220px;
+  height: 220px;
   object-fit: contain;
 }
 
-.phoneHeroInfo {
-  width: 100%;
+/* 이름 + 통신사 배지 */
+.phoneHeroNameRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .phoneHeroName {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
   color: var(--color-text);
+}
+
+.carrierBadge {
+  display: inline-block;
+  padding: 3px 9px;
+  background: var(--color-primary, #E53935);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: 5px;
+  letter-spacing: 0.5px;
+}
+
+/* 최종 기계값 라벨 */
+.phoneHeroPriceLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
   margin-bottom: 4px;
 }
 
-.phoneHeroOriginal {
-  margin-bottom: 2px;
+/* 출고가 취소선 + 할인율 배지 */
+.phoneHeroOriginalRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 6px;
 }
 
 .phoneHeroStrike {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--color-text-secondary);
   text-decoration: line-through;
 }
 
-.phoneHeroPriceRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
+.discountPctBadge {
+  display: inline-block;
+  padding: 2px 10px;
+  background: var(--color-primary, #E53935);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  border-radius: 100px;
 }
 
-.phoneHeroPrice {
+/* 메인 가격 */
+.phoneHeroPriceValue {
+  font-size: 52px;
+  font-weight: 900;
+  color: var(--color-primary, #E53935);
+  letter-spacing: -2px;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.phoneHeroPriceUnit {
   font-size: 28px;
   font-weight: 800;
-  color: var(--color-text);
-  letter-spacing: -0.5px;
+  letter-spacing: 0;
 }
 
-.phoneHeroCarrier {
-  height: 28px;
-  object-fit: contain;
-}
-
-.phoneHeroBadges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.phoneHeroBadge {
+/* 구매지원금 배지 */
+.subsidyBadge {
   display: inline-block;
-  padding: 4px 10px;
+  padding: 5px 16px;
   background: #fff0f0;
-  color: #E53935;
-  font-size: 13px;
+  color: var(--color-primary, #E53935);
+  font-size: 15px;
   font-weight: 700;
-  border-radius: 4px;
+  border-radius: 6px;
+  margin-bottom: 4px;
 }
 
-.badgeTrade {
+.subsidyBadgeTrade {
   background: #f0f0ff;
   color: #5b21b6;
 }
 
-.badgeCard {
+.subsidyBadgeCard {
   background: #f0fff4;
   color: #16a34a;
 }
+
+/* 할인 안내 (hero 하단) */
+.heroDiscountInfo {
+  width: 100%;
+  background: var(--color-primary-light);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--color-primary-dark);
+  line-height: 1.6;
+  text-align: left;
+}
+
+/* ── 용량 선택 (캡처2 스타일) ── */
 
 /* 색상 선택 */
 .colorSelector {
@@ -977,55 +1023,50 @@
   color: #E53935;
 }
 
-/* ── 용량 선택 ── */
+/* ── 용량 선택 (캡처2: 전체 너비 카드형) ── */
 .storageSelector {
-  margin-top: 10px;
-  padding: 10px 14px;
-  background: var(--color-surface-secondary, #f8f8f8);
-  border-radius: 12px;
-  border: 1px solid var(--color-border, #eee);
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  width: 100%;
+  margin-top: 16px;
+  text-align: left;
 }
 
 .storageSelectorLabel {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--color-text-secondary);
-  white-space: nowrap;
-  flex-shrink: 0;
+  margin-bottom: 8px;
 }
 
 .storageBtns {
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
 }
 
 .storageBtn {
-  padding: 5px 14px;
-  border-radius: 20px;
+  flex: 1;
+  padding: 14px 0;
+  border-radius: 12px;
   border: 1.5px solid var(--color-border, #ddd);
   background: #fff;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: all 0.15s;
+  text-align: center;
 }
 
-.storageBtn:hover {
-  border-color: var(--color-primary, #E53935);
-  color: var(--color-primary, #E53935);
-  background: #fff5f5;
+.storageBtn:active {
+  transform: scale(0.97);
 }
 
 .storageBtnActive {
-  border-color: var(--color-primary, #E53935);
-  color: var(--color-primary, #E53935);
-  background: #fff5f5;
-  font-weight: 700;
+  border-color: #4A9EF5;
+  border-width: 2px;
+  color: #4A9EF5;
+  background: #fff;
+  font-weight: 800;
 }
 
 /* 사전승낙서 링크 */

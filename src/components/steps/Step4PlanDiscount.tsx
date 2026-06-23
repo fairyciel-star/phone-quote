@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CarrierId, Discount, DiscountType, Phone, Plan, PlanTier, PriceBreakdown } from '../../types';
 import { useQuoteStore } from '../../store/useQuoteStore';
 import { useSheetStore } from '../../store/useSheetStore';
@@ -467,129 +467,134 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
                 alt={isKidsPhone ? kidsDisplayName : selectedPhone!.name}
               />
             </div>
-            <div className={styles.phoneHeroInfo}>
-              <div className={styles.phoneHeroName}>
+            {/* 이름 + 통신사 배지 */}
+            <div className={styles.phoneHeroNameRow}>
+              <span className={styles.phoneHeroName}>
                 {isKidsPhone ? `${kidsEmoji} ${kidsDisplayName}` : selectedPhone!.name}
-              </div>
-              {quote && (
-                <>
-                  <div className={styles.phoneHeroOriginal}>
-                    <span className={styles.phoneHeroStrike}>{formatWon(quote.출고가)}</span>
-                  </div>
-                  <div className={styles.phoneHeroPriceRow}>
-                    <span className={styles.phoneHeroPrice}>{formatWon(Math.max(0, quote.할부원금 - gradePrice))}</span>
-                    {carrier && (
-                      <img
-                        src={`/images/${carrier.id}.png`}
-                        alt={carrier.name}
-                        className={styles.phoneHeroCarrier}
-                      />
-                    )}
-                  </div>
-                  <div className={styles.phoneHeroBadges}>
-                    {subsidyAmount > 0 && (
-                      <div className={styles.phoneHeroBadge}>구매지원금 {formatWon(subsidyAmount + extraSubsidy + specialSupport)}</div>
-                    )}
-                    {gradePrice > 0 && (
-                      <div className={`${styles.phoneHeroBadge} ${styles.badgeTrade}`}>중고폰 판매 {formatWon(gradePrice)}</div>
-                    )}
-                    {cardEnabled && quote.제휴카드24개월할인 > 0 && (
-                      <div className={`${styles.phoneHeroBadge} ${styles.badgeCard}`}>카드 발급 할인 {formatWon(quote.제휴카드24개월할인)}</div>
-                    )}
-                  </div>
-                </>
-              )}
-              {/* 색상 선택 */}
-              {isKidsPhone && kidsColors.length > 1 && (
-                <div className={styles.colorSelector}>
-                  <div className={styles.colorDots}>
-                    {kidsColors.map((c) => (
-                      <button
-                        key={c.name}
-                        className={`${styles.colorDot} ${(selectedColor ?? kidsColors[0]?.name) === c.name ? styles.colorDotActive : ''}`}
-                        style={{ backgroundColor: c.hex }}
-                        onClick={() => setColor(c.name)}
-                        title={c.name}
-                      />
-                    ))}
-                  </div>
-                  <div className={styles.colorInfo}>
-                    <span className={styles.colorName}>{selectedColor || kidsColors[0]?.name || ''}</span>
-                  </div>
-                </div>
-              )}
-              {!isKidsPhone && selectedPhone && selectedPhone.colors.length > 0 && (
-                <div className={styles.colorSelector}>
-                  <div className={styles.colorDots}>
-                    {selectedPhone.colors.map((c) => (
-                      <button
-                        key={c.name}
-                        className={`${styles.colorDot} ${selectedColor === c.name ? styles.colorDotActive : ''}`}
-                        style={{ backgroundColor: c.hex }}
-                        onClick={() => setColor(c.name)}
-                        title={c.name}
-                      />
-                    ))}
-                  </div>
-                  <div className={styles.colorInfo}>
-                    <span className={styles.colorName}>{selectedColor || ' '}</span>
-                  </div>
-                </div>
-              )}
-
-              {/* 용량 선택 — 항상 고정 표시 */}
-              {isKidsPhone ? (
-                (() => {
-                  const kidsStorages = (sheetLoaded && selectedPhoneId && carrierId
-                    ? getStoragesForPhone(selectedPhoneId, carrierId).map((s) => s.size)
-                    : kidsPhones
-                        .filter((r) => r.모델ID === selectedPhoneId && (!carrierId || r.통신사 === carrierId))
-                        .map((r) => r.용량)
-                        .filter((v, i, arr) => arr.indexOf(v) === i));
-                  return kidsStorages.length > 1 ? (
-                    <div className={styles.storageSelector}>
-                      <div className={styles.storageSelectorLabel}>용량을 선택해주세요</div>
-                      <div className={styles.storageBtns}>
-                        {kidsStorages.map((s) => (
-                          <button
-                            key={s}
-                            className={`${styles.storageBtn} ${selectedStorage === s ? styles.storageBtnActive : ''}`}
-                            onClick={() => setStorage(s)}
-                          >
-                            {s}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null;
-                })()
-              ) : (
-                (() => {
-                  const sheetStorages = sheetLoaded && selectedPhoneId && carrierId
-                    ? getStoragesForPhone(selectedPhoneId, carrierId as import('../../types').CarrierId)
-                    : [];
-                  const storages = sheetStorages.length > 0
-                    ? sheetStorages
-                    : (selectedPhone ? selectedPhone.storage.map((s) => ({ size: s.size, price: s.price })) : []);
-                  return storages.length > 0 ? (
-                    <div className={styles.storageSelector}>
-                      <div className={styles.storageSelectorLabel}>용량을 선택해주세요</div>
-                      <div className={styles.storageBtns}>
-                        {storages.map((s) => (
-                          <button
-                            key={s.size}
-                            className={`${styles.storageBtn} ${selectedStorage === s.size ? styles.storageBtnActive : ''}`}
-                            onClick={() => setStorage(s.size)}
-                          >
-                            {s.size}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null;
-                })()
-              )}
+              </span>
+              {carrierId && <span className={styles.carrierBadge}>{carrierId}</span>}
             </div>
+
+            {/* 색상 선택 */}
+            {isKidsPhone && kidsColors.length > 1 && (
+              <div className={styles.colorSelector}>
+                <div className={styles.colorDots}>
+                  {kidsColors.map((c) => (
+                    <button
+                      key={c.name}
+                      className={`${styles.colorDot} ${(selectedColor ?? kidsColors[0]?.name) === c.name ? styles.colorDotActive : ''}`}
+                      style={{ backgroundColor: c.hex }}
+                      onClick={() => setColor(c.name)}
+                      title={c.name}
+                    />
+                  ))}
+                </div>
+                <div className={styles.colorInfo}>
+                  <span className={styles.colorName}>{selectedColor || kidsColors[0]?.name || ''}</span>
+                </div>
+              </div>
+            )}
+            {!isKidsPhone && selectedPhone && selectedPhone.colors.length > 0 && (
+              <div className={styles.colorSelector}>
+                <div className={styles.colorDots}>
+                  {selectedPhone.colors.map((c) => (
+                    <button
+                      key={c.name}
+                      className={`${styles.colorDot} ${selectedColor === c.name ? styles.colorDotActive : ''}`}
+                      style={{ backgroundColor: c.hex }}
+                      onClick={() => setColor(c.name)}
+                      title={c.name}
+                    />
+                  ))}
+                </div>
+                <div className={styles.colorInfo}>
+                  <span className={styles.colorName}>{selectedColor || ' '}</span>
+                </div>
+              </div>
+            )}
+
+            {/* 가격 영역 */}
+            {quote && (() => {
+              const 실구매가 = Math.max(0, quote.할부원금 - gradePrice);
+              const discountPct = quote.출고가 > 0 ? Math.round((1 - 실구매가 / quote.출고가) * 100) : 0;
+              const totalSubsidy = subsidyAmount + extraSubsidy + specialSupport;
+              return (
+                <>
+                  <div className={styles.phoneHeroPriceLabel}>최종 기계값</div>
+                  <div className={styles.phoneHeroOriginalRow}>
+                    <span className={styles.phoneHeroStrike}>{formatWon(quote.출고가)}</span>
+                    {discountPct > 0 && (
+                      <span className={styles.discountPctBadge}>{discountPct}% ↓</span>
+                    )}
+                  </div>
+                  <div className={styles.phoneHeroPriceValue}>
+                    {formatWon(실구매가).replace('원', '')}<span className={styles.phoneHeroPriceUnit}>원</span>
+                  </div>
+                  {totalSubsidy > 0 && (
+                    <div className={styles.subsidyBadge}>구매지원금 {formatWon(totalSubsidy)}</div>
+                  )}
+                  {gradePrice > 0 && (
+                    <div className={`${styles.subsidyBadge} ${styles.subsidyBadgeTrade}`}>중고폰 판매 {formatWon(gradePrice)}</div>
+                  )}
+                  {cardEnabled && quote.제휴카드24개월할인 > 0 && (
+                    <div className={`${styles.subsidyBadge} ${styles.subsidyBadgeCard}`}>카드 발급 할인 {formatWon(quote.제휴카드24개월할인)}</div>
+                  )}
+                </>
+              );
+            })()}
+
+            {/* 용량 선택 */}
+            {isKidsPhone ? (
+              (() => {
+                const kidsStorages = (sheetLoaded && selectedPhoneId && carrierId
+                  ? getStoragesForPhone(selectedPhoneId, carrierId).map((s) => s.size)
+                  : kidsPhones
+                      .filter((r) => r.모델ID === selectedPhoneId && (!carrierId || r.통신사 === carrierId))
+                      .map((r) => r.용량)
+                      .filter((v, i, arr) => arr.indexOf(v) === i));
+                return kidsStorages.length > 1 ? (
+                  <div className={styles.storageSelector}>
+                    <div className={styles.storageSelectorLabel}>용량</div>
+                    <div className={styles.storageBtns}>
+                      {kidsStorages.map((s) => (
+                        <button
+                          key={s}
+                          className={`${styles.storageBtn} ${selectedStorage === s ? styles.storageBtnActive : ''}`}
+                          onClick={() => setStorage(s)}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null;
+              })()
+            ) : (
+              (() => {
+                const sheetStorages = sheetLoaded && selectedPhoneId && carrierId
+                  ? getStoragesForPhone(selectedPhoneId, carrierId as import('../../types').CarrierId)
+                  : [];
+                const storages = sheetStorages.length > 0
+                  ? sheetStorages
+                  : (selectedPhone ? selectedPhone.storage.map((s) => ({ size: s.size, price: s.price })) : []);
+                return storages.length > 0 ? (
+                  <div className={styles.storageSelector}>
+                    <div className={styles.storageBtns}>
+                    <div className={styles.storageSelectorLabel}>용량</div>
+                      {storages.map((s) => (
+                        <button
+                          key={s.size}
+                          className={`${styles.storageBtn} ${selectedStorage === s.size ? styles.storageBtnActive : ''}`}
+                          onClick={() => setStorage(s.size)}
+                        >
+                          {s.size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null;
+              })()
+            )}
           </div>
         )}
 
