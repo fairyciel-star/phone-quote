@@ -493,10 +493,10 @@ export function RebateTab() {
             {(() => {
               const cm = carrierMarginStore.margins[form.carrier as CarrierId];
               const items = [
-                { label: '공시지원금 (번호이동)', raw: matchedPriceRow.subsidy_mnp, color: '#86efac' },
-                { label: '공시지원금 (기변)', raw: matchedPriceRow.subsidy_change, color: '#86efac' },
-                { label: '선택약정 (번호이동)', raw: matchedPriceRow.agreement_mnp, color: '#93c5fd' },
-                { label: '선택약정 (기변)', raw: matchedPriceRow.agreement_change, color: '#93c5fd' },
+                { label: '공시지원금 (번호이동)', raw: matchedPriceRow.subsidy_mnp ?? 0, color: '#86efac' },
+                { label: '공시지원금 (기변)', raw: matchedPriceRow.subsidy_change ?? 0, color: '#86efac' },
+                { label: '선택약정 (번호이동)', raw: matchedPriceRow.agreement_mnp ?? 0, color: '#93c5fd' },
+                { label: '선택약정 (기변)', raw: matchedPriceRow.agreement_change ?? 0, color: '#93c5fd' },
               ];
               return (
                 <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
@@ -653,17 +653,17 @@ export function RebateTab() {
                   // 가입유형에 따라 공시지원금 컬럼 선택 (번호이동=mnp, 기기변경=change, 신규=010)
                   const subsidyBase = priceRow
                     ? row.subscription_type === '번호이동'
-                      ? priceRow.subsidy_mnp
+                      ? priceRow.subsidy_mnp ?? 0
                       : row.subscription_type === '기기변경'
-                        ? priceRow.subsidy_change
-                        : priceRow.subsidy_010
+                        ? priceRow.subsidy_change ?? 0
+                        : priceRow.subsidy_010 ?? 0
                     : null;
                   const agreementBase = priceRow
                     ? row.subscription_type === '번호이동'
-                      ? priceRow.agreement_mnp
+                      ? priceRow.agreement_mnp ?? 0
                       : row.subscription_type === '기기변경'
-                        ? priceRow.agreement_change
-                        : priceRow.agreement_010
+                        ? priceRow.agreement_change ?? 0
+                        : priceRow.agreement_010 ?? 0
                     : null;
                   const subsidyAfterCm = subsidyBase !== null ? Math.max(0, subsidyBase - cm) : null;
                   const agreementAfterCm = agreementBase !== null ? Math.max(0, agreementBase - cm) : null;

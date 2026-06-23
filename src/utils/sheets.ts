@@ -417,6 +417,14 @@ export interface PriceTableRow {
   readonly mnp_subsidy: number;    // 공통지원금(MNP), 원 단위
   readonly mnp_price: number;      // MNP 합계 실구매가 (원)
   readonly change_price: number;   // 기변 합계 실구매가 (원)
+  // 리베이트 탭에서 사용하는 확장 필드 (optional)
+  readonly plan_tier?: string;
+  readonly subsidy_mnp?: number;
+  readonly subsidy_change?: number;
+  readonly subsidy_010?: number;
+  readonly agreement_mnp?: number;
+  readonly agreement_change?: number;
+  readonly agreement_010?: number;
 }
 
 // 새 단가표 GID (일반 편집 URL 기준)
