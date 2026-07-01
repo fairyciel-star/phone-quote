@@ -91,38 +91,210 @@
   letter-spacing: 0.06em;
 }
 
-/* 최저가 검색 오버레이 */
+/* NO 조건 로딩 오버레이 */
 .searchOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(4px);
+  background: rgba(20, 22, 26, 0.5);
+  backdrop-filter: blur(6px);
   z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  animation: fadeIn 0.2s ease;
+}
+
+.noCard {
+  width: 100%;
+  max-width: 360px;
+  background: var(--color-surface, #fff);
+  border-radius: 22px;
+  padding: 22px 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  animation: cardPop 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: box-shadow 0.35s ease;
+}
+
+.noCardDone {
+  box-shadow: 0 20px 60px rgba(22, 163, 74, 0.28);
+}
+
+/* 헤더: 타이틀 + 배지 */
+.noCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.noCardTitle {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.noCardTitleSub {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #8a8f98);
+}
+
+.noCardTitleMain {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: var(--color-text, #16181d);
+  transition: color 0.3s ease;
+}
+
+.noCardDone .noCardTitleMain {
+  color: #16a34a;
+}
+
+/* 우측 원형 배지 */
+.noBadge {
+  flex-shrink: 0;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  animation: fadeIn 0.2s ease;
+  gap: 2px;
+  border: 2.5px dashed #d0d4da;
+  color: #a0a5ad;
+  transition: border-color 0.35s ease, background 0.35s ease, color 0.35s ease;
 }
 
-.searchIcon {
-  width: 72px;
-  height: 72px;
-  animation: searchBounce 1.2s ease-in-out infinite;
+.noBadgeDone {
+  border: 2.5px solid #16a34a;
+  background: rgba(22, 163, 74, 0.1);
+  color: #16a34a;
+  animation: badgePop 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.searchText {
-  font-size: 16px;
+.noBadgeCount {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.noBadgeCheck {
+  width: 22px;
+  height: 22px;
+}
+
+.noBadgeLabel {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.noSubtitle {
+  margin: 12px 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #8a8f98);
+  transition: color 0.3s ease;
+}
+
+.noCardDone .noSubtitle {
+  color: #16a34a;
+}
+
+/* 조건 리스트 */
+.condList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.condRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f4f5f7;
+  overflow: hidden;
+  transition: background 0.35s ease;
+}
+
+/* 에너지 차오르는 배경 */
+.condFill {
+  position: absolute;
+  inset: 0;
+  width: 0;
+  background: linear-gradient(90deg, rgba(22, 163, 74, 0.14), rgba(22, 163, 74, 0.08));
+  transition: width 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.condRowDone .condFill {
+  width: 100%;
+}
+
+/* 체크 아이콘 */
+.condCheck {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #d8dbe0;
+  color: #fff;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.condCheck svg {
+  width: 14px;
+  height: 14px;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.condRowDone .condCheck {
+  background: #16a34a;
+  transform: scale(1.08);
+}
+
+.condRowDone .condCheck svg {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.condLabel {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--color-primary);
-  letter-spacing: -0.2px;
+  color: var(--color-text, #16181d);
+  letter-spacing: -0.3px;
 }
 
-.searchDots {
-  display: inline-block;
-  width: 18px;
-  text-align: left;
+.condValue {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: #16a34a;
+  opacity: 0;
+  transform: translateX(6px);
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+.condRowDone .condValue {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 @keyframes fadeIn {
@@ -130,9 +302,13 @@
   to { opacity: 1; }
 }
 
-@keyframes searchBounce {
-  0%, 100% { transform: translate(0, 0) rotate(-8deg); }
-  25% { transform: translate(6px, -4px) rotate(6deg); }
-  50% { transform: translate(-4px, 2px) rotate(-10deg); }
-  75% { transform: translate(4px, -2px) rotate(8deg); }
+@keyframes cardPop {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes badgePop {
+  0% { transform: scale(0.6); }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); }
 }

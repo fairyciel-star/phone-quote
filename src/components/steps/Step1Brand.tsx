@@ -37,6 +37,17 @@ const BRANDS = [
   // },
 ] as const;
 
+// 로딩 중 차례로 채워지는 "없음" 조건 목록
+const NO_CONDITIONS = [
+  '부가서비스 가입 조건',
+  '제휴카드 발급 조건',
+  '기기 반납 조건',
+  '워치·태블릿 개통 조건',
+] as const;
+
+const CHARGE_MS = 380; // 조건 1개가 채워지는 간격
+const DONE_HOLD_MS = 720; // NO 조건 완성 후 다음 스텝까지 여운
+
 export function Step1Brand() {
   const selectedBrand = useQuoteStore((s) => s.selectedBrand);
   const carrierId = useQuoteStore((s) => s.carrierId);
@@ -49,36 +60,61 @@ export function Step1Brand() {
   const isKidsPath = selectedBrand === '키즈' && carrierId === null;
 
   const [searching, setSearching] = useState(false);
-  const [dots, setDots] = useState('');
-  const timerRef = useRef<number | null>(null);
+  const [charged, setCharged] = useState(0); // 채워진 조건 개수
+  const [complete, setComplete] = useState(false); // NO 조건 완성 여부
+  const pendingFilter = useRef<string | null>(null);
+  const timersRef = useRef<number[]>([]);
 
+  const clearTimers = () => {
+    timersRef.current.forEach((t) => window.clearTimeout(t));
+    timersRef.current = [];
+  };
+
+  // 조건이 하나씩 채워지는 시퀀스
   useEffect(() => {
     if (!searching) return;
+    setCharged(0);
+    setComplete(false);
+
     const interval = window.setInterval(() => {
-      setDots((prev) => (prev.length >= 3 ? '' : prev + '.'));
-    }, 300);
+      setCharged((prev) => {
+        const next = prev + 1;
+        if (next >= NO_CONDITIONS.length) {
+          window.clearInterval(interval);
+          const doneTimer = window.setTimeout(() => setComplete(true), CHARGE_MS);
+          timersRef.current.push(doneTimer);
+        }
+        return next;
+      });
+    }, CHARGE_MS);
+
     return () => window.clearInterval(interval);
   }, [searching]);
 
+  // NO 조건 완성 → 다음 스텝으로 이동
   useEffect(() => {
-    return () => {
-      if (timerRef.current !== null) window.clearTimeout(timerRef.current);
-    };
-  }, []);
-
-  const handleSelect = (filter: string) => {
-    if (searching) return;
-    hapticMedium();
-    setSearching(true);
-    timerRef.current = window.setTimeout(() => {
+    if (!complete) return;
+    const filter = pendingFilter.current;
+    const navTimer = window.setTimeout(() => {
       if (isKidsPath) {
         setSubscriptionType('신규가입');
-      } else {
+      } else if (filter) {
         setBrand(filter);
         if (filter === '키즈') setSubscriptionType('신규가입');
       }
       setStep(currentStep + 1);
-    }, 1000);
+    }, DONE_HOLD_MS);
+    timersRef.current.push(navTimer);
+    return () => window.clearTimeout(navTimer);
+  }, [complete, isKidsPath, setBrand, setSubscriptionType, setStep, currentStep]);
+
+  useEffect(() => () => clearTimers(), []);
+
+  const handleSelect = (filter: string) => {
+    if (searching) return;
+    hapticMedium();
+    pendingFilter.current = filter;
+    setSearching(true);
   };
 
   return (
@@ -99,26 +135,64 @@ export function Step1Brand() {
 
       {searching && (
         <div className={styles.searchOverlay} role="status" aria-live="polite">
-          <svg
-            className={styles.searchIcon}
-            viewBox="0 0 64 64"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <circle cx="26" cy="26" r="16" stroke="#4A3AFF" strokeWidth="5" />
-            <line
-              x1="38"
-              y1="38"
-              x2="54"
-              y2="54"
-              stroke="#4A3AFF"
-              strokeWidth="5"
-              strokeLinecap="round"
-            />
-            <circle cx="22" cy="22" r="4" fill="#4A3AFF" opacity="0.35" />
-          </svg>
-          <div className={styles.searchText}>
-            최저가 검색중입니다<span className={styles.searchDots}>{dots}</span>
+          <div className={`${styles.noCard} ${complete ? styles.noCardDone : ''}`}>
+            <div className={styles.noCardHeader}>
+              <div className={styles.noCardTitle}>
+                <span className={styles.noCardTitleSub}>조건은 깔끔하게</span>
+                <strong className={styles.noCardTitleMain}>
+                  {complete ? '전부 없음' : '조건 확인 중'}
+                </strong>
+              </div>
+              <div className={`${styles.noBadge} ${complete ? styles.noBadgeDone : ''}`}>
+                {complete ? (
+                  <>
+                    <svg className={styles.noBadgeCheck} viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M5 12.5l4.5 4.5L19 7.5"
+                        stroke="currentColor"
+                        strokeWidth="2.6"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <span className={styles.noBadgeLabel}>NO 조건</span>
+                  </>
+                ) : (
+                  <span className={styles.noBadgeCount}>{charged}/{NO_CONDITIONS.length}</span>
+                )}
+              </div>
+            </div>
+
+            <div className={styles.noSubtitle}>
+              {complete ? '숨은 조건 0 · 이 가격 그대로' : '숨은 조건이 있는지 살펴보는 중…'}
+            </div>
+
+            <div className={styles.condList}>
+              {NO_CONDITIONS.map((label, i) => {
+                const isDone = charged > i;
+                return (
+                  <div
+                    key={label}
+                    className={`${styles.condRow} ${isDone ? styles.condRowDone : ''}`}
+                  >
+                    <span className={styles.condFill} aria-hidden="true" />
+                    <span className={styles.condCheck} aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none">
+                        <path
+                          d="M5 12.5l4.5 4.5L19 7.5"
+                          stroke="currentColor"
+                          strokeWidth="2.6"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                    <span className={styles.condLabel}>{label}</span>
+                    <span className={styles.condValue}>없음</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
