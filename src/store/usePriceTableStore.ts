@@ -6,26 +6,26 @@ import { modelNameToPhoneId } from '../utils/modelMatch';
 
 export type { PriceTableRow, PriceTierKr };
 
-// model_name에서 용량 추출 (예: "갤럭시 S26 512G" → "512GB")
+// model_name에서 용량 추출 (예: "갤럭시 S26 512G" → "512GB", "갤럭시 S25엣지_256G" → "256GB")
 function extractStorage(modelName: string): string {
-  const mGb = modelName.match(/\s+(\d+)GB$/i);
+  const mGb = modelName.match(/[\s_](\d+)GB$/i);
   if (mGb) return `${mGb[1]}GB`;
-  const mG = modelName.match(/\s+(\d+)G$/i);
+  const mG = modelName.match(/[\s_](\d+)G$/i);
   if (mG) return `${mG[1]}GB`;
-  const mTb = modelName.match(/\s+(\d+)TB$/i);
+  const mTb = modelName.match(/[\s_](\d+)TB$/i);
   if (mTb) return `${mTb[1]}TB`;
-  const mT = modelName.match(/\s+(\d+)T$/i);
+  const mT = modelName.match(/[\s_](\d+)T$/i);
   if (mT) return `${mT[1]}TB`;
   return '256GB';
 }
 
-// model_name에서 용량 suffix 제거
+// model_name에서 용량 suffix 제거 (공백 또는 언더스코어 구분자 모두 처리)
 function stripStorage(name: string): string {
   return name
-    .replace(/\s+\d+GB$/i, '')
-    .replace(/\s+\d+G$/i, '')
-    .replace(/\s+\d+TB$/i, '')
-    .replace(/\s+\d+T$/i, '')
+    .replace(/[\s_]+\d+GB$/i, '')
+    .replace(/[\s_]+\d+G$/i, '')
+    .replace(/[\s_]+\d+TB$/i, '')
+    .replace(/[\s_]+\d+T$/i, '')
     .trim();
 }
 
@@ -47,13 +47,15 @@ interface PriceTableState {
   getRows: (carrier: CarrierId) => PriceTableRow[];
   updateRow: (carrier: CarrierId, idx: number, field: keyof PriceTableRow, value: number | string) => void;
   clear: (carrier?: CarrierId) => void;
+  /** phone.id + 통신사로 단가표에 존재하는지 여부 */
+  hasModel: (phoneId: string, carrier: CarrierId) => boolean;
   /** phone.id + 통신사 + 용량 + 가입유형으로 합계 가격 조회 */
   getSubsidyData: (
     phoneId: string,
     carrier: CarrierId,
     storage: string,
     subscriptionType: SubscriptionType,
-  ) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number };
+  ) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number; 가격문의: boolean };
 }
 
 function carrierKey(carrier: CarrierId): 'sktRows' | 'ktRows' | 'lguRows' {
@@ -121,6 +123,15 @@ export const usePriceTableStore = create<PriceTableState>()(
 
       getRows: (carrier) => get()[carrierKey(carrier)],
 
+      hasModel: (phoneId, carrier) => {
+        const rows = get().getRows(carrier);
+        return rows.some((row) => {
+          const rowBase = stripStorage(row.model_name);
+          const rowPhoneId = modelNameToPhoneId(rowBase) ?? modelNameToPhoneId(row.model_name);
+          return rowPhoneId === phoneId;
+        });
+      },
+
       updateRow: (carrier, idx, field, value) => {
         const key = carrierKey(carrier);
         const current = get()[key];
@@ -150,19 +161,19 @@ export const usePriceTableStore = create<PriceTableState>()(
           if (rowPhoneId === phoneId && rowStorage === normStorage) {
             const finalPrice = subscriptionType === '번호이동' ? row.mnp_price : row.change_price;
             const 공통지원금 = subscriptionType === '번호이동' ? row.mnp_subsidy : row.change_subsidy;
-            // 추가지원금 = 합계와의 차액 (공통지원금 외 나머지 지원금, 할부원금 계산용)
             const 추가지원금 = Math.max(0, row.retail_price - 공통지원금 - finalPrice);
             return {
               출고가: row.retail_price,
               공통지원금,
               추가지원금,
               특별지원: 0,
+              가격문의: row.price_inquiry,
               isPriceTableData: true as const,
             };
           }
         }
 
-        return { 출고가: 0, 공통지원금: 0, 추가지원금: 0, 특별지원: 0, isPriceTableData: false as const };
+        return { 출고가: 0, 공통지원금: 0, 추가지원금: 0, 특별지원: 0, 가격문의: false, isPriceTableData: false as const };
       },
     }),
     {

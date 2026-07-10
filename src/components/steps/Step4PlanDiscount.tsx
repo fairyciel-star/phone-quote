@@ -18,6 +18,7 @@ import { KakaoChannelBanner } from '../ui/KakaoChannelBanner';
 import { getRebate } from '../../lib/supabase-rebate';
 import { useRebateStore } from '../../store/useRebateStore';
 import { useCarrierMarginStore } from '../../store/useCarrierMarginStore';
+import { usePriceTableStore } from '../../store/usePriceTableStore';
 
 const plans = plansData as unknown as Plan[];
 const phones = phonesData as unknown as Phone[];
@@ -75,6 +76,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
   // const getSheetAddons = useSheetStore((s) => s.getAddonsForCarrier);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
   const getStoragesForPhone = useSheetStore((s) => s.getStoragesForPhone);
+  const ptGetSubsidyData = usePriceTableStore((s) => s.getSubsidyData);
   const getUsedPhoneList = useSheetStore((s) => s.getUsedPhoneList);
   const getSelectAgreementSubsidy = useSheetStore((s) => s.getSelectAgreementSubsidy);
   const kidsPhones = useSheetStore((s) => s.kidsPhones);
@@ -571,12 +573,17 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
               })()
             ) : (
               (() => {
-                const sheetStorages = sheetLoaded && selectedPhoneId && carrierId
-                  ? getStoragesForPhone(selectedPhoneId, carrierId as import('../../types').CarrierId)
+                const allPhoneStorages = selectedPhone
+                  ? selectedPhone.storage.map((s) => ({ size: s.size, price: s.price }))
                   : [];
-                const storages = sheetStorages.length > 0
-                  ? sheetStorages
-                  : (selectedPhone ? selectedPhone.storage.map((s) => ({ size: s.size, price: s.price })) : []);
+                // 단가표에 존재하는 용량만 필터링
+                const storages = sheetLoaded && selectedPhoneId && carrierId
+                  ? allPhoneStorages.filter((s) => {
+                      const subType = subscriptionType ?? '번호이동';
+                      const data = ptGetSubsidyData(selectedPhoneId, carrierId as import('../../types').CarrierId, s.size, subType);
+                      return data.출고가 > 0;
+                    })
+                  : allPhoneStorages;
                 return storages.length > 0 ? (
                   <div className={styles.storageSelector}>
                     <div className={styles.storageBtns}>
@@ -844,45 +851,48 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
           )}
           */}
 
-          {/* 카드 발급 조건 */}
-          <div className={styles.conditionRow}>
-            <div className={styles.conditionLeft}>
-              <span className={styles.conditionIcon}>💳</span>
-              <span className={styles.conditionLabel}>카드 발급 조건</span>
+          {/* 카드 발급 조건 - 추후 수정 예정 */}
+          <div style={{ display: 'none' }}>
+            <div className={styles.conditionRow}>
+              <div className={styles.conditionLeft}>
+                <span className={styles.conditionIcon}>💳</span>
+                <span className={styles.conditionLabel}>카드 발급 조건</span>
+              </div>
+              <button
+                className={`${styles.conditionToggle} ${cardEnabled ? styles.conditionYes : styles.conditionNo}`}
+                onClick={handleCardToggle}
+              >
+                {cardEnabled ? '✅ 있음' : '🟢 없음'}
+              </button>
             </div>
-            <button
-              className={`${styles.conditionToggle} ${cardEnabled ? styles.conditionYes : styles.conditionNo}`}
-              onClick={handleCardToggle}
-            >
-              {cardEnabled ? '✅ 있음' : '🟢 없음'}
-            </button>
+            {cardEnabled && sortedCardDiscounts.length > 0 && (
+              <div className={styles.conditionDetail}>
+                {sortedCardDiscounts.map((discount) => {
+                  const monthly = discount.monthlyDiscount ?? 0;
+                  const total24 = monthly * 24;
+                  return (
+                    <button
+                      key={discount.id}
+                      className={`${styles.cardOption} ${selectedCardId === discount.id ? styles.cardOptionActive : ''}`}
+                      onClick={() => handleCardSelect(discount.id)}
+                    >
+                      <div className={styles.cardOptionLeft}>
+                        <span className={styles.cardOptionName}>{discount.name}</span>
+                        {discount.conditions && <span className={styles.cardOptionCond}>{discount.conditions}</span>}
+                      </div>
+                      <div className={styles.cardOptionRight}>
+                        <span className={styles.cardOptionTotal}>-{formatWon(total24)}</span>
+                        <span className={styles.cardOptionMonthly}>월 -{formatWon(monthly)}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
-          {cardEnabled && sortedCardDiscounts.length > 0 && (
-            <div className={styles.conditionDetail}>
-              {sortedCardDiscounts.map((discount) => {
-                const monthly = discount.monthlyDiscount ?? 0;
-                const total24 = monthly * 24;
-                return (
-                  <button
-                    key={discount.id}
-                    className={`${styles.cardOption} ${selectedCardId === discount.id ? styles.cardOptionActive : ''}`}
-                    onClick={() => handleCardSelect(discount.id)}
-                  >
-                    <div className={styles.cardOptionLeft}>
-                      <span className={styles.cardOptionName}>{discount.name}</span>
-                      {discount.conditions && <span className={styles.cardOptionCond}>{discount.conditions}</span>}
-                    </div>
-                    <div className={styles.cardOptionRight}>
-                      <span className={styles.cardOptionTotal}>-{formatWon(total24)}</span>
-                      <span className={styles.cardOptionMonthly}>월 -{formatWon(monthly)}</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
 
-          {/* 기기 반납 조건 */}
+          {/* 기기 반납 조건 - 추후 수정 예정 */}
+          <div style={{ display: 'none' }}>
           <div className={styles.conditionRow}>
             <div className={styles.conditionLeft}>
               <span className={styles.conditionIcon}>🔄</span>
@@ -1077,6 +1087,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
               )}
             </div>
           )}
+          </div>
 
         </div>
 

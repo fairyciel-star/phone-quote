@@ -10,7 +10,7 @@ const phones = phonesData as unknown as Phone[];
  */
 function stripStorage(name: string): string {
   return name
-    .replace(/\s*(1T|2T|128G|256G|512G|1TB|2TB|128GB|256GB|512GB)\b/gi, '')
+    .replace(/[\s_]*(1T|2T|128G|256G|512G|1TB|2TB|128GB|256GB|512GB)\b/gi, '')
     .trim();
 }
 
@@ -44,9 +44,12 @@ function normalizeModelName(name: string): string {
 
 /**
  * 단가표 model_name → phones.json id 매핑
- * 1. 정규화 후 정확 매치
- * 2. 원본 정확 매치
- * 3. 정규화 후 부분 문자열 매치
+ *
+ * 매칭 원칙: 용량(256G, 512GB 등)을 제거한 뒤 전체 모델명이 정확히 일치해야 함.
+ * "갤럭시 S25" ≠ "갤럭시 S25 FE" — 뒤에 붙는 variant(FE, Ultra, + 등)까지 반드시 일치.
+ *
+ * 1. 정규화 후 정확 매치  (한글→영문 변환 후 비교)
+ * 2. 원본 정확 매치        (변환 없이 그대로 비교)
  */
 export function modelNameToPhoneId(modelName: string): string | null {
   if (!modelName) return null;
@@ -67,23 +70,7 @@ export function modelNameToPhoneId(modelName: string): string | null {
   );
   if (exactOrig) return exactOrig.id;
 
-  // 3. 정규화 후 부분 문자열 fuzzy 매치
-  const fuzzy = phones.find(
-    (p) =>
-      cleanNorm.includes(p.name) ||
-      p.name.includes(cleanNorm) ||
-      normalized.includes(p.name) ||
-      p.name.includes(normalized),
-  );
-  if (fuzzy) return fuzzy.id;
-
-  // 4. 단어 단위 포함 여부 매치 (예: "iPhone Air" → "iPhone 17 Air")
-  const queryWords = cleanNorm.toLowerCase().split(/\s+/);
-  const wordMatch = phones.find((p) => {
-    const targetLower = p.name.toLowerCase();
-    return queryWords.length >= 2 && queryWords.every((w) => targetLower.includes(w));
-  });
-  return wordMatch?.id ?? null;
+  return null;
 }
 
 /**

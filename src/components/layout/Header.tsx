@@ -1,11 +1,10 @@
-import { useEffect, useState } from 'react';
 import { useQuoteStore } from '../../store/useQuoteStore';
-import { lastRebateUpdatedAt } from '../../lib/supabase-rebate';
+import { usePriceTableStore } from '../../store/usePriceTableStore';
 import styles from './Header.module.css';
 
 const NAV_STEPS = [1, 2, 3, 4, 5];
 
-function formatRebateDate(isoStr: string | null): string {
+function formatPriceDate(isoStr: string | null): string {
   if (!isoStr) return '';
   const d = new Date(isoStr);
   if (isNaN(d.getTime())) return '';
@@ -19,15 +18,9 @@ export function Header() {
   const selectedBrand = useQuoteStore((s) => s.selectedBrand);
   const carrierId = useQuoteStore((s) => s.carrierId);
 
-  // 리베이트 최종 수정일 (1초 간격 폴링으로 갱신 감지)
-  const [rebateDate, setRebateDate] = useState(() => formatRebateDate(lastRebateUpdatedAt));
-  useEffect(() => {
-    const id = setInterval(() => {
-      const next = formatRebateDate(lastRebateUpdatedAt);
-      setRebateDate((prev) => prev !== next ? next : prev);
-    }, 1000);
-    return () => clearInterval(id);
-  }, []);
+  // 단가표(Google Sheets) 마지막 로드 시각
+  const lastLoaded = usePriceTableStore((s) => s.lastLoaded);
+  const priceDate = formatPriceDate(lastLoaded);
 
   const handleBack = () => {
     if (currentStep === 1) return reset();
@@ -51,7 +44,7 @@ export function Header() {
         </button>
         <div className={styles.navTitleWrap}>
           <span className={styles.navTitle}>오늘의 시세</span>
-          {rebateDate && <span className={styles.navDate}>{rebateDate}</span>}
+          {priceDate && <span className={styles.navDate}>{priceDate}</span>}
         </div>
         <button className={styles.navHomeBtn} onClick={reset}>
           처음부터

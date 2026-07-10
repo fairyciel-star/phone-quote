@@ -417,6 +417,7 @@ export interface PriceTableRow {
   readonly mnp_subsidy: number;    // 공통지원금(MNP), 원 단위
   readonly mnp_price: number;      // MNP 합계 실구매가 (원)
   readonly change_price: number;   // 기변 합계 실구매가 (원)
+  readonly price_inquiry: boolean; // O열 "가격문의" 여부
   // 리베이트 탭에서 사용하는 확장 필드 (optional)
   readonly plan_tier?: string;
   readonly subsidy_mnp?: number;
@@ -450,7 +451,7 @@ function parsePrice(val: string): number {
   return Number(val.replace(/,/g, '')) || 0;
 }
 
-// SKT: col0=모델코드, col1=모델명, col2=출고가, col3=공통지원금(기변), col4=공통지원금(MNP), col12=MNP합계, col13=기변합계
+// SKT: col0=모델코드, col1=모델명, col2=출고가, col3=공통지원금(기변), col4=공통지원금(MNP), col12=MNP합계, col13=기변합계, col14=가격문의
 function parseSktRows(lines: string[]): PriceTableRow[] {
   const rows: PriceTableRow[] = [];
   for (const line of lines) {
@@ -468,12 +469,13 @@ function parseSktRows(lines: string[]): PriceTableRow[] {
       mnp_subsidy: parsePrice(cols[4] ?? '') * 10000,
       mnp_price: parsePrice(cols[12] ?? ''),
       change_price: parsePrice(cols[13] ?? ''),
+      price_inquiry: cols[14]?.trim() === '가격문의',
     });
   }
   return rows;
 }
 
-// KT: col0=모델코드, col1=모델명, col2=출고가, col3=공통지원금(기변), col4=공통지원금(MNP), col12=MNP합계, col13=기변합계
+// KT: col0=모델코드, col1=모델명, col2=출고가, col3=공통지원금(기변), col4=공통지원금(MNP), col12=MNP합계, col13=기변합계, col14=가격문의
 function parseKtRows(lines: string[]): PriceTableRow[] {
   const rows: PriceTableRow[] = [];
   for (const line of lines) {
@@ -491,12 +493,13 @@ function parseKtRows(lines: string[]): PriceTableRow[] {
       mnp_subsidy: parsePrice(cols[4] ?? '') * 10000,
       mnp_price: parsePrice(cols[12] ?? ''),
       change_price: parsePrice(cols[13] ?? ''),
+      price_inquiry: cols[14]?.trim() === '가격문의',
     });
   }
   return rows;
 }
 
-// LGU+: col0=모델코드, col1=모델명, col2=출고가, col3=공통지원금(기변), col4=공통지원금(MNP), col12=MNP합계, col13=기변합계
+// LGU+: col0=모델코드, col1=모델명, col2=출고가, col3=공통지원금(기변), col4=공통지원금(MNP), col12=MNP합계, col13=기변합계, col14=가격문의
 function parseLguRows(lines: string[]): PriceTableRow[] {
   const rows: PriceTableRow[] = [];
   for (const line of lines) {
@@ -514,6 +517,7 @@ function parseLguRows(lines: string[]): PriceTableRow[] {
       mnp_subsidy: parsePrice(cols[4] ?? '') * 10000,
       mnp_price: parsePrice(cols[12] ?? ''),
       change_price: parsePrice(cols[13] ?? ''),
+      price_inquiry: cols[14]?.trim() === '가격문의',
     });
   }
   return rows;

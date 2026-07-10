@@ -61,8 +61,9 @@ function App() {
   const loadPriceTable = usePriceTableStore((s) => s.loadAll);
   const [hash, setHash] = useState(window.location.hash);
 
-  // 앱 시작 시 구글 시트에서 단가표 로드 (SKT/KT/LGU+ 3사)
+  // 앱 시작 시 구글 시트에서 단가표 항상 새로 로드 (캐시 무시)
   useEffect(() => {
+    usePriceTableStore.getState().clear();
     loadPriceTable(PRICE_SHEET_ID).then(() => {
       setSheetLoaded();
     });

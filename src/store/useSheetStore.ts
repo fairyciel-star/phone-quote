@@ -37,7 +37,7 @@ interface SheetState {
     용량: string,
     가입유형: SubscriptionType,
     planTier?: PlanTier
-  ) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number; isPriceTableData?: boolean };
+  ) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number; 가격문의?: boolean; isPriceTableData?: boolean };
   getPhoneBadge: (모델ID: string, 통신사: CarrierId) => string;
   getCardDiscountsForCarrier: (통신사: CarrierId) => Discount[];
   getPlansForCarrier: (통신사: CarrierId) => Plan[];
@@ -83,7 +83,7 @@ export const useSheetStore = create<SheetState>((set, get) => ({
   getSubsidy: (모델ID, 통신사, 용량, 가입유형, _planTier = '고가') => {
     // 단가표 스토어에서 합계 가격 우선 조회
     const ptData = usePriceTableStore.getState().getSubsidyData(모델ID, 통신사, 용량, 가입유형);
-    if (ptData.출고가 > 0) return ptData;
+    if (ptData.출고가 > 0) return { ...ptData, 가격문의: ptData.가격문의 };
 
     // 폴백: 기존 시트 데이터 (subsidies가 빈 경우 0 반환)
     const row = get().subsidies.find(

@@ -10,7 +10,12 @@ import { formatWon } from '../../utils/format';
 import { hapticMedium } from '../../utils/haptic';
 import { calculateLowestDevicePrice } from '../../utils/price';
 import { useRebateStore } from '../../store/useRebateStore';
+import { usePriceTableStore } from '../../store/usePriceTableStore';
 import styles from './Step3Phone.module.css';
+import KakaoAlertBanner from '../KakaoAlertBanner';
+
+const KAKAO_CHANNEL_URL = 'https://pf.kakao.com/_xmpfxcn';
+const KAKAO_ALERT_DISMISSED_KEY = 'kakaoAlertDismissed';
 
 const phones = phonesData as unknown as Phone[];
 
@@ -30,10 +35,12 @@ interface Alternative {
   price: number;
   savings: number;
   storage: string | null;
+  priceInquiry: boolean;
 }
 
 interface ComparisonData {
   currentPrice: number;
+  currentPriceInquiry: boolean;
   alternatives: Alternative[];
 }
 
@@ -60,13 +67,22 @@ export function Step3Phone() {
   );
   const [sortByPrice, setSortByPrice] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
+  const [showKakaoBanner, setShowKakaoBanner] = useState(true);
+
+  const hasModelInSheet = usePriceTableStore((s) => s.hasModel);
 
   const basePhones = carrierId
     ? phones.filter((p) => p.carriers.includes(carrierId))
     : phones;
+
+  // 단가표 로드 완료 후 해당 통신사에 매칭되는 모델만 표시
+  const visiblePhones = sheetLoaded && carrierId
+    ? basePhones.filter((p) => hasModelInSheet(p.id, carrierId))
+    : basePhones;
+
   const filteredPhones = brandFilter === '전체'
-    ? basePhones
-    : basePhones.filter((p) => p.brand === brandFilter);
+    ? visiblePhones
+    : visiblePhones.filter((p) => p.brand === brandFilter);
 
   const getDisplayPrice = (phone: Phone, storageSize: string): number => {
     if (sheetLoaded) {
@@ -134,6 +150,11 @@ export function Step3Phone() {
 
     if (currentResult.price === 0) return null;
 
+    // 현재 통신사 가격문의 여부
+    const currentPriceInquiry = phone.storage.some((s) =>
+      getSubsidy(phone.id, carrierId, s.size, subscriptionType)?.가격문의
+    );
+
     // 타 통신사는 번호이동 기준으로 비교
     const alternatives: Alternative[] = phone.carriers
       .filter((c) => c !== carrierId)
@@ -147,17 +168,22 @@ export function Step3Phone() {
           getSelectAgreementSubsidy,
           getRebateAmount,
         });
+        const altStorage = result.storage ?? phone.storage[0]?.size;
+        const priceInquiry = altStorage
+          ? (getSubsidy(phone.id, altCarrierId as CarrierId, altStorage, '번호이동')?.가격문의 ?? false)
+          : false;
         return {
           carrierId: altCarrierId as CarrierId,
           price: result.price,
           savings: currentResult.price - result.price,
           storage: result.storage,
+          priceInquiry,
         };
       })
       .filter((alt) => alt.price > 0 && alt.savings > 0)
       .sort((a, b) => b.savings - a.savings);
 
-    return { currentPrice: currentResult.price, alternatives };
+    return { currentPrice: currentResult.price, currentPriceInquiry, alternatives };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPhoneId, carrierId, subscriptionType, sheetLoaded, getRebateAmount]);
 
@@ -247,6 +273,13 @@ export function Step3Phone() {
         getSelectAgreementSubsidy,
         getRebateAmount,
       });
+      // 가격문의 여부: 선택 통신사 + 전 용량 + 전 가입유형 중 하나라도 가격문의이면 true
+      const subTypes = subscriptionType ? [subscriptionType] : ['번호이동', '기기변경'] as const;
+      const isPriceInquiry = sheetLoaded && carrierId
+        ? phone.storage.some((s) =>
+            subTypes.some((st) => getSubsidy(phone.id, carrierId, s.size, st)?.가격문의)
+          )
+        : false;
       return {
         phone,
         lowestDevicePrice: result.price,
@@ -254,6 +287,7 @@ export function Step3Phone() {
         retailPrice: result.retailPrice > 0 ? result.retailPrice : getDisplayPrice(phone, phone.storage[0].size),
         totalSubsidy: result.totalSubsidy,
         conditions: result.conditions,
+        isPriceInquiry,
       };
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -415,8 +449,24 @@ export function Step3Phone() {
     );
   }
 
+  const handleKakaoConfirm = () => {
+    window.open(KAKAO_CHANNEL_URL, '_blank', 'noopener,noreferrer');
+    setShowKakaoBanner(false);
+    localStorage.setItem(KAKAO_ALERT_DISMISSED_KEY, 'true');
+  };
+
+  const handleKakaoClose = () => {
+    setShowKakaoBanner(false);
+    localStorage.setItem(KAKAO_ALERT_DISMISSED_KEY, 'true');
+  };
+
   return (
     <>
+      <KakaoAlertBanner
+        visible={showKakaoBanner}
+        onConfirm={handleKakaoConfirm}
+        onClose={handleKakaoClose}
+      />
       <div className={styles.container}>
         <div className={styles.titleRow}>
           <h2 className={styles.title}>기기를 선택해주세요!</h2>
@@ -443,7 +493,7 @@ export function Step3Phone() {
         )}
 
         <div className={styles.list}>
-          {displayPhones.map(({ phone, retailPrice, lowestDevicePrice, lowestStorage: _ls }) => {
+          {displayPhones.map(({ phone, retailPrice, lowestDevicePrice, lowestStorage: _ls, isPriceInquiry }) => {
             const isSelected = selectedPhoneId === phone.id;
             return (
               <div key={phone.id}>
@@ -467,7 +517,13 @@ export function Step3Phone() {
                       </div>
                     </div>
                     <div className={styles.lowestPrice}>
-                      {retailPrice > 0 ? (
+                      {isPriceInquiry ? (
+                        <>
+                          <span className={styles.lowestPriceBadge}>▼ 오늘 최저가</span>
+                          <span className={styles.lowestPriceValue} style={{ fontSize: '18px' }}>가격문의</span>
+                          <span className={styles.lowestPriceRetail}>{formatWon(retailPrice)}</span>
+                        </>
+                      ) : retailPrice > 0 ? (
                         <>
                           <span className={styles.lowestPriceBadge}>▼ 오늘 최저가</span>
                           <span className={styles.lowestPriceValue}>{formatWon(lowestDevicePrice)}</span>
@@ -495,7 +551,8 @@ export function Step3Phone() {
                             : '통신사별 가격 비교'}
                         </span>
                         <span className={styles.comparisonSub}>
-                          현재 {currentCarrierName} {subscriptionType} {formatWon(comparisonData.currentPrice)}
+                          현재 {currentCarrierName} {subscriptionType}{' '}
+                          {comparisonData.currentPriceInquiry ? '가격문의' : formatWon(comparisonData.currentPrice)}
                         </span>
                       </div>
                     </div>
@@ -518,7 +575,9 @@ export function Step3Phone() {
                               <span className={styles.altCarrierName}>
                                 {carrier?.name ?? alt.carrierId} 번호이동
                               </span>
-                              <span className={styles.altPrice}>{formatWon(alt.price)}</span>
+                              <span className={styles.altPrice}>
+                                {alt.priceInquiry ? '가격문의' : formatWon(alt.price)}
+                              </span>
                             </div>
                             <div className={styles.altRight}>
                               {alt.savings > 0 && (
@@ -545,7 +604,9 @@ export function Step3Phone() {
                         <span className={styles.altCarrierName}>
                           {currentCarrierName} {subscriptionType}
                         </span>
-                        <span className={styles.altPrice}>{formatWon(comparisonData.currentPrice)}</span>
+                        <span className={styles.altPrice}>
+                          {comparisonData.currentPriceInquiry ? '가격문의' : formatWon(comparisonData.currentPrice)}
+                        </span>
                       </div>
                       <div className={styles.altRight}>
                         <span className={styles.selectLabel}>선택 →</span>
