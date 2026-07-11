@@ -63,6 +63,15 @@ export function Step2Carrier() {
         */}
       </div>
 
+      <div className={styles.preorderNotice}>
+        <span className={styles.preorderNoticeMain}>
+          🎉 갤럭시 Z Fold8 · Z Flip8 사전예약 진행중!
+        </span>
+        <span className={styles.preorderNoticeSub}>
+          아래 배너를 눌러주세요 👇
+        </span>
+      </div>
+
       <button className={styles.preorderBtn} onClick={handlePreorder}>
         <img
           className={styles.preorderImg}
