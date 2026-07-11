@@ -220,3 +220,125 @@
   padding-top: var(--space-md);
   margin-top: var(--space-sm);
 }
+
+/* === 영수증 스타일 월 납부 예상금액 카드 === */
+.receiptCard {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg) var(--space-lg) calc(var(--space-lg) + 4px);
+  margin-bottom: var(--space-md);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+}
+
+.receiptTitle {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: var(--space-lg);
+}
+
+.receiptRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 굵은 대표 행: 휴대폰 월 납부금 / 할부원금 / 단말기 총 할부이자 / 요금제 */
+.receiptMain {
+  padding: 7px 0;
+}
+
+.receiptMainLabel {
+  display: inline-flex;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.receiptMainValue {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.3px;
+}
+
+/* 들여쓴 하위 항목: 출고가 / 공통지원금 / 매장지원금 등 */
+.receiptSub {
+  padding: 3px 0;
+}
+
+.receiptSubLabel {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.receiptSubValue {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.receiptDiscount {
+  color: var(--color-primary);
+}
+
+/* 회색 알약 배지: 24개월 / 6개월 유지 */
+.receiptBadge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 100px;
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* 정보 아이콘 (i) */
+.receiptInfoIcon {
+  width: 14px;
+  height: 14px;
+  margin-left: 4px;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+/* 점선 구분선 */
+.receiptDivider {
+  border-top: 1px dashed var(--color-border);
+  margin: var(--space-md) 0;
+}
+
+/* 최종 합계 행 (박스 없음, 라벨 중앙, 금액 강조) */
+.receiptFinal {
+  display: flex;
+  align-items: center;
+  padding: 6px 0 2px;
+}
+
+.receiptFinalLabel {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.receiptVat {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.receiptFinalAmount {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: -0.3px;
+}
