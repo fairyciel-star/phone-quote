@@ -2,7 +2,7 @@
   {
     "id": "skt-5g-premium",
     "carrier": "SKT",
-    "name": "5GX 프리미엄",
+    "name": "베스트 109",
     "monthlyFee": 109000,
     "data": "무제한",
     "voice": "무제한",
@@ -51,7 +51,7 @@
   {
     "id": "kt-5g-super",
     "carrier": "KT",
-    "name": "5G 초이스 스페셜",
+    "name": "초이스 110",
     "monthlyFee": 110000,
     "data": "무제한",
     "voice": "무제한",
@@ -100,7 +100,7 @@
   {
     "id": "lgu-5g-premium",
     "carrier": "LGU",
-    "name": "5G 프리미어 슈퍼",
+    "name": "플러스플랜115",
     "monthlyFee": 115000,
     "data": "무제한",
     "voice": "무제한",
