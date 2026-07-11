@@ -65,7 +65,7 @@ export function Step3Phone() {
   const [brandFilter, setBrandFilter] = useState<BrandFilter>(
     selectedBrand === '삼성' ? '삼성' : selectedBrand === 'Apple' ? 'Apple' : '전체'
   );
-  const [sortByPrice, setSortByPrice] = useState(false);
+  const [sortByPrice, setSortByPrice] = useState(true);
   const [showComparison, setShowComparison] = useState(false);
   const [showKakaoBanner, setShowKakaoBanner] = useState(true);
 
