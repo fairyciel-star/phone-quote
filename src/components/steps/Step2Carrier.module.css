@@ -39,6 +39,29 @@
   font-weight: 700;
 }
 
+/* === 사전예약 버튼 (이미지형) === */
+.preorderBtn {
+  margin-top: var(--space-lg);
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: block;
+  transition: transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.preorderBtn:active {
+  transform: scale(0.98);
+}
+
+.preorderImg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
 /* === 키즈폰 카드 === */
 .kidsIcon {
   width: 48px;

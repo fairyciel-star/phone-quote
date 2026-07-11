@@ -20,6 +20,12 @@ export function Step2Carrier() {
     setStep(currentStep + 1);
   };
 
+  // 사전예약 버튼 — TODO: 기능 구현 예정 (현재는 자리표시)
+  const handlePreorder = () => {
+    hapticMedium();
+    // TODO: 사전예약 기능 연결
+  };
+
   // TODO: 신규가입(키즈폰) 기능 추가 후 아래 주석 해제
   // const handleKids = () => { hapticMedium(); startKidsPath(); };
 
@@ -56,6 +62,14 @@ export function Step2Carrier() {
         </Card>
         */}
       </div>
+
+      <button className={styles.preorderBtn} onClick={handlePreorder}>
+        <img
+          className={styles.preorderImg}
+          src="/images/banners/preorder.png"
+          alt="Galaxy Z Fold8 | Z Flip8 사전예약"
+        />
+      </button>
     </div>
   );
 }
