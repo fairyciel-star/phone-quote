@@ -8,11 +8,12 @@ import type { Phone, SubscriptionType, DiscountType } from '../../types';
 import type { CarrierId } from '../../types';
 import { formatWon } from '../../utils/format';
 import { hapticMedium } from '../../utils/haptic';
-import { calculateLowestDevicePrice } from '../../utils/price';
+import { calculateLowestDevicePrice, CARD_BENEFIT_DISCOUNT } from '../../utils/price';
 import { useRebateStore } from '../../store/useRebateStore';
 import { usePriceTableStore } from '../../store/usePriceTableStore';
 import styles from './Step3Phone.module.css';
 import KakaoAlertBanner from '../KakaoAlertBanner';
+import CardBenefitBanner from '../CardBenefitBanner';
 
 const KAKAO_CHANNEL_URL = 'https://pf.kakao.com/_xmpfxcn';
 const KAKAO_ALERT_DISMISSED_KEY = 'kakaoAlertDismissed';
@@ -53,6 +54,8 @@ export function Step3Phone() {
   const setColor = useQuoteStore((s) => s.setColor);
   const switchCarrier = useQuoteStore((s) => s.switchCarrier);
   const setSubscriptionType = useQuoteStore((s) => s.setSubscriptionType);
+  const cardBenefitApplied = useQuoteStore((s) => s.cardBenefitApplied);
+  const toggleCardBenefit = useQuoteStore((s) => s.toggleCardBenefit);
 
   const sheetLoaded = useSheetStore((s) => s.loaded);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
@@ -460,6 +463,11 @@ export function Step3Phone() {
     localStorage.setItem(KAKAO_ALERT_DISMISSED_KEY, 'true');
   };
 
+  const handleCardBenefitToggle = () => {
+    hapticMedium();
+    toggleCardBenefit();
+  };
+
   return (
     <>
       <KakaoAlertBanner
@@ -467,6 +475,7 @@ export function Step3Phone() {
         onConfirm={handleKakaoConfirm}
         onClose={handleKakaoClose}
       />
+      <CardBenefitBanner active={cardBenefitApplied} onClick={handleCardBenefitToggle} />
       <div className={styles.container}>
         <div className={styles.titleRow}>
           <h2 className={styles.title}>기기를 선택해주세요!</h2>
@@ -495,6 +504,10 @@ export function Step3Phone() {
         <div className={styles.list}>
           {displayPhones.map(({ phone, retailPrice, lowestDevicePrice, lowestStorage: _ls, isPriceInquiry }) => {
             const isSelected = selectedPhoneId === phone.id;
+            const displayedLowestPrice =
+              cardBenefitApplied && !isPriceInquiry && retailPrice > 0
+                ? lowestDevicePrice - CARD_BENEFIT_DISCOUNT
+                : lowestDevicePrice;
             return (
               <div key={phone.id}>
                 <Card
@@ -525,8 +538,10 @@ export function Step3Phone() {
                         </>
                       ) : retailPrice > 0 ? (
                         <>
-                          <span className={styles.lowestPriceBadge}>▼ 오늘 최저가</span>
-                          <span className={styles.lowestPriceValue}>{formatWon(lowestDevicePrice)}</span>
+                          <span className={styles.lowestPriceBadge}>
+                            {cardBenefitApplied ? '💳 카드혜택 적용가' : '▼ 오늘 최저가'}
+                          </span>
+                          <span className={styles.lowestPriceValue}>{formatWon(displayedLowestPrice)}</span>
                           <span className={styles.lowestPriceRetail}>{formatWon(retailPrice)}</span>
                         </>
                       ) : (
@@ -552,7 +567,9 @@ export function Step3Phone() {
                         </span>
                         <span className={styles.comparisonSub}>
                           현재 {currentCarrierName} {subscriptionType}{' '}
-                          {comparisonData.currentPriceInquiry ? '가격문의' : formatWon(comparisonData.currentPrice)}
+                          {comparisonData.currentPriceInquiry
+                            ? '가격문의'
+                            : formatWon(comparisonData.currentPrice - (cardBenefitApplied ? CARD_BENEFIT_DISCOUNT : 0))}
                         </span>
                       </div>
                     </div>
@@ -576,7 +593,9 @@ export function Step3Phone() {
                                 {carrier?.name ?? alt.carrierId} 번호이동
                               </span>
                               <span className={styles.altPrice}>
-                                {alt.priceInquiry ? '가격문의' : formatWon(alt.price)}
+                                {alt.priceInquiry
+                                  ? '가격문의'
+                                  : formatWon(alt.price - (cardBenefitApplied ? CARD_BENEFIT_DISCOUNT : 0))}
                               </span>
                             </div>
                             <div className={styles.altRight}>
@@ -605,7 +624,9 @@ export function Step3Phone() {
                           {currentCarrierName} {subscriptionType}
                         </span>
                         <span className={styles.altPrice}>
-                          {comparisonData.currentPriceInquiry ? '가격문의' : formatWon(comparisonData.currentPrice)}
+                          {comparisonData.currentPriceInquiry
+                            ? '가격문의'
+                            : formatWon(comparisonData.currentPrice - (cardBenefitApplied ? CARD_BENEFIT_DISCOUNT : 0))}
                         </span>
                       </div>
                       <div className={styles.altRight}>

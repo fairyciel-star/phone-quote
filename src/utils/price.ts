@@ -2,6 +2,9 @@ import type { CarrierId, Discount, DiscountType, Phone, Plan, PlanTier, PriceBre
 
 const 연이율 = 0.059;
 
+/** 기기선택 화면 "제휴카드 신청" 배너 적용 시 할인액 */
+export const CARD_BENEFIT_DISCOUNT = 400000;
+
 export function calculate월할부금(할부원금: number, months: number): number {
   if (months <= 0) return 할부원금;
   if (할부원금 <= 0) return 0;
@@ -159,8 +162,10 @@ export function calculateFullQuote(params: {
   공통지원금Override?: number;
   추가지원금Override?: number;
   특별지원Override?: number;
+  /** 기기선택 화면 "제휴카드 신청" 배너가 적용된 상태면 CARD_BENEFIT_DISCOUNT, 아니면 0 */
+  카드혜택할인?: number;
 }): PriceBreakdown {
-  const { phone, storage, carrierId, plan, discountType, selectedDiscounts, 할부개월 } = params;
+  const { phone, storage, carrierId, plan, discountType, selectedDiscounts, 할부개월, 카드혜택할인 = 0 } = params;
 
   const storageOption = phone.storage.find((s) => s.size === storage);
   const json출고가 = storageOption?.price ?? 0;
@@ -189,9 +194,10 @@ export function calculateFullQuote(params: {
   const 부가서비스추가할인 = addons.reduce((sum, d) => sum + (d.추가할인 ?? 0), 0);
   const 월부가서비스료 = addons.reduce((sum, d) => sum + (d.monthlyFee ?? 0), 0);
 
-  // 할부원금 = 출고가 - 공통지원금 - 추가지원금 - 특별지원 - 제휴카드24개월할인 - 부가서비스추가할인
-  const base할부원금 = 출고가 - 공통지원금 - 추가지원금 - 특별지원;
-  const 할부원금 = Math.max(0, base할부원금 - 제휴카드24개월할인 - 부가서비스추가할인);
+  // 할부원금 = 출고가 - 공통지원금 - 추가지원금 - 특별지원 - 제휴카드24개월할인 - 부가서비스추가할인, 0원 미만 방지
+  // 카드혜택할인(기기선택 화면 배너)은 마지막에 적용하며 마이너스 표시를 그대로 허용한다
+  const base할부원금 = Math.max(0, 출고가 - 공통지원금 - 추가지원금 - 특별지원 - 제휴카드24개월할인 - 부가서비스추가할인);
+  const 할부원금 = base할부원금 - 카드혜택할인;
   const 월할부금 = calculate월할부금(할부원금, 할부개월);
 
   const 선택약정할인 =
@@ -209,6 +215,7 @@ export function calculateFullQuote(params: {
     추가지원금,
     특별지원,
     제휴카드24개월할인,
+    카드혜택할인,
     부가서비스추가할인,
     선택약정할인,
     할부원금,

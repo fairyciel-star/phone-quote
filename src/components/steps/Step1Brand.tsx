@@ -106,7 +106,10 @@ export function Step1Brand() {
     }, DONE_HOLD_MS);
     timersRef.current.push(navTimer);
     return () => window.clearTimeout(navTimer);
-  }, [complete, isKidsPath, setBrand, setSubscriptionType, setStep, currentStep]);
+    // currentStep은 의도적으로 deps에서 제외: complete가 true가 된 시점의 값을 써야 하며,
+    // deps에 넣으면 setStep 이후 currentStep 변경으로 effect가 재실행되어 스텝이 한 번 더 건너뛰는 버그가 있었음
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [complete, isKidsPath, setBrand, setSubscriptionType, setStep]);
 
   useEffect(() => () => clearTimers(), []);
 

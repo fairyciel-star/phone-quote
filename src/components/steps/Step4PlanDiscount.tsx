@@ -9,7 +9,7 @@ import plansData from '../../data/plans.json';
 import phonesData from '../../data/phones.json';
 import discountsData from '../../data/discounts.json';
 import carriersData from '../../data/carriers.json';
-import { calculate월할부금, calculate선택약정할인, calculateFullQuote } from '../../utils/price';
+import { calculate월할부금, calculate선택약정할인, calculateFullQuote, CARD_BENEFIT_DISCOUNT } from '../../utils/price';
 import { detectDevice, findMatchingUsedPhone } from '../../utils/detectDevice';
 import { formatWon } from '../../utils/format';
 import styles from './Step4PlanDiscount.module.css';
@@ -54,7 +54,7 @@ export function Step4PlanDiscount() {
   const scrollToTop = () => topRef.current?.scrollIntoView({ behavior: 'smooth' });
 
   const state = useQuoteStore();
-  const { carrierId, selectedPhoneId, selectedStorage, selectedColor, selectedPlanId, discountType, selectedDiscountIds: selectedIds, 할부개월, subscriptionType, selectedBrand } = state;
+  const { carrierId, selectedPhoneId, selectedStorage, selectedColor, selectedPlanId, discountType, selectedDiscountIds: selectedIds, 할부개월, subscriptionType, selectedBrand, cardBenefitApplied } = state;
   const isKidsPhone = selectedBrand === '키즈' || (subscriptionType === '신규가입' && selectedBrand !== 'Apple');
   const setPlan = useQuoteStore((s) => s.setPlan);
 const setDiscountType = useQuoteStore((s) => s.setDiscountType);
@@ -413,10 +413,12 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
       const cardDiscountObjs = selectedDiscounts.filter((d) => d.type === '제휴카드');
       const 월카드할인 = cardDiscountObjs.reduce((sum, d) => sum + (d.monthlyDiscount ?? 0), 0);
       const 제휴카드24개월할인 = 월카드할인 * 24;
+      const 카드혜택할인 = cardBenefitApplied ? CARD_BENEFIT_DISCOUNT : 0;
       const 선택약정할인 = discountType === '선택약정'
         ? calculate선택약정할인(plan.monthlyFee, plan.선택약정할인율 ?? 0.25)
         : 0;
-      const 할부원금 = Math.max(0, 기기실구매가 - 제휴카드24개월할인);
+      const 기기실구매가할인적용 = Math.max(0, 기기실구매가 - 제휴카드24개월할인);
+      const 할부원금 = 기기실구매가할인적용 - 카드혜택할인;
       const 월할부금 = calculate월할부금(할부원금, 할부개월);
       const 월요금제 = plan.monthlyFee - 선택약정할인;
       return {
@@ -425,6 +427,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
         추가지원금,
         특별지원,
         제휴카드24개월할인,
+        카드혜택할인,
         부가서비스추가할인: 0,
         선택약정할인,
         할부원금,
@@ -449,8 +452,9 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
       공통지원금Override: activeSheetSubsidy?.공통지원금,
       추가지원금Override: activeSheetSubsidy?.추가지원금,
       특별지원Override: activeSheetSubsidy?.특별지원,
+      카드혜택할인: cardBenefitApplied ? CARD_BENEFIT_DISCOUNT : 0,
     });
-  }, [isKidsPhone, kidsPhoneData, selectedPhone, plan, selectedStorage, carrierId, discountType, selectedDiscounts, 할부개월, activeSheetSubsidy, rebateMap]);
+  }, [isKidsPhone, kidsPhoneData, selectedPhone, plan, selectedStorage, carrierId, discountType, selectedDiscounts, 할부개월, activeSheetSubsidy, rebateMap, cardBenefitApplied]);
 
 
 
@@ -517,7 +521,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
 
             {/* 가격 영역 */}
             {quote && (() => {
-              const 실구매가 = Math.max(0, quote.할부원금 - gradePrice);
+              const 실구매가 = quote.할부원금 - gradePrice;
               const discountPct = quote.출고가 > 0 ? Math.round((1 - 실구매가 / quote.출고가) * 100) : 0;
               const totalSubsidy = subsidyAmount + extraSubsidy + specialSupport;
               return (
@@ -1112,6 +1116,15 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
                 </div>
               )}
 
+              {quote.카드혜택할인 > 0 && (
+                <div className={summaryStyles.breakdownRow}>
+                  <span className={summaryStyles.breakdownLabel}>제휴카드 할인</span>
+                  <span className={`${summaryStyles.breakdownValue} ${summaryStyles.breakdownDiscount}`}>
+                    -{formatWon(quote.카드혜택할인)}
+                  </span>
+                </div>
+              )}
+
               {quote.추가지원금 > 0 && (
                 <div className={summaryStyles.breakdownRow}>
                   <span className={summaryStyles.breakdownLabel}>최대 매장지원금</span>
@@ -1134,7 +1147,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
 
               <div className={`${summaryStyles.breakdownRow} ${summaryStyles.breakdownHighlight}`}>
                 <span>최종 기계값</span>
-                <span>{formatWon(Math.max(0, quote.할부원금 - gradePrice))}</span>
+                <span>{formatWon(quote.할부원금 - gradePrice)}</span>
               </div>
 
               <div className={`${summaryStyles.breakdownRow} ${summaryStyles.breakdownTotal}`}>
@@ -1142,7 +1155,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
                   <div>월 할부금액({할부개월}개월)</div>
                   <div style={{ fontSize: '11px', fontWeight: 'normal', opacity: 0.7 }}>할부이자 5.9% 포함</div>
                 </div>
-                <span>{formatWon(calculate월할부금(Math.max(0, quote.할부원금 - gradePrice), 할부개월))}</span>
+                <span>{formatWon(calculate월할부금(quote.할부원금 - gradePrice, 할부개월))}</span>
               </div>
             </div>
 
@@ -1180,7 +1193,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
       </div>
       <StepNavigation
         canProceed={selectedPlanId !== null}
-        priceDisplay={quote ? { 출고가: quote.출고가, 할부원금: Math.max(0, quote.할부원금 - gradePrice) } : undefined}
+        priceDisplay={quote ? { 출고가: quote.출고가, 할부원금: quote.할부원금 - gradePrice } : undefined}
       />
     </>
   );

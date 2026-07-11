@@ -73,6 +73,7 @@ export interface PriceBreakdown {
   readonly 추가지원금: number;
   readonly 특별지원: number;
   readonly 제휴카드24개월할인: number;
+  readonly 카드혜택할인: number;
   readonly 부가서비스추가할인: number;
   readonly 선택약정할인: number;
   readonly 할부원금: number;
