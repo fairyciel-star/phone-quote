@@ -20,6 +20,96 @@
   gap: var(--space-lg);
 }
 
+/* === 개인정보 수집·이용 동의 === */
+.privacySection {
+  margin-top: var(--space-lg);
+}
+
+.privacyBox {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+}
+
+.privacyBoxTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: var(--space-sm);
+}
+
+.privacyRows {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.privacyRow {
+  display: flex;
+  gap: var(--space-sm);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.privacyKey {
+  flex-shrink: 0;
+  width: 62px;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.privacyVal {
+  color: var(--color-text);
+  word-break: keep-all;
+}
+
+.privacyNote {
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px dashed var(--color-border);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  word-break: keep-all;
+}
+
+.privacyCheck {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: var(--space-md);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.privacyCheckbox {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.privacyCheckLabel {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text);
+  word-break: keep-all;
+}
+
+.privacyRequired {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.privacyError {
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--color-primary);
+}
+
 /* === Store Section === */
 .storeSection {
   margin-top: var(--space-xl);

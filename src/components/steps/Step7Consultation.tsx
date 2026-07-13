@@ -45,6 +45,7 @@ export function Step7Consultation() {
   const carrier = carriersData.find((c) => c.id === carrierId);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [agreedPrivacy, setAgreedPrivacy] = useState(false);
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -58,6 +59,10 @@ export function Step7Consultation() {
       newErrors.phone = '연락처를 입력해주세요';
     } else if (!/^01[016789]\d{7,8}$/.test(phoneDigits)) {
       newErrors.phone = '올바른 휴대폰 번호를 입력해주세요';
+    }
+
+    if (!agreedPrivacy) {
+      newErrors.privacy = '개인정보 수집·이용에 동의해주세요';
     }
 
     setErrors(newErrors);
@@ -143,6 +148,7 @@ export function Step7Consultation() {
 • 연락처: ${consultation.phone}
 • 희망시간: ${consultation.preferredTime}
 ${consultation.memo ? `• 메모: ${consultation.memo}` : ''}
+• 개인정보 수집·이용 동의: 동의함
 
 <b>📋 선택 정보</b>
 • 가입유형: ${subscriptionType ?? '-'}
@@ -169,7 +175,7 @@ ${quoteText}
     setConsultation({ phone: formatPhone(value) });
   };
 
-  const canProceed = !sending && consultation.name.trim() !== '' && consultation.phone.replace(/\D/g, '').length >= 10;
+  const canProceed = !sending && consultation.name.trim() !== '' && consultation.phone.replace(/\D/g, '').length >= 10 && agreedPrivacy;
 
   return (
     <>
@@ -242,6 +248,56 @@ ${quoteText}
             onChange={(e) => setConsultation({ memo: e.target.value })}
             rows={3}
           />
+        </div>
+
+        {/* 개인정보 수집·이용 동의 */}
+        <div className={styles.privacySection}>
+          <div className={styles.privacyBox}>
+            <div className={styles.privacyBoxTitle}>[개인정보 수집·이용 안내]</div>
+            <div className={styles.privacyRows}>
+              <div className={styles.privacyRow}>
+                <span className={styles.privacyKey}>수집 항목</span>
+                <span className={styles.privacyVal}>고객명, 연락처</span>
+              </div>
+              <div className={styles.privacyRow}>
+                <span className={styles.privacyKey}>이용 목적</span>
+                <span className={styles.privacyVal}>휴대폰 견적 상담 및 상담 결과 안내</span>
+              </div>
+              <div className={styles.privacyRow}>
+                <span className={styles.privacyKey}>보유 기간</span>
+                <span className={styles.privacyVal}>상담 완료 후 3개월 이내 파기</span>
+              </div>
+              <div className={styles.privacyRow}>
+                <span className={styles.privacyKey}>처리 근거</span>
+                <span className={styles.privacyVal}>고객이 요청한 상담 서비스 제공</span>
+              </div>
+            </div>
+            <div className={styles.privacyNote}>
+              ※ 개인정보 제공을 원하지 않는 경우 상담 신청이 제한될 수 있습니다.
+            </div>
+          </div>
+
+          <label className={styles.privacyCheck}>
+            <input
+              type="checkbox"
+              className={styles.privacyCheckbox}
+              checked={agreedPrivacy}
+              onChange={(e) => {
+                setAgreedPrivacy(e.target.checked);
+                if (e.target.checked && errors.privacy) {
+                  setErrors((prev) => {
+                    const next = { ...prev };
+                    delete next.privacy;
+                    return next;
+                  });
+                }
+              }}
+            />
+            <span className={styles.privacyCheckLabel}>
+              <b className={styles.privacyRequired}>[필수]</b> 위 개인정보 수집·이용에 동의합니다
+            </span>
+          </label>
+          {errors.privacy && <p className={styles.privacyError}>{errors.privacy}</p>}
         </div>
 
         {/* 매장 위치 */}
