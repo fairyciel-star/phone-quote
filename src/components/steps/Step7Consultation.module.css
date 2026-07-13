@@ -26,6 +26,7 @@
 }
 
 .privacyBox {
+  margin-top: var(--space-md);
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -76,9 +77,8 @@
 
 .privacyCheck {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
-  margin-top: var(--space-md);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }

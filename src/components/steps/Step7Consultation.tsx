@@ -252,31 +252,6 @@ ${quoteText}
 
         {/* 개인정보 수집·이용 동의 */}
         <div className={styles.privacySection}>
-          <div className={styles.privacyBox}>
-            <div className={styles.privacyBoxTitle}>[개인정보 수집·이용 안내]</div>
-            <div className={styles.privacyRows}>
-              <div className={styles.privacyRow}>
-                <span className={styles.privacyKey}>수집 항목</span>
-                <span className={styles.privacyVal}>고객명, 연락처</span>
-              </div>
-              <div className={styles.privacyRow}>
-                <span className={styles.privacyKey}>이용 목적</span>
-                <span className={styles.privacyVal}>휴대폰 견적 상담 및 상담 결과 안내</span>
-              </div>
-              <div className={styles.privacyRow}>
-                <span className={styles.privacyKey}>보유 기간</span>
-                <span className={styles.privacyVal}>상담 완료 후 3개월 이내 파기</span>
-              </div>
-              <div className={styles.privacyRow}>
-                <span className={styles.privacyKey}>처리 근거</span>
-                <span className={styles.privacyVal}>고객이 요청한 상담 서비스 제공</span>
-              </div>
-            </div>
-            <div className={styles.privacyNote}>
-              ※ 개인정보 제공을 원하지 않는 경우 상담 신청이 제한될 수 있습니다.
-            </div>
-          </div>
-
           <label className={styles.privacyCheck}>
             <input
               type="checkbox"
@@ -294,10 +269,37 @@ ${quoteText}
               }}
             />
             <span className={styles.privacyCheckLabel}>
-              <b className={styles.privacyRequired}>[필수]</b> 위 개인정보 수집·이용에 동의합니다
+              <b className={styles.privacyRequired}>[필수]</b> 개인정보 수집·이용에 동의합니다
             </span>
           </label>
           {errors.privacy && <p className={styles.privacyError}>{errors.privacy}</p>}
+
+          {!agreedPrivacy && (
+            <div className={styles.privacyBox}>
+              <div className={styles.privacyBoxTitle}>[개인정보 수집·이용 안내]</div>
+              <div className={styles.privacyRows}>
+                <div className={styles.privacyRow}>
+                  <span className={styles.privacyKey}>수집 항목</span>
+                  <span className={styles.privacyVal}>고객명, 연락처</span>
+                </div>
+                <div className={styles.privacyRow}>
+                  <span className={styles.privacyKey}>이용 목적</span>
+                  <span className={styles.privacyVal}>휴대폰 견적 상담 및 상담 결과 안내</span>
+                </div>
+                <div className={styles.privacyRow}>
+                  <span className={styles.privacyKey}>보유 기간</span>
+                  <span className={styles.privacyVal}>상담 완료 후 3개월 이내 파기</span>
+                </div>
+                <div className={styles.privacyRow}>
+                  <span className={styles.privacyKey}>처리 근거</span>
+                  <span className={styles.privacyVal}>고객이 요청한 상담 서비스 제공</span>
+                </div>
+              </div>
+              <div className={styles.privacyNote}>
+                ※ 개인정보 제공을 원하지 않는 경우 상담 신청이 제한될 수 있습니다.
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 매장 위치 */}
