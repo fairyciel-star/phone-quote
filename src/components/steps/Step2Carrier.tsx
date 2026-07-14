@@ -12,6 +12,7 @@ export function Step2Carrier() {
   const setCarrier = useQuoteStore((s) => s.setCarrier);
   const setStep = useQuoteStore((s) => s.setStep);
   const currentStep = useQuoteStore((s) => s.currentStep);
+  const enterPreorder = useQuoteStore((s) => s.enterPreorder);
   // const startKidsPath = useQuoteStore((s) => s.startKidsPath); // TODO: 신규가입 활성화 시 해제
 
   const handleSelect = (carrierId: CarrierId) => {
@@ -20,10 +21,10 @@ export function Step2Carrier() {
     setStep(currentStep + 1);
   };
 
-  // 사전예약 버튼 — TODO: 기능 구현 예정 (현재는 자리표시)
+  // 사전예약 배너 → 별도 사전예약 신청 페이지로 이동
   const handlePreorder = () => {
     hapticMedium();
-    // TODO: 사전예약 기능 연결
+    enterPreorder();
   };
 
   // TODO: 신규가입(키즈폰) 기능 추가 후 아래 주석 해제

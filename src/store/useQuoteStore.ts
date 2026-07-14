@@ -4,6 +4,9 @@ import type { CarrierId, ConsultationForm, DiscountType, QuoteState, Subscriptio
 interface QuoteActions {
   showLanding: boolean;
   enterQuote: () => void;
+  showPreorder: boolean;
+  enterPreorder: () => void;
+  exitPreorder: () => void;
   cardBenefitApplied: boolean;
   toggleCardBenefit: () => void;
   setStep: (step: number) => void;
@@ -52,6 +55,10 @@ export const useQuoteStore = create<QuoteState & QuoteActions>((set) => ({
   showLanding: true,
 
   enterQuote: () => set({ showLanding: false }),
+
+  showPreorder: false,
+  enterPreorder: () => set({ showPreorder: true }),
+  exitPreorder: () => set({ showPreorder: false }),
 
   cardBenefitApplied: false,
   toggleCardBenefit: () => set((state) => ({ cardBenefitApplied: !state.cardBenefitApplied })),
@@ -150,5 +157,5 @@ export const useQuoteStore = create<QuoteState & QuoteActions>((set) => ({
       consultation: { ...state.consultation, ...form },
     })),
 
-  reset: () => set({ ...initialState, showLanding: true, cardBenefitApplied: false }),
+  reset: () => set({ ...initialState, showLanding: true, showPreorder: false, cardBenefitApplied: false }),
 }));

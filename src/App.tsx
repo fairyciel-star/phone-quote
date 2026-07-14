@@ -4,6 +4,7 @@ import { useSheetStore } from './store/useSheetStore';
 import { useRebateStore } from './store/useRebateStore';
 import { usePriceTableStore } from './store/usePriceTableStore';
 import { Landing } from './components/Landing';
+import { PreorderPage } from './components/PreorderPage';
 import { Header } from './components/layout/Header';
 import { StepProgress } from './components/layout/StepProgress';
 import { Step1Brand } from './components/steps/Step1Brand';
@@ -57,6 +58,7 @@ function StepContent() {
 
 function App() {
   const showLanding = useQuoteStore((s) => s.showLanding);
+  const showPreorder = useQuoteStore((s) => s.showPreorder);
   const setSheetLoaded = useSheetStore((s) => s.setLoaded);
   const loadPriceTable = usePriceTableStore((s) => s.loadAll);
   const [hash, setHash] = useState(window.location.hash);
@@ -92,7 +94,13 @@ function App() {
 
     const handlePopState = () => {
       if (window.location.hash === '#/admin') return;
-      const { currentStep, showLanding: onLanding, setStep, selectedBrand, carrierId } = useQuoteStore.getState();
+      const { currentStep, showLanding: onLanding, showPreorder: onPreorder, exitPreorder, setStep, selectedBrand, carrierId } = useQuoteStore.getState();
+      // 사전예약 페이지에서는 뒤로가기 시 페이지만 닫고 스텝은 그대로 유지
+      if (onPreorder) {
+        exitPreorder();
+        history.pushState({ appStep: true }, '');
+        return;
+      }
       if (onLanding) return;
       // startKidsPath() 전용 경로(carrierId=null): 제조사(3) → 통신사(1)로 직행
       if (selectedBrand === '키즈' && carrierId === null && currentStep === 3) {
@@ -118,6 +126,10 @@ function App() {
   // Admin route: /#/admin
   if (hash === '#/admin') {
     return <AdminPage />;
+  }
+
+  if (showPreorder) {
+    return <PreorderPage />;
   }
 
   if (showLanding) {

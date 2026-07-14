@@ -1,0 +1,216 @@
+.page {
+  min-height: 100svh;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+/* === 헤더 === */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  background: #c92819;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.backBtn {
+  font-size: 20px;
+  color: #ffffff;
+  padding: 6px 10px;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.backBtn:active {
+  opacity: 0.7;
+}
+
+.headerTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.headerSpacer {
+  width: 32px;
+}
+
+/* === 스크롤 영역 === */
+.scroll {
+  flex: 1;
+  padding: var(--space-lg);
+  padding-bottom: calc(var(--space-xl) + var(--space-lg));
+}
+
+/* === 히어로 === */
+.hero {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: var(--space-lg);
+}
+
+.heroImg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.intro {
+  margin-bottom: var(--space-lg);
+}
+
+.introTitle {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.5px;
+}
+
+.introSub {
+  margin-top: 6px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  word-break: keep-all;
+}
+
+/* === 폼 === */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+/* === 안내 문구 === */
+.notice {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-top: var(--space-lg);
+  padding: var(--space-md);
+  background: var(--color-primary-light);
+  border-radius: var(--radius-md);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--color-primary-dark);
+  word-break: keep-all;
+}
+
+.noticeIcon {
+  flex-shrink: 0;
+}
+
+/* === 개인정보 동의 === */
+.privacySection {
+  margin-top: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.privacyCheck {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.privacyCheckbox {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.privacyCheckLabel {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text);
+  word-break: keep-all;
+}
+
+.privacyRequired {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.privacyError {
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--color-primary);
+}
+
+.privacyBox {
+  margin-top: var(--space-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.privacyRow {
+  display: flex;
+  gap: var(--space-sm);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.privacyKey {
+  flex-shrink: 0;
+  width: 62px;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.privacyVal {
+  color: var(--color-text);
+  word-break: keep-all;
+}
+
+/* === 완료 화면 === */
+.successOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  z-index: 200;
+}
+
+.successModal {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl) var(--space-lg);
+  width: 100%;
+  max-width: 340px;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+}
+
+.successIcon {
+  font-size: 48px;
+  margin-bottom: var(--space-md);
+}
+
+.successTitle {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: var(--space-sm);
+  word-break: keep-all;
+}
+
+.successMessage {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
