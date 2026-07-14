@@ -3,7 +3,7 @@ import { useQuoteStore } from '../store/useQuoteStore';
 import { Input, SelectInput } from './ui/Input';
 import { Button } from './ui/Button';
 import { formatPhone } from '../utils/format';
-import { sendTelegramNotification } from '../utils/telegram';
+import { sendTelegramNotification, escapeHtml } from '../utils/telegram';
 import styles from './PreorderPage.module.css';
 
 const CARRIER_OPTIONS = ['SKT', 'KT', 'LG U+', '알뜰폰', '없음'];
@@ -73,21 +73,29 @@ export function PreorderPage() {
     const message = `🎯 <b>새 사전예약 신청</b>
 
 <b>👤 고객 정보</b>
-• 고객명: ${name}
-• 연락처: ${phone}
+• 고객명: ${escapeHtml(name)}
+• 연락처: ${escapeHtml(phone)}
 
 <b>📱 사전예약 정보</b>
-• 현재 통신사: ${carrier}
-• 가입유형: ${subType}
-• 희망 모델: ${model}
+• 현재 통신사: ${escapeHtml(carrier)}
+• 가입유형: ${escapeHtml(subType)}
+• 희망 모델: ${escapeHtml(model)}
 
 • 개인정보 수집·이용 동의: 동의함
 
 🕐 접수시간: ${timeStr}`;
 
-    await sendTelegramNotification(message);
-    setSending(false);
-    setSubmitted(true);
+    try {
+      const sent = await sendTelegramNotification(message);
+      if (!sent) {
+        setErrors({ submit: '접수 전송에 실패했습니다. 잠시 후 다시 시도해주시거나 매장으로 전화 부탁드립니다.' });
+        return;
+      }
+      setErrors({});
+      setSubmitted(true);
+    } finally {
+      setSending(false);
+    }
   };
 
   const handlePhoneChange = (value: string) => {
@@ -237,6 +245,10 @@ export function PreorderPage() {
             </div>
           )}
         </div>
+
+        {errors.submit && (
+          <p className={styles.privacyError} role="alert">{errors.submit}</p>
+        )}
 
         <Button fullWidth onClick={handleSubmit} disabled={!canSubmit}>
           {sending ? '접수 중...' : '사전예약 신청하기'}

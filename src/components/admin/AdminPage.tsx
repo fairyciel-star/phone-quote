@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAdminStore, type AdminTab } from '../../store/useAdminStore';
 import { useSheetStore } from '../../store/useSheetStore';
 import phonesData from '../../data/phones.json';
@@ -20,15 +20,23 @@ const CARRIERS = ['SKT', 'KT', 'LGU'] as const;
 // ────────────────────────────────────
 function AdminLogin() {
   const login = useAdminStore((s) => s.login);
+  const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const ok = login(pw);
-    if (!ok) {
-      setError(true);
-      setPw('');
+    if (pending) return;
+    setPending(true);
+    try {
+      const result = await login(email.trim(), pw);
+      if (!result.ok) {
+        setError(result.message ?? '로그인에 실패했습니다');
+        setPw('');
+      }
+    } finally {
+      setPending(false);
     }
   };
 
@@ -39,17 +47,29 @@ function AdminLogin() {
         <h1 className={styles.loginTitle}>관리자 로그인</h1>
         <p className={styles.loginSubtitle}>휴대폰 견적 관리 시스템</p>
         <form onSubmit={handleSubmit}>
+          <label className={styles.loginLabel}>이메일</label>
+          <input
+            type="email"
+            className={`${styles.loginInput} ${error ? styles.error : ''}`}
+            value={email}
+            onChange={(e) => { setEmail(e.target.value); setError(null); }}
+            placeholder="관리자 이메일"
+            autoComplete="username"
+            autoFocus
+          />
           <label className={styles.loginLabel}>비밀번호</label>
           <input
             type="password"
             className={`${styles.loginInput} ${error ? styles.error : ''}`}
             value={pw}
-            onChange={(e) => { setPw(e.target.value); setError(false); }}
+            onChange={(e) => { setPw(e.target.value); setError(null); }}
             placeholder="비밀번호 입력"
-            autoFocus
+            autoComplete="current-password"
           />
-          {error && <p className={styles.loginError}>비밀번호가 올바르지 않습니다</p>}
-          <button type="submit" className={styles.loginBtn}>로그인</button>
+          {error && <p className={styles.loginError}>{error}</p>}
+          <button type="submit" className={styles.loginBtn} disabled={pending}>
+            {pending ? '확인 중...' : '로그인'}
+          </button>
         </form>
       </div>
     </div>
@@ -583,20 +603,23 @@ function SettingsTab() {
   const changePassword = useAdminStore((s) => s.changePassword);
   const overrides = useAdminStore((s) => s.subsidyOverrides);
 
-  const [oldPw, setOldPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
   const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [pwPending, setPwPending] = useState(false);
 
-  const handlePwChange = () => {
+  const handlePwChange = async () => {
+    if (pwPending) return;
     if (newPw !== confirmPw) { setPwMsg({ ok: false, text: '새 비밀번호가 일치하지 않습니다' }); return; }
-    if (newPw.length < 4) { setPwMsg({ ok: false, text: '비밀번호는 4자 이상이어야 합니다' }); return; }
-    const ok = changePassword(oldPw, newPw);
-    if (ok) {
-      setPwMsg({ ok: true, text: '비밀번호가 변경되었습니다' });
-      setOldPw(''); setNewPw(''); setConfirmPw('');
-    } else {
-      setPwMsg({ ok: false, text: '현재 비밀번호가 올바르지 않습니다' });
+    setPwPending(true);
+    try {
+      const result = await changePassword(newPw);
+      setPwMsg({ ok: result.ok, text: result.message });
+      if (result.ok) {
+        setNewPw(''); setConfirmPw('');
+      }
+    } finally {
+      setPwPending(false);
     }
   };
 
@@ -614,18 +637,14 @@ function SettingsTab() {
       <div className={styles.settingsCard}>
         <h3 className={styles.settingsTitle}>🔑 비밀번호 변경</h3>
         <div className={styles.settingsField}>
-          <label className={styles.settingsLabel}>현재 비밀번호</label>
-          <input type="password" className={styles.settingsInput} value={oldPw} onChange={(e) => setOldPw(e.target.value)} placeholder="현재 비밀번호" />
-        </div>
-        <div className={styles.settingsField}>
           <label className={styles.settingsLabel}>새 비밀번호</label>
-          <input type="password" className={styles.settingsInput} value={newPw} onChange={(e) => setNewPw(e.target.value)} placeholder="새 비밀번호 (4자 이상)" />
+          <input type="password" className={styles.settingsInput} value={newPw} onChange={(e) => setNewPw(e.target.value)} placeholder="새 비밀번호 (6자 이상)" autoComplete="new-password" />
         </div>
         <div className={styles.settingsField}>
           <label className={styles.settingsLabel}>새 비밀번호 확인</label>
-          <input type="password" className={styles.settingsInput} value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} placeholder="새 비밀번호 재입력" />
+          <input type="password" className={styles.settingsInput} value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} placeholder="새 비밀번호 재입력" autoComplete="new-password" />
         </div>
-        <button className={styles.settingsBtn} onClick={handlePwChange}>비밀번호 변경</button>
+        <button className={styles.settingsBtn} onClick={handlePwChange} disabled={pwPending}>{pwPending ? '변경 중...' : '비밀번호 변경'}</button>
         {pwMsg && (
           <p className={pwMsg.ok ? styles.settingsSuccess : styles.settingsError}>{pwMsg.text}</p>
         )}
@@ -659,9 +678,9 @@ function SettingsTab() {
         <h3 className={styles.settingsTitle}>ℹ️ 시스템 정보</h3>
         <table className={styles.table} style={{ marginTop: 0 }}>
           <tbody>
-            <tr><td style={{ color: '#64748b', width: 160 }}>기본 비밀번호</td><td>admin1234</td></tr>
+            <tr><td style={{ color: '#64748b', width: 160 }}>인증 방식</td><td>Supabase Auth (이메일 로그인)</td></tr>
             <tr><td style={{ color: '#64748b' }}>관리자 URL</td><td>#/admin</td></tr>
-            <tr><td style={{ color: '#64748b' }}>데이터 저장</td><td>브라우저 localStorage</td></tr>
+            <tr><td style={{ color: '#64748b' }}>데이터 저장</td><td>Supabase + 브라우저 localStorage</td></tr>
           </tbody>
         </table>
       </div>
@@ -685,10 +704,17 @@ const NAV_ITEMS: { tab: AdminTab; icon: string; label: string }[] = [
 
 export function AdminPage() {
   const isLoggedIn = useAdminStore((s) => s.isLoggedIn);
+  const authChecked = useAdminStore((s) => s.authChecked);
+  const restoreSession = useAdminStore((s) => s.restoreSession);
   const activeTab = useAdminStore((s) => s.activeTab);
   const setTab = useAdminStore((s) => s.setTab);
   const logout = useAdminStore((s) => s.logout);
 
+  useEffect(() => {
+    void restoreSession();
+  }, [restoreSession]);
+
+  if (!authChecked) return null;
   if (!isLoggedIn) return <AdminLogin />;
 
   return (

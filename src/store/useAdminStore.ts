@@ -1,8 +1,7 @@
 import { create } from 'zustand';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
-const ADMIN_PW_KEY = 'admin_password';
 const SUBSIDY_OVERRIDE_KEY = 'admin_subsidy_overrides';
-const DEFAULT_PASSWORD = 'admin1234';
 
 export type AdminTab = 'dashboard' | 'price-table' | 'rebates' | 'phones' | 'plans' | 'discounts' | 'sheet-debug' | 'settings';
 
@@ -15,19 +14,17 @@ export interface SubsidyOverride {
 
 interface AdminState {
   isLoggedIn: boolean;
+  authChecked: boolean;
   activeTab: AdminTab;
   subsidyOverrides: SubsidyOverride[];
-  login: (password: string) => boolean;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<{ ok: boolean; message?: string }>;
+  logout: () => Promise<void>;
+  restoreSession: () => Promise<void>;
   setTab: (tab: AdminTab) => void;
-  changePassword: (oldPw: string, newPw: string) => boolean;
+  changePassword: (newPw: string) => Promise<{ ok: boolean; message: string }>;
   setSubsidyOverride: (override: SubsidyOverride) => void;
   getSubsidyOverride: (phoneId: string, carrier: string, storage: string) => number | null;
   resetSubsidyOverride: (phoneId: string, carrier: string, storage: string) => void;
-}
-
-function getStoredPassword(): string {
-  return localStorage.getItem(ADMIN_PW_KEY) ?? DEFAULT_PASSWORD;
 }
 
 function loadOverrides(): SubsidyOverride[] {
@@ -46,27 +43,59 @@ function saveOverrides(overrides: SubsidyOverride[]) {
 
 export const useAdminStore = create<AdminState>((set, get) => ({
   isLoggedIn: false,
+  authChecked: false,
   activeTab: 'dashboard',
   subsidyOverrides: loadOverrides(),
 
-  login: (password) => {
-    const stored = getStoredPassword();
-    if (password === stored) {
-      set({ isLoggedIn: true });
-      return true;
+  // Supabase Auth 기반 로그인 — 서버가 자격 증명을 검증하고,
+  // 발급된 세션 JWT가 RLS 정책(authenticated 전용 쓰기)의 근거가 된다.
+  login: async (email, password) => {
+    if (!isSupabaseConfigured()) {
+      return { ok: false, message: 'Supabase가 설정되지 않아 관리자 로그인을 사용할 수 없습니다' };
     }
-    return false;
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error || !data.session) {
+      return { ok: false, message: '이메일 또는 비밀번호가 올바르지 않습니다' };
+    }
+    set({ isLoggedIn: true });
+    return { ok: true };
   },
 
-  logout: () => set({ isLoggedIn: false, activeTab: 'dashboard' }),
+  logout: async () => {
+    if (isSupabaseConfigured()) {
+      await supabase.auth.signOut();
+    }
+    set({ isLoggedIn: false, activeTab: 'dashboard' });
+  },
+
+  // 새로고침 시 기존 Supabase 세션 복원
+  restoreSession: async () => {
+    if (!isSupabaseConfigured()) {
+      set({ authChecked: true });
+      return;
+    }
+    try {
+      const { data } = await supabase.auth.getSession();
+      set({ isLoggedIn: !!data.session, authChecked: true });
+    } catch {
+      set({ authChecked: true });
+    }
+  },
 
   setTab: (tab) => set({ activeTab: tab }),
 
-  changePassword: (oldPw, newPw) => {
-    if (oldPw !== getStoredPassword()) return false;
-    if (newPw.length < 4) return false;
-    localStorage.setItem(ADMIN_PW_KEY, newPw);
-    return true;
+  changePassword: async (newPw) => {
+    if (!isSupabaseConfigured()) {
+      return { ok: false, message: 'Supabase가 설정되지 않았습니다' };
+    }
+    if (newPw.length < 6) {
+      return { ok: false, message: '비밀번호는 6자 이상이어야 합니다' };
+    }
+    const { error } = await supabase.auth.updateUser({ password: newPw });
+    if (error) {
+      return { ok: false, message: `변경 실패: ${error.message}` };
+    }
+    return { ok: true, message: '비밀번호가 변경되었습니다' };
   },
 
   setSubsidyOverride: (override) => {

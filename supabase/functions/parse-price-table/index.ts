@@ -9,10 +9,30 @@
 //   Body: { image_base64: string, carrier: "SKT"|"KT"|"LGU", media_type: string }
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGIN') ?? '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+// base64 문자열 기준 최대 크기 (~10MB 이미지)
+const MAX_IMAGE_BASE64_LENGTH = 15_000_000
+
+// 유료 API(Claude Vision)를 호출하는 함수이므로 관리자 로그인 세션(JWT)을 요구한다.
+async function requireAuthenticatedUser(req: Request): Promise<boolean> {
+  const authHeader = req.headers.get('Authorization')
+  if (!authHeader) return false
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
+  if (!supabaseUrl || !anonKey) return false
+
+  const supabase = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  })
+  const { data, error } = await supabase.auth.getUser()
+  return !error && !!data.user
 }
 
 const CARRIER_PROMPTS: Record<string, string> = {
@@ -109,7 +129,27 @@ serve(async (req: Request) => {
   }
 
   try {
+    if (!(await requireAuthenticatedUser(req))) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: admin login required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const { image_base64, carrier, media_type } = await req.json()
+
+    if (typeof image_base64 !== 'string' || image_base64.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'image_base64 is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    if (image_base64.length > MAX_IMAGE_BASE64_LENGTH) {
+      return new Response(
+        JSON.stringify({ error: 'image too large' }),
+        { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
     if (!apiKey) {

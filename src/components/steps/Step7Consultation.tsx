@@ -4,7 +4,7 @@ import { Input, Textarea, SelectInput } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { StepNavigation } from '../layout/StepNavigation';
 import { formatPhone, formatWon } from '../../utils/format';
-import { sendTelegramNotification } from '../../utils/telegram';
+import { sendTelegramNotification, escapeHtml } from '../../utils/telegram';
 import { useSheetStore } from '../../store/useSheetStore';
 import phonesData from '../../data/phones.json';
 import plansData from '../../data/plans.json';
@@ -144,11 +144,10 @@ export function Step7Consultation() {
     const message = `🔔 <b>새 상담 신청</b>
 
 <b>👤 고객 정보</b>
-• 이름: ${consultation.name}
-• 연락처: ${consultation.phone}
-• 희망시간: ${consultation.preferredTime}
-${consultation.memo ? `• 메모: ${consultation.memo}` : ''}
-• 개인정보 수집·이용 동의: 동의함
+• 이름: ${escapeHtml(consultation.name)}
+• 연락처: ${escapeHtml(consultation.phone)}
+• 희망시간: ${escapeHtml(consultation.preferredTime)}
+${consultation.memo ? `• 메모: ${escapeHtml(consultation.memo)}` : ''}
 
 <b>📋 선택 정보</b>
 • 가입유형: ${subscriptionType ?? '-'}
@@ -161,14 +160,28 @@ ${quoteText}
 
 🕐 접수시간: ${timeStr}`;
 
-    await sendTelegramNotification(message);
+    try {
+      const sent = await sendTelegramNotification(message);
+      if (!sent) {
+        setErrors({ submit: '신청 전송에 실패했습니다. 잠시 후 다시 시도해주시거나 매장으로 전화 부탁드립니다.' });
+        return;
+      }
 
-    const quoteData = { ...state, submittedAt: now.toISOString() };
-    const existing = JSON.parse(localStorage.getItem('phone-quotes') || '[]');
-    localStorage.setItem('phone-quotes', JSON.stringify([...existing, quoteData]));
+      try {
+        const raw = localStorage.getItem('phone-quotes');
+        const existing: unknown = raw ? JSON.parse(raw) : [];
+        const list = Array.isArray(existing) ? existing : [];
+        const quoteData = { ...state, submittedAt: now.toISOString() };
+        localStorage.setItem('phone-quotes', JSON.stringify([...list, quoteData]));
+      } catch {
+        // 로컬 백업 저장 실패는 신청 완료 자체를 막지 않는다
+      }
 
-    setSending(false);
-    setSubmitted(true);
+      setErrors({});
+      setSubmitted(true);
+    } finally {
+      setSending(false);
+    }
   };
 
   const handlePhoneChange = (value: string) => {
@@ -301,6 +314,10 @@ ${quoteText}
             </div>
           )}
         </div>
+
+        {errors.submit && (
+          <p className={styles.privacyError} role="alert">{errors.submit}</p>
+        )}
 
         {/* 매장 위치 */}
         <div className={styles.storeSection}>
