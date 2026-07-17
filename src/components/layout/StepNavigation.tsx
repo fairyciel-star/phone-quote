@@ -6,6 +6,7 @@ import styles from './StepNavigation.module.css';
 interface PriceDisplay {
   readonly 출고가: number;
   readonly 할부원금: number;
+  readonly 가격문의?: boolean;
 }
 
 interface StepNavigationProps {
@@ -45,7 +46,9 @@ export function StepNavigation({ canProceed, onNext, onSubmit, priceDisplay }: S
         <div className={styles.wrapper}>
           <div className={styles.priceInfo}>
             <span className={styles.priceOriginal}>{formatWon(priceDisplay.출고가)}</span>
-            <span className={styles.priceMain}>{formatWon(priceDisplay.할부원금)}</span>
+            <span className={styles.priceMain}>
+              {priceDisplay.가격문의 ? '가격문의' : formatWon(priceDisplay.할부원금)}
+            </span>
           </div>
           <Button variant="primary" onClick={handleNext} disabled={!canProceed}>
             신청하기

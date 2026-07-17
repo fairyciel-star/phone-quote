@@ -51,7 +51,7 @@ interface SheetState {
     용량: string,
     가입유형: SubscriptionType,
     planTier?: PlanTier
-  ) => { 출고가: number; 추가지원금: number; 특별지원: number };
+  ) => { 출고가: number; 추가지원금: number; 특별지원: number; 가격문의?: boolean; isPriceTableData?: boolean };
   getKidsPhones: () => KidsPhoneRow[];
   getColorsForPhone: (모델ID: string, 용량: string) => { name: string; hex: string; image?: string }[];
 }
@@ -196,6 +196,19 @@ export const useSheetStore = create<SheetState>((set, get) => ({
   },
 
   getSelectAgreementSubsidy: (모델ID, 통신사, 용량, 가입유형, planTier = '고가') => {
+    // 단가표 선택약정 합계 우선 조회
+    const ptData = usePriceTableStore.getState().getAgreementData(모델ID, 통신사, 용량, 가입유형);
+    if (ptData.isPriceTableData) {
+      return {
+        출고가: ptData.출고가,
+        추가지원금: ptData.추가지원금,
+        특별지원: ptData.특별지원,
+        가격문의: ptData.가격문의,
+        isPriceTableData: true,
+      };
+    }
+
+    // 폴백: 기존 선택약정_지원금 시트 데이터
     const saRow = get().selectAgreementSubsidies.find(
       (r) => r.모델ID === 모델ID && r.통신사 === 통신사 && r.용량 === 용량 && r.가입유형 === 가입유형
     );

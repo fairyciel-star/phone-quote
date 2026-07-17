@@ -239,6 +239,10 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
     if (!selectedPhoneId || !carrierId || !selectedStorage || !subscriptionType) return { 공통지원금: 0, 추가지원금: 0, 특별지원: 0 };
     if (sheetLoaded && discountType === '선택약정') {
       const sa = getSelectAgreementSubsidy(selectedPhoneId, carrierId, selectedStorage, subscriptionType, planTier);
+      // 단가표 선택약정 합계가 최종가 — 리베이트 미포함
+      if (sa.isPriceTableData) {
+        return { 공통지원금: 0, 추가지원금: sa.추가지원금, 특별지원: sa.특별지원 };
+      }
       return { 공통지원금: 0, 추가지원금: sa.추가지원금 + rebateAmount, 특별지원: sa.특별지원 };
     }
     if (sheetLoaded) {
@@ -378,6 +382,9 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
   const saSheetSubsidy = sheetLoaded && selectedPhoneId && carrierId && selectedStorage && subscriptionType
     ? getSelectAgreementSubsidy(selectedPhoneId, carrierId, selectedStorage, subscriptionType, planTier)
     : null;
+
+  // 단가표 R열 "가격문의" 모델 — 가격 대신 "가격문의"로 표시 (모드 무관)
+  const isPriceInquiry = (commonSheetSubsidy?.가격문의 ?? false) || (saSheetSubsidy?.가격문의 ?? false);
 
   // 선택약정 모드: 선택약정 시트값 우선, 공통지원금 모드: 공통지원금 시트값
   // 구글 시트 합계가 최종가인 경우 리베이트 미합산
@@ -519,7 +526,16 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
             )}
 
             {/* 가격 영역 */}
-            {quote && (() => {
+            {quote && isPriceInquiry && (
+              <>
+                <div className={styles.phoneHeroPriceLabel}>최종 기계값</div>
+                <div className={styles.phoneHeroOriginalRow}>
+                  <span className={styles.phoneHeroStrike}>{formatWon(quote.출고가)}</span>
+                </div>
+                <div className={styles.phoneHeroPriceValue}>가격문의</div>
+              </>
+            )}
+            {quote && !isPriceInquiry && (() => {
               const 실구매가 = quote.할부원금 - gradePrice;
               const discountPct = quote.출고가 > 0 ? Math.round((1 - 실구매가 / quote.출고가) * 100) : 0;
               const totalSubsidy = subsidyAmount + extraSubsidy + specialSupport;
@@ -1052,59 +1068,65 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
                       </svg>
                       <span className={summaryStyles.receiptBadge}>{할부개월}개월</span>
                     </span>
-                    <span className={summaryStyles.receiptMainValue}>{formatWon(monthlyInstallment)}</span>
+                    <span className={summaryStyles.receiptMainValue}>
+                      {isPriceInquiry ? '가격문의' : formatWon(monthlyInstallment)}
+                    </span>
                   </div>
 
-                  <div className={`${summaryStyles.receiptRow} ${summaryStyles.receiptMain}`}>
-                    <span className={summaryStyles.receiptMainLabel}>할부원금</span>
-                    <span className={summaryStyles.receiptMainValue}>{formatWon(financedPrincipal)}</span>
-                  </div>
+                  {!isPriceInquiry && (
+                    <>
+                      <div className={`${summaryStyles.receiptRow} ${summaryStyles.receiptMain}`}>
+                        <span className={summaryStyles.receiptMainLabel}>할부원금</span>
+                        <span className={summaryStyles.receiptMainValue}>{formatWon(financedPrincipal)}</span>
+                      </div>
 
-                  <div className={`${summaryStyles.receiptRow} ${summaryStyles.receiptSub}`}>
-                    <span className={summaryStyles.receiptSubLabel}>출고가</span>
-                    <span className={summaryStyles.receiptSubValue}>{formatWon(quote.출고가)}</span>
-                  </div>
+                      <div className={`${summaryStyles.receiptRow} ${summaryStyles.receiptSub}`}>
+                        <span className={summaryStyles.receiptSubLabel}>출고가</span>
+                        <span className={summaryStyles.receiptSubValue}>{formatWon(quote.출고가)}</span>
+                      </div>
 
-                  {quote.공통지원금 > 0 && (
-                    <div className={`${summaryStyles.receiptRow} ${summaryStyles.receiptSub}`}>
-                      <span className={summaryStyles.receiptSubLabel}>공통지원금</span>
-                      <span className={`${summaryStyles.receiptSubValue} ${summaryStyles.receiptDiscount}`}>
-                        -{formatWon(quote.공통지원금)}
-                      </span>
-                    </div>
+                      {quote.공통지원금 > 0 && (
+                        <div className={`${summaryStyles.receiptRow} ${summaryStyles.receiptSub}`}>
+                          <span className={summaryStyles.receiptSubLabel}>공통지원금</span>
+                          <span className={`${summaryStyles.receiptSubValue} ${summaryStyles.receiptDiscount}`}>
+                            -{formatWon(quote.공통지원금)}
+                          </span>
+                        </div>
+                      )}
+
+                      {quote.카드혜택할인 > 0 && (
+                        <div className={`${summaryStyles.receiptRow} ${summaryStyles.receiptSub}`}>
+                          <span className={summaryStyles.receiptSubLabel}>제휴카드 할인</span>
+                          <span className={`${summaryStyles.receiptSubValue} ${summaryStyles.receiptDiscount}`}>
+                            -{formatWon(quote.카드혜택할인)}
+                          </span>
+                        </div>
+                      )}
+
+                      {quote.추가지원금 > 0 && (
+                        <div className={`${summaryStyles.receiptRow} ${summaryStyles.receiptSub}`}>
+                          <span className={summaryStyles.receiptSubLabel}>매장지원금</span>
+                          <span className={`${summaryStyles.receiptSubValue} ${summaryStyles.receiptDiscount}`}>
+                            -{formatWon(quote.추가지원금)}
+                          </span>
+                        </div>
+                      )}
+
+                      {specialSupport > 0 && (
+                        <div className={`${summaryStyles.receiptRow} ${summaryStyles.receiptSub}`}>
+                          <span className={summaryStyles.receiptSubLabel}>추가 프로모션 지원금(대상자 한정)</span>
+                          <span className={`${summaryStyles.receiptSubValue} ${summaryStyles.receiptDiscount}`}>
+                            -{formatWon(specialSupport)}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className={`${summaryStyles.receiptRow} ${summaryStyles.receiptMain}`}>
+                        <span className={summaryStyles.receiptMainLabel}>단말기 총 할부이자</span>
+                        <span className={summaryStyles.receiptMainValue}>{formatWon(totalInterest)}</span>
+                      </div>
+                    </>
                   )}
-
-                  {quote.카드혜택할인 > 0 && (
-                    <div className={`${summaryStyles.receiptRow} ${summaryStyles.receiptSub}`}>
-                      <span className={summaryStyles.receiptSubLabel}>제휴카드 할인</span>
-                      <span className={`${summaryStyles.receiptSubValue} ${summaryStyles.receiptDiscount}`}>
-                        -{formatWon(quote.카드혜택할인)}
-                      </span>
-                    </div>
-                  )}
-
-                  {quote.추가지원금 > 0 && (
-                    <div className={`${summaryStyles.receiptRow} ${summaryStyles.receiptSub}`}>
-                      <span className={summaryStyles.receiptSubLabel}>매장지원금</span>
-                      <span className={`${summaryStyles.receiptSubValue} ${summaryStyles.receiptDiscount}`}>
-                        -{formatWon(quote.추가지원금)}
-                      </span>
-                    </div>
-                  )}
-
-                  {specialSupport > 0 && (
-                    <div className={`${summaryStyles.receiptRow} ${summaryStyles.receiptSub}`}>
-                      <span className={summaryStyles.receiptSubLabel}>추가 프로모션 지원금(대상자 한정)</span>
-                      <span className={`${summaryStyles.receiptSubValue} ${summaryStyles.receiptDiscount}`}>
-                        -{formatWon(specialSupport)}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className={`${summaryStyles.receiptRow} ${summaryStyles.receiptMain}`}>
-                    <span className={summaryStyles.receiptMainLabel}>단말기 총 할부이자</span>
-                    <span className={summaryStyles.receiptMainValue}>{formatWon(totalInterest)}</span>
-                  </div>
 
                   <div className={summaryStyles.receiptDivider} />
 
@@ -1128,7 +1150,9 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
                       월 납부 예상 금액
                       <span className={summaryStyles.receiptVat}>VAT 포함</span>
                     </span>
-                    <span className={summaryStyles.receiptFinalAmount}>{formatWon(quote.월납입금총액)}</span>
+                    <span className={summaryStyles.receiptFinalAmount}>
+                      {isPriceInquiry ? '가격문의' : formatWon(quote.월납입금총액)}
+                    </span>
                   </div>
                 </div>
               );
@@ -1168,7 +1192,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
       </div>
       <StepNavigation
         canProceed={selectedPlanId !== null}
-        priceDisplay={quote ? { 출고가: quote.출고가, 할부원금: quote.할부원금 - gradePrice } : undefined}
+        priceDisplay={quote ? { 출고가: quote.출고가, 할부원금: quote.할부원금 - gradePrice, 가격문의: isPriceInquiry } : undefined}
       />
     </>
   );

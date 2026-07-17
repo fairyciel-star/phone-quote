@@ -49,13 +49,20 @@ interface PriceTableState {
   clear: (carrier?: CarrierId) => void;
   /** phone.id + 통신사로 단가표에 존재하는지 여부 */
   hasModel: (phoneId: string, carrier: CarrierId) => boolean;
-  /** phone.id + 통신사 + 용량 + 가입유형으로 합계 가격 조회 */
+  /** phone.id + 통신사 + 용량 + 가입유형으로 공통지원금 합계 가격 조회 */
   getSubsidyData: (
     phoneId: string,
     carrier: CarrierId,
     storage: string,
     subscriptionType: SubscriptionType,
   ) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number; 가격문의: boolean };
+  /** phone.id + 통신사 + 용량 + 가입유형으로 선택약정 합계 가격 조회 */
+  getAgreementData: (
+    phoneId: string,
+    carrier: CarrierId,
+    storage: string,
+    subscriptionType: SubscriptionType,
+  ) => { 출고가: number; 추가지원금: number; 특별지원: number; 가격문의: boolean; isPriceTableData: boolean };
 }
 
 function carrierKey(carrier: CarrierId): 'sktRows' | 'ktRows' | 'lguRows' {
@@ -174,6 +181,34 @@ export const usePriceTableStore = create<PriceTableState>()(
         }
 
         return { 출고가: 0, 공통지원금: 0, 추가지원금: 0, 특별지원: 0, 가격문의: false, isPriceTableData: false as const };
+      },
+
+      getAgreementData: (phoneId, carrier, storage, subscriptionType) => {
+        const rows = get().getRows(carrier);
+        const normStorage = normalizeStorage(storage);
+
+        for (const row of rows) {
+          const rowBase = stripStorage(row.model_name);
+          const rowStorage = extractStorage(row.model_name);
+          const rowPhoneId = modelNameToPhoneId(rowBase) ?? modelNameToPhoneId(row.model_name);
+
+          if (rowPhoneId === phoneId && rowStorage === normStorage) {
+            // 선택약정 합계 = 기기 실구매가. 추가지원금 = 출고가 - 합계 (공통지원금은 0)
+            const finalPrice = subscriptionType === '번호이동'
+              ? row.agreement_mnp_price
+              : row.agreement_change_price;
+            return {
+              출고가: row.retail_price,
+              추가지원금: Math.max(0, row.retail_price - finalPrice),
+              특별지원: 0,
+              가격문의: row.price_inquiry,
+              // 합계금액이 실제로 채워진 경우에만 단가표 데이터로 간주 (0이면 폴백)
+              isPriceTableData: row.retail_price > 0 && finalPrice > 0,
+            };
+          }
+        }
+
+        return { 출고가: 0, 추가지원금: 0, 특별지원: 0, 가격문의: false, isPriceTableData: false };
       },
     }),
     {

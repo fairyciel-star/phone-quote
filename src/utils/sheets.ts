@@ -415,9 +415,11 @@ export interface PriceTableRow {
   readonly retail_price: number;   // 출고가 (원)
   readonly change_subsidy: number; // 공통지원금(기변), 원 단위
   readonly mnp_subsidy: number;    // 공통지원금(MNP), 원 단위
-  readonly mnp_price: number;      // MNP 합계 실구매가 (원)
-  readonly change_price: number;   // 기변 합계 실구매가 (원)
-  readonly price_inquiry: boolean; // O열 "가격문의" 여부
+  readonly mnp_price: number;              // 공통지원금 MNP 합계 실구매가 (원)
+  readonly change_price: number;           // 공통지원금 기변 합계 실구매가 (원)
+  readonly agreement_mnp_price: number;    // 선택약정 MNP 합계 실구매가 (원)
+  readonly agreement_change_price: number; // 선택약정 기변 합계 실구매가 (원)
+  readonly price_inquiry: boolean;         // R열 "가격문의" 여부
   // 리베이트 탭에서 사용하는 확장 필드 (optional)
   readonly plan_tier?: string;
   readonly subsidy_mnp?: number;
@@ -451,74 +453,58 @@ function parsePrice(val: string): number {
   return Number(val.replace(/,/g, '')) || 0;
 }
 
-// SKT: col0=모델코드, col1=모델명, col2=출고가, col3=공통지원금(기변), col4=공통지원금(MNP), col12=MNP합계, col13=기변합계, col14=가격문의
+// 단가표 열 구조 (SKT/KT/LGU 공통):
+//   col0=모델코드, col1=모델명, col2=출고가, col3=공통지원금(기변), col4=공통지원금(MNP)
+//   col13=공통 MNP합계, col14=공통 기변합계, col15=선택약정 MNP합계, col16=선택약정 기변합계
+//   col17(R열)=가격문의
+function parsePriceRow(cols: string[], carrier: CarrierId): PriceTableRow {
+  return {
+    carrier,
+    model_code: cols[0]?.trim() ?? '',
+    model_name: cols[1]?.trim() ?? '',
+    retail_price: parsePrice(cols[2] ?? ''),
+    change_subsidy: parsePrice(cols[3] ?? '') * 10000,
+    mnp_subsidy: parsePrice(cols[4] ?? '') * 10000,
+    mnp_price: parsePrice(cols[13] ?? ''),
+    change_price: parsePrice(cols[14] ?? ''),
+    agreement_mnp_price: parsePrice(cols[15] ?? ''),
+    agreement_change_price: parsePrice(cols[16] ?? ''),
+    price_inquiry: cols[17]?.trim() === '가격문의',
+  };
+}
+
 function parseSktRows(lines: string[]): PriceTableRow[] {
   const rows: PriceTableRow[] = [];
   for (const line of lines) {
     const cols = parseCsvLine(line);
     const code = cols[0]?.trim() ?? '';
     if (!code || code.startsWith('▶') || code.startsWith('SKT') || code === '모델코드') continue;
-    const retailWon = parsePrice(cols[2] ?? '');
-    if (retailWon === 0) continue;
-    rows.push({
-      carrier: 'SKT',
-      model_code: code,
-      model_name: cols[1]?.trim() ?? '',
-      retail_price: retailWon,
-      change_subsidy: parsePrice(cols[3] ?? '') * 10000,
-      mnp_subsidy: parsePrice(cols[4] ?? '') * 10000,
-      mnp_price: parsePrice(cols[12] ?? ''),
-      change_price: parsePrice(cols[13] ?? ''),
-      price_inquiry: cols[14]?.trim() === '가격문의',
-    });
+    if (parsePrice(cols[2] ?? '') === 0) continue;
+    rows.push(parsePriceRow(cols, 'SKT'));
   }
   return rows;
 }
 
-// KT: col0=모델코드, col1=모델명, col2=출고가, col3=공통지원금(기변), col4=공통지원금(MNP), col12=MNP합계, col13=기변합계, col14=가격문의
 function parseKtRows(lines: string[]): PriceTableRow[] {
   const rows: PriceTableRow[] = [];
   for (const line of lines) {
     const cols = parseCsvLine(line);
     const code = cols[0]?.trim() ?? '';
     if (!code || code.startsWith('▶') || code.startsWith('KT') || code === '모델코드') continue;
-    const retailWon = parsePrice(cols[2] ?? '');
-    if (retailWon === 0) continue;
-    rows.push({
-      carrier: 'KT',
-      model_code: code,
-      model_name: cols[1]?.trim() ?? '',
-      retail_price: retailWon,
-      change_subsidy: parsePrice(cols[3] ?? '') * 10000,
-      mnp_subsidy: parsePrice(cols[4] ?? '') * 10000,
-      mnp_price: parsePrice(cols[12] ?? ''),
-      change_price: parsePrice(cols[13] ?? ''),
-      price_inquiry: cols[14]?.trim() === '가격문의',
-    });
+    if (parsePrice(cols[2] ?? '') === 0) continue;
+    rows.push(parsePriceRow(cols, 'KT'));
   }
   return rows;
 }
 
-// LGU+: col0=모델코드, col1=모델명, col2=출고가, col3=공통지원금(기변), col4=공통지원금(MNP), col12=MNP합계, col13=기변합계, col14=가격문의
 function parseLguRows(lines: string[]): PriceTableRow[] {
   const rows: PriceTableRow[] = [];
   for (const line of lines) {
     const cols = parseCsvLine(line);
     const code = cols[0]?.trim() ?? '';
     if (!code || code.startsWith('▶') || code.startsWith('LG') || code === '모델코드') continue;
-    const retailWon = parsePrice(cols[2] ?? '');
-    if (retailWon === 0) continue;
-    rows.push({
-      carrier: 'LGU',
-      model_code: code,
-      model_name: cols[1]?.trim() ?? '',
-      retail_price: retailWon,
-      change_subsidy: parsePrice(cols[3] ?? '') * 10000,
-      mnp_subsidy: parsePrice(cols[4] ?? '') * 10000,
-      mnp_price: parsePrice(cols[12] ?? ''),
-      change_price: parsePrice(cols[13] ?? ''),
-      price_inquiry: cols[14]?.trim() === '가격문의',
-    });
+    if (parsePrice(cols[2] ?? '') === 0) continue;
+    rows.push(parsePriceRow(cols, 'LGU'));
   }
   return rows;
 }
