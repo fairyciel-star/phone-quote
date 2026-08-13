@@ -2,8 +2,8 @@ import type { CarrierId, Discount, DiscountType, Phone, Plan, PlanTier, PriceBre
 
 const 연이율 = 0.059;
 
-/** 기기선택 화면 "제휴카드 신청" 배너 적용 시 할인액 */
-export const CARD_BENEFIT_DISCOUNT = 400000;
+// 기기선택 화면(4스텝) "제휴카드"·"부가서비스" 스위치의 할인액은
+// 통신사 단가표 탭 S~U열에서 읽어온다 (usePriceTableStore.benefits).
 
 export function calculate월할부금(할부원금: number, months: number): number {
   if (months <= 0) return 할부원금;

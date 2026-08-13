@@ -9,7 +9,7 @@ import plansData from '../../data/plans.json';
 import phonesData from '../../data/phones.json';
 import discountsData from '../../data/discounts.json';
 import carriersData from '../../data/carriers.json';
-import { calculate월할부금, calculate선택약정할인, calculateFullQuote, CARD_BENEFIT_DISCOUNT } from '../../utils/price';
+import { calculate월할부금, calculate선택약정할인, calculateFullQuote } from '../../utils/price';
 import { detectDevice, findMatchingUsedPhone } from '../../utils/detectDevice';
 import { formatWon } from '../../utils/format';
 import styles from './Step4PlanDiscount.module.css';
@@ -54,7 +54,7 @@ export function Step4PlanDiscount() {
   const scrollToTop = () => topRef.current?.scrollIntoView({ behavior: 'smooth' });
 
   const state = useQuoteStore();
-  const { carrierId, selectedPhoneId, selectedStorage, selectedColor, selectedPlanId, discountType, selectedDiscountIds: selectedIds, 할부개월, subscriptionType, selectedBrand, cardBenefitApplied } = state;
+  const { carrierId, selectedPhoneId, selectedStorage, selectedColor, selectedPlanId, discountType, selectedDiscountIds: selectedIds, 할부개월, subscriptionType, selectedBrand, cardBenefitApplied, addonBenefitApplied } = state;
   const isKidsPhone = selectedBrand === '키즈' || (subscriptionType === '신규가입' && selectedBrand !== 'Apple');
   const setPlan = useQuoteStore((s) => s.setPlan);
 const setDiscountType = useQuoteStore((s) => s.setDiscountType);
@@ -77,6 +77,16 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
   const getStoragesForPhone = useSheetStore((s) => s.getStoragesForPhone);
   const ptGetSubsidyData = usePriceTableStore((s) => s.getSubsidyData);
+
+  // 기기선택 화면(4스텝) 스위치로 켠 혜택 할인액 — 단가표 탭 S~U열 기준
+  const benefitsByCarrier = usePriceTableStore((s) => s.benefits);
+  const benefitDiscount = useMemo(() => {
+    const b = carrierId ? benefitsByCarrier?.[carrierId as CarrierId] : undefined;
+    return (
+      (cardBenefitApplied ? b?.제휴카드.amount ?? 0 : 0) +
+      (addonBenefitApplied ? b?.부가서비스.amount ?? 0 : 0)
+    );
+  }, [benefitsByCarrier, carrierId, cardBenefitApplied, addonBenefitApplied]);
   const getUsedPhoneList = useSheetStore((s) => s.getUsedPhoneList);
   const getSelectAgreementSubsidy = useSheetStore((s) => s.getSelectAgreementSubsidy);
   const kidsPhones = useSheetStore((s) => s.kidsPhones);
@@ -419,7 +429,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
       const cardDiscountObjs = selectedDiscounts.filter((d) => d.type === '제휴카드');
       const 월카드할인 = cardDiscountObjs.reduce((sum, d) => sum + (d.monthlyDiscount ?? 0), 0);
       const 제휴카드24개월할인 = 월카드할인 * 24;
-      const 카드혜택할인 = cardBenefitApplied ? CARD_BENEFIT_DISCOUNT : 0;
+      const 카드혜택할인 = benefitDiscount;
       const 선택약정할인 = discountType === '선택약정'
         ? calculate선택약정할인(plan.monthlyFee, plan.선택약정할인율 ?? 0.25)
         : 0;
@@ -458,9 +468,9 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
       공통지원금Override: activeSheetSubsidy?.공통지원금,
       추가지원금Override: activeSheetSubsidy?.추가지원금,
       특별지원Override: activeSheetSubsidy?.특별지원,
-      카드혜택할인: cardBenefitApplied ? CARD_BENEFIT_DISCOUNT : 0,
+      카드혜택할인: benefitDiscount,
     });
-  }, [isKidsPhone, kidsPhoneData, selectedPhone, plan, selectedStorage, carrierId, discountType, selectedDiscounts, 할부개월, activeSheetSubsidy, rebateMap, cardBenefitApplied]);
+  }, [isKidsPhone, kidsPhoneData, selectedPhone, plan, selectedStorage, carrierId, discountType, selectedDiscounts, 할부개월, activeSheetSubsidy, rebateMap, benefitDiscount]);
 
 
 

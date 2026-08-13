@@ -1,0 +1,165 @@
+/* BenefitToggleBar.module.css
+   기기선택 페이지(4스텝) 제휴카드·부가서비스 조건 스위치 바 */
+
+.wrap {
+  width: 100%;
+  padding: 0 var(--space-md) 12px;
+  background-color: #f5f5f5;
+}
+
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 10px;
+}
+
+/* 한 줄에 두 버튼 나란히 */
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btnOn {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-primary-dark);
+  outline-offset: 2px;
+}
+
+.icon {
+  font-size: 17px;
+  flex-shrink: 0;
+}
+
+.texts {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.state {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-tertiary);
+  transition: color 0.15s;
+}
+
+.stateOn {
+  color: var(--color-primary);
+}
+
+/* === 스위치 === */
+.switch {
+  position: relative;
+  width: 36px;
+  height: 21px;
+  flex-shrink: 0;
+  border-radius: 100px;
+  background: #d7dce2;
+  transition: background-color 0.2s;
+}
+
+.switchOn {
+  background: var(--color-primary);
+}
+
+.knob {
+  position: absolute;
+  top: 2.5px;
+  left: 2.5px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s ease;
+}
+
+.switchOn .knob {
+  transform: translateX(15px);
+}
+
+/* === 켰을 때 아래로 펼쳐지는 설명 === */
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.detail {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: #f7f8fa;
+  animation: detailIn 0.18s ease;
+}
+
+.detailIcon {
+  font-size: 14px;
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+
+.detailBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.detailTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.detailText {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+  word-break: keep-all;
+}
+
+@keyframes detailIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

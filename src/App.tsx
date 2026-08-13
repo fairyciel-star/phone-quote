@@ -64,6 +64,7 @@ function App() {
   const [hash, setHash] = useState(window.location.hash);
 
   // 앱 시작 시 구글 시트에서 단가표 항상 새로 로드 (캐시 무시)
+  // 제휴카드·부가서비스 혜택 조건도 같은 요청에서 함께 파싱된다
   useEffect(() => {
     usePriceTableStore.getState().clear();
     loadPriceTable(PRICE_SHEET_ID).then(() => {

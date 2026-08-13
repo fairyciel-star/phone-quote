@@ -8,12 +8,13 @@ import type { Phone, SubscriptionType, DiscountType } from '../../types';
 import type { CarrierId } from '../../types';
 import { formatWon } from '../../utils/format';
 import { hapticMedium } from '../../utils/haptic';
-import { calculateLowestDevicePrice, CARD_BENEFIT_DISCOUNT } from '../../utils/price';
+import { calculateLowestDevicePrice } from '../../utils/price';
+import { EMPTY_BENEFITS } from '../../utils/sheets';
 import { useRebateStore } from '../../store/useRebateStore';
 import { usePriceTableStore } from '../../store/usePriceTableStore';
 import styles from './Step3Phone.module.css';
 import KakaoAlertBanner from '../KakaoAlertBanner';
-import CardBenefitBanner from '../CardBenefitBanner';
+import BenefitToggleBar from '../BenefitToggleBar';
 
 const KAKAO_CHANNEL_URL = 'https://pf.kakao.com/_xmpfxcn';
 const KAKAO_ALERT_DISMISSED_KEY = 'kakaoAlertDismissed';
@@ -56,6 +57,8 @@ export function Step3Phone() {
   const setSubscriptionType = useQuoteStore((s) => s.setSubscriptionType);
   const cardBenefitApplied = useQuoteStore((s) => s.cardBenefitApplied);
   const toggleCardBenefit = useQuoteStore((s) => s.toggleCardBenefit);
+  const addonBenefitApplied = useQuoteStore((s) => s.addonBenefitApplied);
+  const toggleAddonBenefit = useQuoteStore((s) => s.toggleAddonBenefit);
 
   const sheetLoaded = useSheetStore((s) => s.loaded);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
@@ -63,6 +66,24 @@ export function Step3Phone() {
   const kidsPhones = useSheetStore((s) => s.kidsPhones);
   const phoneMasters = useSheetStore((s) => s.phoneMasters);
   const colorStorages = useSheetStore((s) => s.colorStorages);
+  // 혜택 조건은 통신사 단가표 탭 우측(S~U열)에서 읽어온 값을 그대로 사용한다.
+  // 시트의 '금액'은 이미 기기값에서 차감할 최종 할인액이라 별도 환산이 필요 없다.
+  const benefitsByCarrier = usePriceTableStore((s) => s.benefits);
+  const carrierBenefits = carrierId
+    ? benefitsByCarrier?.[carrierId] ?? EMPTY_BENEFITS
+    : EMPTY_BENEFITS;
+  // 제휴카드는 설명을 노출하지 않고, 부가서비스는 유지 조건만 노출한다
+  const cardBenefit = carrierBenefits.제휴카드;
+  const addonBenefit = carrierBenefits.부가서비스;
+
+  // 스위치 ON 상태인 조건들의 할인액 합계
+  const benefitDiscount =
+    (cardBenefitApplied ? cardBenefit.amount : 0) +
+    (addonBenefitApplied ? addonBenefit.amount : 0);
+  const benefitApplied = benefitDiscount > 0;
+
+  // 할인액이 기기값보다 큰 경우 음수 가격이 노출되지 않도록 0원에서 정지
+  const applyBenefit = (price: number) => Math.max(0, price - benefitDiscount);
 
   const selectedBrand = useQuoteStore((s) => s.selectedBrand);
   const [brandFilter, setBrandFilter] = useState<BrandFilter>(
@@ -468,6 +489,11 @@ export function Step3Phone() {
     toggleCardBenefit();
   };
 
+  const handleAddonBenefitToggle = () => {
+    hapticMedium();
+    toggleAddonBenefit();
+  };
+
   return (
     <>
       <KakaoAlertBanner
@@ -475,7 +501,13 @@ export function Step3Phone() {
         onConfirm={handleKakaoConfirm}
         onClose={handleKakaoClose}
       />
-      <CardBenefitBanner active={cardBenefitApplied} onClick={handleCardBenefitToggle} />
+      <BenefitToggleBar
+        cardOn={cardBenefitApplied}
+        onCardToggle={handleCardBenefitToggle}
+        addonOn={addonBenefitApplied}
+        onAddonToggle={handleAddonBenefitToggle}
+        addonCondition={addonBenefit.condition}
+      />
       <div className={styles.container}>
         <div className={styles.titleRow}>
           <h2 className={styles.title}>기기를 선택해주세요!</h2>
@@ -505,8 +537,8 @@ export function Step3Phone() {
           {displayPhones.map(({ phone, retailPrice, lowestDevicePrice, lowestStorage: _ls, isPriceInquiry }) => {
             const isSelected = selectedPhoneId === phone.id;
             const displayedLowestPrice =
-              cardBenefitApplied && !isPriceInquiry && retailPrice > 0
-                ? lowestDevicePrice - CARD_BENEFIT_DISCOUNT
+              benefitApplied && !isPriceInquiry && retailPrice > 0
+                ? applyBenefit(lowestDevicePrice)
                 : lowestDevicePrice;
             return (
               <div key={phone.id}>
@@ -539,7 +571,7 @@ export function Step3Phone() {
                       ) : retailPrice > 0 ? (
                         <>
                           <span className={styles.lowestPriceBadge}>
-                            {cardBenefitApplied ? '💳 카드혜택 적용가' : '▼ 오늘 최저가'}
+                            {benefitApplied ? '💳 혜택 적용가' : '▼ 오늘 최저가'}
                           </span>
                           <span className={styles.lowestPriceValue}>{formatWon(displayedLowestPrice)}</span>
                           <span className={styles.lowestPriceRetail}>{formatWon(retailPrice)}</span>
@@ -569,7 +601,7 @@ export function Step3Phone() {
                           현재 {currentCarrierName} {subscriptionType}{' '}
                           {comparisonData.currentPriceInquiry
                             ? '가격문의'
-                            : formatWon(comparisonData.currentPrice - (cardBenefitApplied ? CARD_BENEFIT_DISCOUNT : 0))}
+                            : formatWon(applyBenefit(comparisonData.currentPrice))}
                         </span>
                       </div>
                     </div>
@@ -595,7 +627,7 @@ export function Step3Phone() {
                               <span className={styles.altPrice}>
                                 {alt.priceInquiry
                                   ? '가격문의'
-                                  : formatWon(alt.price - (cardBenefitApplied ? CARD_BENEFIT_DISCOUNT : 0))}
+                                  : formatWon(applyBenefit(alt.price))}
                               </span>
                             </div>
                             <div className={styles.altRight}>
@@ -626,7 +658,7 @@ export function Step3Phone() {
                         <span className={styles.altPrice}>
                           {comparisonData.currentPriceInquiry
                             ? '가격문의'
-                            : formatWon(comparisonData.currentPrice - (cardBenefitApplied ? CARD_BENEFIT_DISCOUNT : 0))}
+                            : formatWon(applyBenefit(comparisonData.currentPrice))}
                         </span>
                       </div>
                       <div className={styles.altRight}>

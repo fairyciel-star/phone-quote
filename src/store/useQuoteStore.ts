@@ -9,6 +9,8 @@ interface QuoteActions {
   exitPreorder: () => void;
   cardBenefitApplied: boolean;
   toggleCardBenefit: () => void;
+  addonBenefitApplied: boolean;
+  toggleAddonBenefit: () => void;
   setStep: (step: number) => void;
   startKidsPath: () => void;
   setBrand: (brand: string) => void;
@@ -62,6 +64,9 @@ export const useQuoteStore = create<QuoteState & QuoteActions>((set) => ({
 
   cardBenefitApplied: false,
   toggleCardBenefit: () => set((state) => ({ cardBenefitApplied: !state.cardBenefitApplied })),
+
+  addonBenefitApplied: false,
+  toggleAddonBenefit: () => set((state) => ({ addonBenefitApplied: !state.addonBenefitApplied })),
 
   setStep: (step) => set({ currentStep: step }),
 
@@ -157,5 +162,12 @@ export const useQuoteStore = create<QuoteState & QuoteActions>((set) => ({
       consultation: { ...state.consultation, ...form },
     })),
 
-  reset: () => set({ ...initialState, showLanding: true, showPreorder: false, cardBenefitApplied: false }),
+  reset: () =>
+    set({
+      ...initialState,
+      showLanding: true,
+      showPreorder: false,
+      cardBenefitApplied: false,
+      addonBenefitApplied: false,
+    }),
 }));

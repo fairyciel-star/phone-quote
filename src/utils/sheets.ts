@@ -509,10 +509,70 @@ function parseLguRows(lines: string[]): PriceTableRow[] {
   return rows;
 }
 
+// ── 혜택 조건 (부가서비스 / 제휴카드) ──
+//
+// 각 통신사 단가표 탭 우측 S~U열에 들어 있는 작은 블록에서 읽는다.
+//   T열(19) = 부가서비스, U열(20) = 제휴카드   ← 제목 행
+//   S열(18) = '금액' 행        → 기기값에서 차감할 할인액 (원 단위, 이미 최종 금액)
+//   S열(18) = '유지 및 조건' 행 → 사용자에게 보여줄 조건 문구
+//
+// 행 위치가 바뀌어도 동작하도록 행 번호를 고정하지 않고 제목·라벨을 찾아서 읽는다.
+// 부가서비스/제휴카드 열 순서가 바뀌어도 제목 행 기준으로 매칭된다.
+const BENEFIT_LABEL_COL = 18;
+const BENEFIT_TITLE_ROW_SCAN = 5; // 제목 행은 시트 상단에 있으므로 앞부분만 훑는다
+
+export interface Benefit {
+  readonly amount: number;
+  readonly condition: string;
+}
+
+export interface CarrierBenefits {
+  readonly 부가서비스: Benefit;
+  readonly 제휴카드: Benefit;
+}
+
+export const EMPTY_BENEFITS: CarrierBenefits = {
+  부가서비스: { amount: 0, condition: '' },
+  제휴카드: { amount: 0, condition: '' },
+};
+
+function parseBenefitBlock(lines: string[]): CarrierBenefits {
+  const grid = lines.slice(0, BENEFIT_TITLE_ROW_SCAN + 3).map(parseCsvLine);
+
+  // 1) 제목 행에서 '부가서비스'·'제휴카드'가 각각 몇 번째 열인지 찾는다
+  let addonCol = -1;
+  let cardCol = -1;
+  for (const cols of grid.slice(0, BENEFIT_TITLE_ROW_SCAN)) {
+    for (let c = BENEFIT_LABEL_COL; c < cols.length; c++) {
+      const cell = (cols[c] ?? '').trim();
+      if (cell === '부가서비스') addonCol = c;
+      if (cell === '제휴카드') cardCol = c;
+    }
+    if (addonCol >= 0 || cardCol >= 0) break;
+  }
+  if (addonCol < 0 && cardCol < 0) return EMPTY_BENEFITS;
+
+  // 2) S열 라벨('금액' / '유지 및 조건')로 값 행을 찾아 읽는다
+  const read = (col: number): Benefit => {
+    if (col < 0) return { amount: 0, condition: '' };
+    let amount = 0;
+    let condition = '';
+    for (const cols of grid) {
+      const label = (cols[BENEFIT_LABEL_COL] ?? '').trim();
+      const value = (cols[col] ?? '').trim();
+      if (label === '금액') amount = parsePrice(value);
+      else if (label.startsWith('유지')) condition = value;
+    }
+    return { amount, condition };
+  };
+
+  return { 부가서비스: read(addonCol), 제휴카드: read(cardCol) };
+}
+
 export async function fetchPriceTable(
   sheetIdOrUrl: string,
   carrier: CarrierId
-): Promise<PriceTableRow[]> {
+): Promise<{ rows: PriceTableRow[]; benefits: CarrierBenefits }> {
   const gid = PRICE_TABLE_GIDS[carrier];
   const spreadsheetId = extractSpreadsheetId(sheetIdOrUrl);
   const url = buildExportCsvUrl(spreadsheetId, gid);
@@ -521,9 +581,10 @@ export async function fetchPriceTable(
   const text = await res.text();
   const lines = text.split('\n').filter((l) => l.trim() !== '');
 
+  const benefits = parseBenefitBlock(lines);
   switch (carrier) {
-    case 'SKT': return parseSktRows(lines);
-    case 'KT': return parseKtRows(lines);
-    case 'LGU': return parseLguRows(lines);
+    case 'SKT': return { rows: parseSktRows(lines), benefits };
+    case 'KT': return { rows: parseKtRows(lines), benefits };
+    case 'LGU': return { rows: parseLguRows(lines), benefits };
   }
 }

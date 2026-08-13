@@ -1,7 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { CarrierId, SubscriptionType } from '../types';
-import { fetchPriceTable, type PriceTableRow, type PriceTierKr } from '../utils/sheets';
+import {
+  fetchPriceTable,
+  EMPTY_BENEFITS,
+  type CarrierBenefits,
+  type PriceTableRow,
+  type PriceTierKr,
+} from '../utils/sheets';
 import { modelNameToPhoneId } from '../utils/modelMatch';
 
 export type { PriceTableRow, PriceTierKr };
@@ -38,12 +44,15 @@ interface PriceTableState {
   sktRows: PriceTableRow[];
   ktRows: PriceTableRow[];
   lguRows: PriceTableRow[];
+  /** 통신사별 부가서비스·제휴카드 혜택 조건 (단가표 탭 S~U열) */
+  benefits: Record<CarrierId, CarrierBenefits>;
   readonly loading: boolean;
   readonly error: string | null;
   readonly lastLoaded: string | null;
 
   loadCarrier: (sheetId: string, carrier: CarrierId) => Promise<void>;
   loadAll: (sheetId: string) => Promise<void>;
+  getBenefits: (carrier: CarrierId) => CarrierBenefits;
   getRows: (carrier: CarrierId) => PriceTableRow[];
   updateRow: (carrier: CarrierId, idx: number, field: keyof PriceTableRow, value: number | string) => void;
   clear: (carrier?: CarrierId) => void;
@@ -79,6 +88,7 @@ export const usePriceTableStore = create<PriceTableState>()(
       sktRows: [],
       ktRows: [],
       lguRows: [],
+      benefits: { SKT: EMPTY_BENEFITS, KT: EMPTY_BENEFITS, LGU: EMPTY_BENEFITS },
       loading: false,
       error: null,
       lastLoaded: null,
@@ -86,9 +96,10 @@ export const usePriceTableStore = create<PriceTableState>()(
       loadCarrier: async (sheetId, carrier) => {
         set({ loading: true, error: null });
         try {
-          const rows = await fetchPriceTable(sheetId, carrier);
+          const { rows, benefits } = await fetchPriceTable(sheetId, carrier);
           set({
             [carrierKey(carrier)]: rows,
+            benefits: { ...get().benefits, [carrier]: benefits },
             loading: false,
             lastLoaded: new Date().toISOString(),
           });
@@ -108,10 +119,16 @@ export const usePriceTableStore = create<PriceTableState>()(
             fetchPriceTable(sheetId, 'KT'),
             fetchPriceTable(sheetId, 'LGU'),
           ]);
+          const prev = get();
           set({
-            sktRows: skt.status === 'fulfilled' ? skt.value : get().sktRows,
-            ktRows: kt.status === 'fulfilled' ? kt.value : get().ktRows,
-            lguRows: lgu.status === 'fulfilled' ? lgu.value : get().lguRows,
+            sktRows: skt.status === 'fulfilled' ? skt.value.rows : prev.sktRows,
+            ktRows: kt.status === 'fulfilled' ? kt.value.rows : prev.ktRows,
+            lguRows: lgu.status === 'fulfilled' ? lgu.value.rows : prev.lguRows,
+            benefits: {
+              SKT: skt.status === 'fulfilled' ? skt.value.benefits : prev.benefits.SKT,
+              KT: kt.status === 'fulfilled' ? kt.value.benefits : prev.benefits.KT,
+              LGU: lgu.status === 'fulfilled' ? lgu.value.benefits : prev.benefits.LGU,
+            },
             loading: false,
             lastLoaded: new Date().toISOString(),
           });
@@ -129,6 +146,8 @@ export const usePriceTableStore = create<PriceTableState>()(
       },
 
       getRows: (carrier) => get()[carrierKey(carrier)],
+
+      getBenefits: (carrier) => get().benefits?.[carrier] ?? EMPTY_BENEFITS,
 
       hasModel: (phoneId, carrier) => {
         const rows = get().getRows(carrier);
