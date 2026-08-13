@@ -297,11 +297,18 @@ export function Step3Phone() {
         getSelectAgreementSubsidy,
         getRebateAmount,
       });
-      // 가격문의 여부: 선택 통신사 + 전 용량 + 전 가입유형 중 하나라도 가격문의이면 true
+      // 가격문의 여부: 공통지원금·선택약정 두 경로가 모두 막힌 경우에만 가격문의로 본다.
+      // (공통지원금 리베이트가 0이어도 선택약정으로 판매 가능하면 그 가격을 보여준다)
       const subTypes = subscriptionType ? [subscriptionType] : ['번호이동', '기기변경'] as const;
       const isPriceInquiry = sheetLoaded && carrierId
-        ? phone.storage.some((s) =>
-            subTypes.some((st) => getSubsidy(phone.id, carrierId, s.size, st)?.가격문의)
+        ? phone.storage.every((s) =>
+            subTypes.every((st) => {
+              const 공통 = getSubsidy(phone.id, carrierId, s.size, st);
+              const 선약 = getSelectAgreementSubsidy(phone.id, carrierId, s.size, st);
+              const 공통판매가능 = 공통.출고가 > 0 && !공통.가격문의;
+              const 선약판매가능 = 선약.출고가 > 0 && !선약.가격문의;
+              return !공통판매가능 && !선약판매가능;
+            })
           )
         : false;
       return {

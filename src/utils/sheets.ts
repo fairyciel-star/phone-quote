@@ -455,8 +455,12 @@ function parsePrice(val: string): number {
 
 // 단가표 열 구조 (SKT/KT/LGU 공통):
 //   col0=모델코드, col1=모델명, col2=출고가, col3=공통지원금(기변), col4=공통지원금(MNP)
+//   col5~7  = 공통지원금 리베이트 (010신규 / MNP / 기변), 만원 단위
+//   col8~10 = 선택약정 리베이트   (010신규 / MNP / 기변), 만원 단위
 //   col13=공통 MNP합계, col14=공통 기변합계, col15=선택약정 MNP합계, col16=선택약정 기변합계
 //   col17(R열)=가격문의
+//
+// 리베이트가 0이면 그 조건으로는 판매할 수 없다는 뜻이므로 가격문의로 안내한다.
 function parsePriceRow(cols: string[], carrier: CarrierId): PriceTableRow {
   return {
     carrier,
@@ -465,12 +469,34 @@ function parsePriceRow(cols: string[], carrier: CarrierId): PriceTableRow {
     retail_price: parsePrice(cols[2] ?? ''),
     change_subsidy: parsePrice(cols[3] ?? '') * 10000,
     mnp_subsidy: parsePrice(cols[4] ?? '') * 10000,
+    subsidy_010: parsePrice(cols[5] ?? ''),
+    subsidy_mnp: parsePrice(cols[6] ?? ''),
+    subsidy_change: parsePrice(cols[7] ?? ''),
+    agreement_010: parsePrice(cols[8] ?? ''),
+    agreement_mnp: parsePrice(cols[9] ?? ''),
+    agreement_change: parsePrice(cols[10] ?? ''),
     mnp_price: parsePrice(cols[13] ?? ''),
     change_price: parsePrice(cols[14] ?? ''),
     agreement_mnp_price: parsePrice(cols[15] ?? ''),
     agreement_change_price: parsePrice(cols[16] ?? ''),
     price_inquiry: cols[17]?.trim() === '가격문의',
   };
+}
+
+/** 가입유형별 리베이트 조회. 0이면 해당 조건으로 판매 불가 → 가격문의 */
+export function getRowRebate(
+  row: PriceTableRow,
+  discountType: '공통지원금' | '선택약정',
+  subscriptionType: SubscriptionType
+): number {
+  if (discountType === '공통지원금') {
+    if (subscriptionType === '번호이동') return row.subsidy_mnp ?? 0;
+    if (subscriptionType === '신규가입') return row.subsidy_010 ?? 0;
+    return row.subsidy_change ?? 0;
+  }
+  if (subscriptionType === '번호이동') return row.agreement_mnp ?? 0;
+  if (subscriptionType === '신규가입') return row.agreement_010 ?? 0;
+  return row.agreement_change ?? 0;
 }
 
 function parseSktRows(lines: string[]): PriceTableRow[] {

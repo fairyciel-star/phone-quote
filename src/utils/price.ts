@@ -65,14 +65,14 @@ export function calculateLowestDevicePrice(params: {
     용량: string,
     가입유형: SubscriptionType,
     planTier?: PlanTier
-  ) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number; isPriceTableData?: boolean };
+  ) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number; 가격문의?: boolean; isPriceTableData?: boolean };
   getSelectAgreementSubsidy?: (
     모델ID: string,
     통신사: CarrierId,
     용량: string,
     가입유형: SubscriptionType,
     planTier?: PlanTier
-  ) => { 출고가: number; 추가지원금: number; 특별지원: number };
+  ) => { 출고가: number; 추가지원금: number; 특별지원: number; 가격문의?: boolean };
   sheetLoaded?: boolean;
   /** Supabase 리베이트 조회 함수 (선택). 반환값은 리베이트 원화 금액. */
   getRebateAmount?: (
@@ -102,13 +102,17 @@ export function calculateLowestDevicePrice(params: {
         let 특별지원 = 0;
 
         let isPriceTableData = false;
+        // 리베이트 0 등으로 판매 불가한 경로는 최저가 후보에서 제외한다
+        let 공통가격문의 = false;
         if (sheetLoaded && getSubsidy) {
           const sheet = getSubsidy(phone.id, carrierId, storageOption.size, subType, params.planTier ?? '고가');
           if (sheet.출고가 > 0) 출고가 = sheet.출고가;
           if (sheet.공통지원금 > 0) 공통지원금 = sheet.공통지원금;
-          if (sheet.추가지원금 > 0) 추가지원금 = sheet.추가지원금;
+          // 단가표 추가지원금은 마진 때문에 음수일 수 있으므로 0 비교로 거르지 않는다
+          if (sheet.추가지원금 !== 0) 추가지원금 = sheet.추가지원금;
           if (sheet.특별지원 > 0) 특별지원 = sheet.특별지원;
           isPriceTableData = sheet.isPriceTableData === true;
+          공통가격문의 = sheet.가격문의 === true;
         }
 
         if (출고가 === 0) continue;
@@ -122,13 +126,13 @@ export function calculateLowestDevicePrice(params: {
           : 0;
 
         const 공통실구매가 = Math.max(0, 출고가 - 공통지원금 - 추가지원금 - 특별지원 - subsidyRebate);
-        let 실구매가 = 공통실구매가;
+        let 실구매가 = 공통가격문의 ? Infinity : 공통실구매가;
         let 사용된지원금 = 공통지원금 + 추가지원금 + 특별지원 + subsidyRebate;
 
         if (sheetLoaded && params.getSelectAgreementSubsidy) {
           const sa = params.getSelectAgreementSubsidy(phone.id, carrierId, storageOption.size, subType, params.planTier ?? '고가');
           const sa지원금 = (sa.추가지원금 || 0) + (sa.특별지원 || 0) + installmentRebate;
-          if (sa지원금 > 0) {
+          if (!sa.가격문의 && sa지원금 > 0) {
             const 선택실구매가 = Math.max(0, 출고가 - sa지원금);
             if (선택실구매가 < 실구매가) {
               실구매가 = 선택실구매가;
@@ -136,6 +140,9 @@ export function calculateLowestDevicePrice(params: {
             }
           }
         }
+
+        // 두 경로 모두 판매 불가면 이 조합은 최저가 후보에서 제외
+        if (실구매가 === Infinity) continue;
 
         if (실구매가 < lowest) {
           lowest = 실구매가;
