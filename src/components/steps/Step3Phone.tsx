@@ -8,7 +8,7 @@ import type { Phone, SubscriptionType, DiscountType } from '../../types';
 import type { CarrierId } from '../../types';
 import { formatWon } from '../../utils/format';
 import { hapticMedium } from '../../utils/haptic';
-import { calculateLowestDevicePrice } from '../../utils/price';
+import { calculateLowestDevicePrice, applyBenefitDiscount } from '../../utils/price';
 import { EMPTY_BENEFITS } from '../../utils/sheets';
 import { useRebateStore } from '../../store/useRebateStore';
 import { usePriceTableStore } from '../../store/usePriceTableStore';
@@ -82,8 +82,8 @@ export function Step3Phone() {
     (addonBenefitApplied ? addonBenefit.amount : 0);
   const benefitApplied = benefitDiscount > 0;
 
-  // 할인액이 기기값보다 큰 경우 음수 가격이 노출되지 않도록 0원에서 정지
-  const applyBenefit = (price: number) => Math.max(0, price - benefitDiscount);
+  // 할인액이 기기값보다 크면 마이너스 그대로 두고 페이백으로 안내한다 (10% 차감 후 지급)
+  const applyBenefit = (price: number) => applyBenefitDiscount(price, benefitDiscount);
 
   const selectedBrand = useQuoteStore((s) => s.selectedBrand);
   const [brandFilter, setBrandFilter] = useState<BrandFilter>(
@@ -574,6 +574,9 @@ export function Step3Phone() {
                             {benefitApplied ? '💳 혜택 적용가' : '▼ 오늘 최저가'}
                           </span>
                           <span className={styles.lowestPriceValue}>{formatWon(displayedLowestPrice)}</span>
+                          {displayedLowestPrice < 0 && (
+                            <span className={styles.paybackNote}>페이백으로 돌려드립니다</span>
+                          )}
                           <span className={styles.lowestPriceRetail}>{formatWon(retailPrice)}</span>
                         </>
                       ) : (

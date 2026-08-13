@@ -9,7 +9,7 @@ import plansData from '../../data/plans.json';
 import phonesData from '../../data/phones.json';
 import discountsData from '../../data/discounts.json';
 import carriersData from '../../data/carriers.json';
-import { calculate월할부금, calculate선택약정할인, calculateFullQuote } from '../../utils/price';
+import { calculate월할부금, calculate선택약정할인, calculateFullQuote, applyBenefitDiscount } from '../../utils/price';
 import { detectDevice, findMatchingUsedPhone } from '../../utils/detectDevice';
 import { formatWon } from '../../utils/format';
 import styles from './Step4PlanDiscount.module.css';
@@ -434,7 +434,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
         ? calculate선택약정할인(plan.monthlyFee, plan.선택약정할인율 ?? 0.25)
         : 0;
       const 기기실구매가할인적용 = Math.max(0, 기기실구매가 - 제휴카드24개월할인);
-      const 할부원금 = 기기실구매가할인적용 - 카드혜택할인;
+      const 할부원금 = applyBenefitDiscount(기기실구매가할인적용, 카드혜택할인);
       const 월할부금 = calculate월할부금(할부원금, 할부개월);
       const 월요금제 = plan.monthlyFee - 선택약정할인;
       return {
@@ -561,6 +561,9 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
                   <div className={styles.phoneHeroPriceValue}>
                     {formatWon(실구매가).replace('원', '')}<span className={styles.phoneHeroPriceUnit}>원</span>
                   </div>
+                  {실구매가 < 0 && (
+                    <div className={styles.paybackNote}>페이백으로 돌려드립니다</div>
+                  )}
                   {totalSubsidy > 0 && (
                     <div className={styles.subsidyBadge}>구매지원금 {formatWon(totalSubsidy)}</div>
                   )}

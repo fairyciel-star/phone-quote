@@ -116,6 +116,18 @@
   color: #5b21b6;
 }
 
+/* 혜택 할인이 기기값을 넘어 마이너스가 된 경우 안내 */
+.paybackNote {
+  display: inline-block;
+  padding: 5px 16px;
+  background: #eaf4ff;
+  color: #0071e3;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+
 .subsidyBadgeCard {
   background: #f0fff4;
   color: #16a34a;

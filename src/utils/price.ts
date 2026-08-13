@@ -5,6 +5,20 @@ const 연이율 = 0.059;
 // 기기선택 화면(4스텝) "제휴카드"·"부가서비스" 스위치의 할인액은
 // 통신사 단가표 탭 S~U열에서 읽어온다 (usePriceTableStore.benefits).
 
+/** 페이백 지급 비율 — 마이너스로 떨어진 금액에서 10%를 뺀 만큼 지급한다 */
+export const PAYBACK_RATE = 0.9;
+
+/**
+ * 혜택 할인을 적용한 기기값.
+ * 할인액이 기기값보다 크면 마이너스가 되는데, 이 초과분은 페이백으로 돌려주므로
+ * 0원에서 자르지 않고 10%를 뺀 금액을 그대로 마이너스로 반환한다.
+ * 예) 할인 후 -100,000원 → -90,000원 (9만원 페이백)
+ */
+export function applyBenefitDiscount(price: number, discount: number): number {
+  const raw = price - discount;
+  return raw < 0 ? -Math.round(-raw * PAYBACK_RATE) : raw;
+}
+
 export function calculate월할부금(할부원금: number, months: number): number {
   if (months <= 0) return 할부원금;
   if (할부원금 <= 0) return 0;
@@ -195,9 +209,10 @@ export function calculateFullQuote(params: {
   const 월부가서비스료 = addons.reduce((sum, d) => sum + (d.monthlyFee ?? 0), 0);
 
   // 할부원금 = 출고가 - 공통지원금 - 추가지원금 - 특별지원 - 제휴카드24개월할인 - 부가서비스추가할인, 0원 미만 방지
-  // 카드혜택할인(기기선택 화면 배너)은 마지막에 적용하며 마이너스 표시를 그대로 허용한다
+  // 카드혜택할인(기기선택 화면 스위치)은 마지막에 적용하며, 마이너스가 되면
+  // 4스텝 표시가와 동일하게 10%를 뺀 페이백 금액으로 환산한다
   const base할부원금 = Math.max(0, 출고가 - 공통지원금 - 추가지원금 - 특별지원 - 제휴카드24개월할인 - 부가서비스추가할인);
-  const 할부원금 = base할부원금 - 카드혜택할인;
+  const 할부원금 = applyBenefitDiscount(base할부원금, 카드혜택할인);
   const 월할부금 = calculate월할부금(할부원금, 할부개월);
 
   const 선택약정할인 =
