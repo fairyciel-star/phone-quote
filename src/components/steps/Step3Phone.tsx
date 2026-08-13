@@ -212,6 +212,8 @@ export function Step3Phone() {
   }, [selectedPhoneId, carrierId, subscriptionType, sheetLoaded, getRebateAmount]);
 
   // 저렴한 대안이 없으면 자동으로 다음 스텝 진행
+  // 비교 데이터 자체가 없는 경우(전 조건 가격문의 등)도 그냥 다음 스텝으로 보낸다.
+  // 그러지 않으면 비교 패널도 안 뜨고 진행도 안 돼 카드가 먹통이 된다.
   useEffect(() => {
     if (!showComparison) return;
     if (!sheetLoaded) {
@@ -219,7 +221,7 @@ export function Step3Phone() {
       setStep(currentStep + 1);
       return;
     }
-    if (comparisonData && comparisonData.alternatives.length === 0) {
+    if (!comparisonData || comparisonData.alternatives.length === 0) {
       setShowComparison(false);
       setStep(currentStep + 1);
     }
