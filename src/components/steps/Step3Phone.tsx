@@ -327,8 +327,15 @@ export function Step3Phone() {
     [filteredPhones, sheetLoaded, carrierId, subscriptionType, getRebateAmount]);
 
   const displayPhones = useMemo(() => {
-    if (!sortByPrice) return phonesWithData;
-    return [...phonesWithData].sort((a, b) => a.lowestDevicePrice - b.lowestDevicePrice);
+    // 가격문의·가격 준비중 기기는 정렬 방식과 무관하게 항상 목록 맨 아래로 보낸다.
+    // (최저가가 0으로 계산돼 오히려 맨 위로 올라오던 문제)
+    const 가격없음 = (p: typeof phonesWithData[number]) =>
+      p.isPriceInquiry || p.retailPrice <= 0 ? 1 : 0;
+    return [...phonesWithData].sort(
+      (a, b) =>
+        가격없음(a) - 가격없음(b) ||
+        (sortByPrice ? a.lowestDevicePrice - b.lowestDevicePrice : 0),
+    );
   }, [phonesWithData, sortByPrice]);
 
   const currentCarrierName = carriersData.find((c) => c.id === carrierId)?.name ?? carrierId ?? '';
