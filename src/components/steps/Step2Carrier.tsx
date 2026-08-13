@@ -12,7 +12,7 @@ export function Step2Carrier() {
   const setCarrier = useQuoteStore((s) => s.setCarrier);
   const setStep = useQuoteStore((s) => s.setStep);
   const currentStep = useQuoteStore((s) => s.currentStep);
-  const enterPreorder = useQuoteStore((s) => s.enterPreorder);
+  // const enterPreorder = useQuoteStore((s) => s.enterPreorder); // TODO: 사전예약 재오픈 시 해제
   // const startKidsPath = useQuoteStore((s) => s.startKidsPath); // TODO: 신규가입 활성화 시 해제
 
   const handleSelect = (carrierId: CarrierId) => {
@@ -21,11 +21,8 @@ export function Step2Carrier() {
     setStep(currentStep + 1);
   };
 
-  // 사전예약 배너 → 별도 사전예약 신청 페이지로 이동
-  const handlePreorder = () => {
-    hapticMedium();
-    enterPreorder();
-  };
+  // TODO: 사전예약 재오픈 시 아래 주석 해제 (배너 → 별도 사전예약 신청 페이지로 이동)
+  // const handlePreorder = () => { hapticMedium(); enterPreorder(); };
 
   // TODO: 신규가입(키즈폰) 기능 추가 후 아래 주석 해제
   // const handleKids = () => { hapticMedium(); startKidsPath(); };
@@ -64,6 +61,7 @@ export function Step2Carrier() {
         */}
       </div>
 
+      {/* TODO: 사전예약 재오픈 시 아래 주석 해제 (Z Fold8 · Z Flip8 사전예약 종료로 숨김)
       <div className={styles.preorderNotice}>
         <span className={styles.preorderNoticeMain}>
           🎉 갤럭시 Z Fold8 · Z Flip8 사전예약 진행중!
@@ -80,6 +78,7 @@ export function Step2Carrier() {
           alt="Galaxy Z Fold8 | Z Flip8 사전예약"
         />
       </button>
+      */}
     </div>
   );
 }
