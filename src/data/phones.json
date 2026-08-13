@@ -1,5 +1,65 @@
 [
   {
+    "id": "galaxy-zfold8-ultra",
+    "name": "갤럭시 Z Fold 8 Ultra",
+    "brand": "삼성",
+    "image": "/images/phones/zfold8u/대표.png",
+    "carriers": ["SKT", "KT", "LGU"],
+    "storage": [
+      { "size": "256GB", "price": 2577300 }
+    ],
+    "colors": [
+      { "name": "그라파이트", "hex": "#3B3C43", "image": "/images/phones/zfold8u/그라파이트.png" },
+      { "name": "크림", "hex": "#D2CED2", "image": "/images/phones/zfold8u/크림.png" },
+      { "name": "바이올렛 쉐도우", "hex": "#2B222C", "image": "/images/phones/zfold8u/바이올렛 쉐도우.png" }
+    ],
+    "공통지원금": {
+      "SKT": { "256GB": 0 },
+      "KT": { "256GB": 0 },
+      "LGU": { "256GB": 0 }
+    }
+  },
+  {
+    "id": "galaxy-zfold8",
+    "name": "갤럭시 Z Fold 8",
+    "brand": "삼성",
+    "image": "/images/phones/zfold8/대표.png",
+    "carriers": ["SKT", "KT", "LGU"],
+    "storage": [
+      { "size": "256GB", "price": 2278100 }
+    ],
+    "colors": [
+      { "name": "그라파이트", "hex": "#3B3C43", "image": "/images/phones/zfold8/그라파이트.png" },
+      { "name": "라벤더", "hex": "#D3CBDC", "image": "/images/phones/zfold8/라벤더.png" },
+      { "name": "크림", "hex": "#DDD1D3", "image": "/images/phones/zfold8/크림.png" }
+    ],
+    "공통지원금": {
+      "SKT": { "256GB": 0 },
+      "KT": { "256GB": 0 },
+      "LGU": { "256GB": 0 }
+    }
+  },
+  {
+    "id": "galaxy-zflip8",
+    "name": "갤럭시 Z Flip 8",
+    "brand": "삼성",
+    "image": "/images/phones/zflip8/대표.png",
+    "carriers": ["SKT", "KT", "LGU"],
+    "storage": [
+      { "size": "256GB", "price": 1683000 }
+    ],
+    "colors": [
+      { "name": "그라파이트", "hex": "#3C3D44", "image": "/images/phones/zflip8/그라파이트.png" },
+      { "name": "크림", "hex": "#DDD1D3", "image": "/images/phones/zflip8/크림.png" },
+      { "name": "핑크", "hex": "#F4CCE1", "image": "/images/phones/zflip8/핑크.png" }
+    ],
+    "공통지원금": {
+      "SKT": { "256GB": 0 },
+      "KT": { "256GB": 0 },
+      "LGU": { "256GB": 0 }
+    }
+  },
+  {
     "id": "galaxy-s26-ultra",
     "name": "갤럭시 S26 Ultra",
     "brand": "삼성",
