@@ -46,6 +46,12 @@ export interface LowestCondition {
 
 export interface LowestDevicePriceResult {
   readonly price: number;
+  /**
+   * 판매 가능한 조합을 하나라도 찾았는지 여부.
+   * price는 0원 판매일 때도 0이라 "데이터 없음"과 구분되지 않으므로
+   * 값의 유무 판단은 반드시 이 필드로 한다.
+   */
+  readonly hasPrice: boolean;
   readonly carrierId: CarrierId | null;
   readonly subscriptionType: SubscriptionType | null;
   readonly storage: string | null;
@@ -162,6 +168,7 @@ export function calculateLowestDevicePrice(params: {
   const conditions = [...matchMap.values()];
   return {
     price: lowest === Infinity ? 0 : lowest,
+    hasPrice: lowest !== Infinity,
     carrierId: conditions[0]?.carrierId ?? null,
     subscriptionType: conditions[0]?.subscriptionType ?? null,
     storage: lowestStorage,

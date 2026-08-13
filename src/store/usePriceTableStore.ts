@@ -191,14 +191,15 @@ export const usePriceTableStore = create<PriceTableState>()(
             // 단가표 합계에는 마진이 더해져 있어 추가지원금이 음수가 될 수 있다.
             // 0으로 자르면 합계보다 싼 가격이 표시되므로 음수를 그대로 둔다.
             const 추가지원금 = row.retail_price - 공통지원금 - finalPrice;
-            // 리베이트가 0이면 합계와 상관없이 판매 불가 조건이므로 가격문의로 안내한다
+            // 판매 가능 여부는 리베이트로만 판단한다.
+            // 합계가 0원인 것은 "0원 판매"라는 뜻이지 판매 불가가 아니다.
             const rebate = getRowRebate(row, '공통지원금', subscriptionType);
             return {
               출고가: row.retail_price,
               공통지원금,
               추가지원금,
               특별지원: 0,
-              가격문의: row.price_inquiry || finalPrice <= 0 || rebate <= 0,
+              가격문의: row.price_inquiry || rebate <= 0,
               isPriceTableData: true as const,
             };
           }
@@ -221,13 +222,14 @@ export const usePriceTableStore = create<PriceTableState>()(
             const finalPrice = subscriptionType === '번호이동'
               ? row.agreement_mnp_price
               : row.agreement_change_price;
-            // 리베이트가 0이면 합계와 상관없이 판매 불가 조건이므로 가격문의로 안내한다
+            // 판매 가능 여부는 리베이트로만 판단한다.
+            // 합계가 0원인 것은 "0원 판매"라는 뜻이지 판매 불가가 아니다.
             const rebate = getRowRebate(row, '선택약정', subscriptionType);
             return {
               출고가: row.retail_price,
               추가지원금: Math.max(0, row.retail_price - finalPrice),
               특별지원: 0,
-              가격문의: row.price_inquiry || finalPrice <= 0 || rebate <= 0,
+              가격문의: row.price_inquiry || rebate <= 0,
               isPriceTableData: row.retail_price > 0,
             };
           }

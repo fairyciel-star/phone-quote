@@ -35,6 +35,7 @@ type BrandFilter = '전체' | '삼성' | 'Apple';
 interface Alternative {
   carrierId: CarrierId;
   price: number;
+  hasPrice: boolean;
   savings: number;
   storage: string | null;
   priceInquiry: boolean;
@@ -172,7 +173,8 @@ export function Step3Phone() {
       getRebateAmount,
     });
 
-    if (currentResult.price === 0) return null;
+    // 0원 판매도 유효한 가격이므로 price가 아니라 hasPrice로 판단한다
+    if (!currentResult.hasPrice) return null;
 
     // 현재 통신사 가격문의 여부
     const currentPriceInquiry = phone.storage.some((s) =>
@@ -199,12 +201,13 @@ export function Step3Phone() {
         return {
           carrierId: altCarrierId as CarrierId,
           price: result.price,
+          hasPrice: result.hasPrice,
           savings: currentResult.price - result.price,
           storage: result.storage,
           priceInquiry,
         };
       })
-      .filter((alt) => alt.price > 0 && alt.savings > 0)
+      .filter((alt) => alt.hasPrice && alt.savings > 0)
       .sort((a, b) => b.savings - a.savings);
 
     return { currentPrice: currentResult.price, currentPriceInquiry, alternatives };
