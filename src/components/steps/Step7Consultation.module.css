@@ -14,94 +14,93 @@
   margin-bottom: var(--space-lg);
 }
 
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-lg);
-}
-
-/* === 개인정보 수집·이용 동의 === */
-.privacySection {
-  margin-top: var(--space-lg);
-}
-
-.privacyBox {
-  margin-top: var(--space-md);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-md);
-}
-
-.privacyBoxTitle {
+/* === 입력 폼 === */
+.fieldLabel {
   font-size: 13px;
   font-weight: 700;
-  color: var(--color-text);
-  margin-bottom: var(--space-sm);
-}
-
-.privacyRows {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.privacyRow {
-  display: flex;
-  gap: var(--space-sm);
-  font-size: 12.5px;
-  line-height: 1.5;
-}
-
-.privacyKey {
-  flex-shrink: 0;
-  width: 62px;
   color: var(--color-text-secondary);
+  margin: 22px 0 8px;
+  letter-spacing: 0.02em;
+}
+
+.fieldLabelSection {
+  margin-top: 28px;
+}
+
+.phoneInput {
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  font-size: 17px;
   font-weight: 600;
-}
-
-.privacyVal {
+  background: var(--color-surface);
   color: var(--color-text);
-  word-break: keep-all;
+  outline: none;
 }
 
-.privacyNote {
-  margin-top: var(--space-sm);
-  padding-top: var(--space-sm);
-  border-top: 1px dashed var(--color-border);
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--color-text-secondary);
-  word-break: keep-all;
+.phoneInput:focus {
+  border-color: var(--color-primary);
 }
 
-.privacyCheck {
+/* === 연락 희망 시간 칩 === */
+.chipRow {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
+}
+
+.chip {
+  padding: 16px 12px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-.privacyCheckbox {
-  width: 20px;
-  height: 20px;
+.chipOn {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+/* === 개인정보 수집·이용 동의 === */
+.agree {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 22px 0 18px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.agree input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
   flex-shrink: 0;
-  margin-top: 1px;
   accent-color: var(--color-primary);
   cursor: pointer;
 }
 
-.privacyCheckLabel {
-  font-size: 14px;
+.agreeText {
+  font-size: 13px;
+  font-weight: 700;
   line-height: 1.5;
-  color: var(--color-text);
   word-break: keep-all;
 }
 
-.privacyRequired {
-  color: var(--color-primary);
-  font-weight: 700;
+.agreeText em {
+  display: block;
+  font-style: normal;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  margin-top: 3px;
 }
 
 .privacyError {
@@ -110,74 +109,109 @@
   color: var(--color-primary);
 }
 
-/* === Store Section === */
-.storeSection {
-  margin-top: var(--space-xl);
-}
-
-.storeSectionTitle {
-  font-size: 16px;
-  font-weight: 700;
-  margin-bottom: var(--space-md);
-}
-
-.mapWrap {
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  margin-bottom: var(--space-md);
-  box-shadow: var(--shadow-sm);
-}
-
-.storeInfo {
-  margin-bottom: var(--space-md);
-}
-
-.storeName {
-  font-size: 16px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-
-.storeAddress {
-  font-size: 13px;
-  color: var(--color-text-secondary);
-}
-
-.storeActions {
-  display: flex;
-  gap: var(--space-md);
-}
-
-.storeBtn {
-  flex: 1;
+/* === 신청 버튼 · 카카오 문의 === */
+.cta {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 14px;
+  gap: 8px;
+  width: 100%;
+  padding: 18px;
+  border: none;
   border-radius: var(--radius-lg);
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(201, 40, 25, 0.28);
+}
+
+.cta:disabled {
+  background: var(--color-text-tertiary);
+  box-shadow: none;
+  cursor: default;
+}
+
+.cta:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.kakaoInquiry {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 15px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: #FEE500;
+  color: #191919;
   font-size: 15px;
   font-weight: 700;
+  text-align: center;
   text-decoration: none;
-  border: 2px solid var(--color-border);
+}
+
+.kakaoInquiry:active {
+  opacity: 0.85;
+}
+
+/* === 사전승낙서 === */
+.precon {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-top: 14px;
+  padding: 13px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   background: var(--color-surface);
   color: var(--color-text);
-  cursor: pointer;
-  transition: all 0.2s;
+  text-decoration: none;
 }
 
-.storeBtn:active {
-  transform: scale(0.97);
+.precon:active {
+  background: var(--color-bg);
 }
 
-.storeBtnPrimary {
-  background: var(--color-primary);
-  color: white;
-  border-color: var(--color-primary);
+.preconIcon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  flex: none;
+  background-color: #EAF1FB;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 18px 18px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%232E5FA3' d='M12 2.5 5 5v6.3c0 4.3 2.8 8.2 7 9.2 4.2-1 7-4.9 7-9.2V5l-7-2.5Zm3.6 6.6-4.4 5a.9.9 0 0 1-1.3.1L7.4 12a.9.9 0 1 1 1.2-1.4l1.8 1.6 3.8-4.3a.9.9 0 1 1 1.4 1.2Z'/%3E%3C/svg%3E");
 }
 
-.storeBtnIcon {
-  font-size: 16px;
+.preconText {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.preconText b {
+  color: var(--color-primary-dark);
+}
+
+.preconText em {
+  display: block;
+  margin-top: 4px;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.preconGo {
+  flex: none;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
 }
 
 .successOverlay {

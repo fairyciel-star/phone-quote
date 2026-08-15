@@ -53,8 +53,15 @@ export function Header() {
     );
   }
 
+  // 상담신청(6단계)은 하단 네비게이션 없이 본문에 신청 버튼이 있으므로
+  // 뒤로가기를 헤더에서 제공한다.
   return (
     <header className={styles.header}>
+      {currentStep > 1 && (
+        <button className={styles.navBackBtn} onClick={handleBack}>
+          ←
+        </button>
+      )}
       <h1 className={styles.title}>휴대폰 견적</h1>
       {currentStep > 1 && (
         <button className={styles.resetBtn} onClick={reset}>

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useQuoteStore } from '../../store/useQuoteStore';
-import { Input, Textarea, SelectInput } from '../ui/Input';
 import { Button } from '../ui/Button';
-import { StepNavigation } from '../layout/StepNavigation';
+import { StoreLocation } from '../ui/StoreLocation';
+import { STORE } from '../../data/store';
 import { formatPhone, formatWon } from '../../utils/format';
 import { sendTelegramNotification, escapeHtml } from '../../utils/telegram';
 import { useSheetStore } from '../../store/useSheetStore';
@@ -21,12 +21,11 @@ const phones = phonesData as unknown as Phone[];
 const plans = plansData as unknown as Plan[];
 const jsonDiscounts = discountsData as unknown as Discount[];
 
-const TIME_OPTIONS = [
+const CALL_TIMES = [
   '상관없음',
-  '오전 10시~12시',
-  '오후 12시~3시',
-  '오후 3시~6시',
-  '오후 6시~9시',
+  '오전 (10~12시)',
+  '오후 (12~18시)',
+  '저녁 (18~21시)',
 ];
 
 export function Step7Consultation() {
@@ -47,17 +46,12 @@ export function Step7Consultation() {
   const [submitted, setSubmitted] = useState(false);
   const [agreedPrivacy, setAgreedPrivacy] = useState(false);
 
+  const phoneOk = /^01[016789]\d{7,8}$/.test(consultation.phone.replace(/\D/g, ''));
+
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!consultation.name.trim()) {
-      newErrors.name = '이름을 입력해주세요';
-    }
-
-    const phoneDigits = consultation.phone.replace(/\D/g, '');
-    if (!phoneDigits) {
-      newErrors.phone = '연락처를 입력해주세요';
-    } else if (!/^01[016789]\d{7,8}$/.test(phoneDigits)) {
+    if (!phoneOk) {
       newErrors.phone = '올바른 휴대폰 번호를 입력해주세요';
     }
 
@@ -144,10 +138,8 @@ export function Step7Consultation() {
     const message = `🔔 <b>새 상담 신청</b>
 
 <b>👤 고객 정보</b>
-• 이름: ${escapeHtml(consultation.name)}
 • 연락처: ${escapeHtml(consultation.phone)}
 • 희망시간: ${escapeHtml(consultation.preferredTime)}
-${consultation.memo ? `• 메모: ${escapeHtml(consultation.memo)}` : ''}
 
 <b>📋 선택 정보</b>
 • 가입유형: ${subscriptionType ?? '-'}
@@ -188,7 +180,15 @@ ${quoteText}
     setConsultation({ phone: formatPhone(value) });
   };
 
-  const canProceed = !sending && consultation.name.trim() !== '' && consultation.phone.replace(/\D/g, '').length >= 10 && agreedPrivacy;
+  const canSubmit = phoneOk && agreedPrivacy && !sending;
+
+  const submitLabel = sending
+    ? '신청 접수 중...'
+    : !phoneOk
+      ? '휴대폰 번호를 입력해 주세요'
+      : !agreedPrivacy
+        ? '개인정보 동의가 필요해요'
+        : '상담 신청 완료하기';
 
   return (
     <>
@@ -223,143 +223,90 @@ ${quoteText}
           </div>
         </div>
 
-        <div className={styles.form}>
-          <Input
-            label="이름"
-            required
-            placeholder="홍길동"
-            value={consultation.name}
-            onChange={(e) => setConsultation({ name: e.target.value })}
-            error={errors.name}
-          />
+        <p className={styles.fieldLabel}>연락받으실 번호</p>
+        <input
+          className={styles.phoneInput}
+          type="tel"
+          inputMode="numeric"
+          placeholder="010-0000-0000"
+          value={consultation.phone}
+          onChange={(e) => handlePhoneChange(e.target.value)}
+          maxLength={13}
+        />
+        {errors.phone && <p className={styles.privacyError}>{errors.phone}</p>}
 
-          <Input
-            label="연락처"
-            required
-            type="tel"
-            placeholder="010-0000-0000"
-            value={consultation.phone}
-            onChange={(e) => handlePhoneChange(e.target.value)}
-            error={errors.phone}
-            maxLength={13}
-          />
-
-          <SelectInput
-            label="희망 연락 시간"
-            value={consultation.preferredTime}
-            onChange={(e) => setConsultation({ preferredTime: e.target.value })}
-          >
-            {TIME_OPTIONS.map((time) => (
-              <option key={time} value={time}>{time}</option>
-            ))}
-          </SelectInput>
-
-          <Textarea
-            label="메모 (선택사항)"
-            placeholder="문의사항이 있으시면 남겨주세요"
-            value={consultation.memo}
-            onChange={(e) => setConsultation({ memo: e.target.value })}
-            rows={3}
-          />
+        <p className={styles.fieldLabel}>언제 연락드릴까요?</p>
+        <div className={styles.chipRow}>
+          {CALL_TIMES.map((time) => (
+            <button
+              key={time}
+              type="button"
+              className={`${styles.chip} ${consultation.preferredTime === time ? styles.chipOn : ''}`}
+              onClick={() => setConsultation({ preferredTime: time })}
+            >
+              {time}
+            </button>
+          ))}
         </div>
 
         {/* 개인정보 수집·이용 동의 */}
-        <div className={styles.privacySection}>
-          <label className={styles.privacyCheck}>
-            <input
-              type="checkbox"
-              className={styles.privacyCheckbox}
-              checked={agreedPrivacy}
-              onChange={(e) => {
-                setAgreedPrivacy(e.target.checked);
-                if (e.target.checked && errors.privacy) {
-                  setErrors((prev) => {
-                    const next = { ...prev };
-                    delete next.privacy;
-                    return next;
-                  });
-                }
-              }}
-            />
-            <span className={styles.privacyCheckLabel}>
-              <b className={styles.privacyRequired}>[필수]</b> 개인정보 수집·이용에 동의합니다
-            </span>
-          </label>
-          {errors.privacy && <p className={styles.privacyError}>{errors.privacy}</p>}
-
-          {!agreedPrivacy && (
-            <div className={styles.privacyBox}>
-              <div className={styles.privacyBoxTitle}>[개인정보 수집·이용 안내]</div>
-              <div className={styles.privacyRows}>
-                <div className={styles.privacyRow}>
-                  <span className={styles.privacyKey}>수집 항목</span>
-                  <span className={styles.privacyVal}>고객명, 연락처</span>
-                </div>
-                <div className={styles.privacyRow}>
-                  <span className={styles.privacyKey}>이용 목적</span>
-                  <span className={styles.privacyVal}>휴대폰 견적 상담 및 상담 결과 안내</span>
-                </div>
-                <div className={styles.privacyRow}>
-                  <span className={styles.privacyKey}>보유 기간</span>
-                  <span className={styles.privacyVal}>상담 완료 후 3개월 이내 파기</span>
-                </div>
-                <div className={styles.privacyRow}>
-                  <span className={styles.privacyKey}>처리 근거</span>
-                  <span className={styles.privacyVal}>고객이 요청한 상담 서비스 제공</span>
-                </div>
-              </div>
-              <div className={styles.privacyNote}>
-                ※ 개인정보 제공을 원하지 않는 경우 상담 신청이 제한될 수 있습니다.
-              </div>
-            </div>
-          )}
-        </div>
+        <label className={styles.agree}>
+          <input
+            type="checkbox"
+            checked={agreedPrivacy}
+            onChange={(e) => {
+              setAgreedPrivacy(e.target.checked);
+              if (e.target.checked && errors.privacy) {
+                setErrors((prev) => {
+                  const next = { ...prev };
+                  delete next.privacy;
+                  return next;
+                });
+              }
+            }}
+          />
+          <span className={styles.agreeText}>
+            개인정보 수집·이용에 동의합니다
+            <em>수집 항목: 휴대폰 번호 / 목적: 구매 상담 연락 / 보유 기간: 상담 완료 후 즉시 파기</em>
+          </span>
+        </label>
+        {errors.privacy && <p className={styles.privacyError}>{errors.privacy}</p>}
 
         {errors.submit && (
           <p className={styles.privacyError} role="alert">{errors.submit}</p>
         )}
 
-        {/* 매장 위치 */}
-        <div className={styles.storeSection}>
-          <h3 className={styles.storeSectionTitle}>매장 위치</h3>
-          <div className={styles.mapWrap}>
-            <iframe
-              src={`https://www.google.com/maps/embed/v1/place?key=${import.meta.env.VITE_GOOGLE_MAPS_KEY}&q=부천시+오정구+삼작로+385&zoom=17&language=ko`}
-              width="100%"
-              height="200"
-              style={{ border: 0, borderRadius: '12px' }}
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              title="매장 위치"
-            />
-          </div>
-          <div className={styles.storeInfo}>
-            <div className={styles.storeName}>휴대폰성지 동네휴대폰마트</div>
-            <div className={styles.storeAddress}>부천시 오정구 삼작로 385호 5호 1층</div>
-          </div>
-          <div className={styles.storeActions}>
-            <a
-              href="tel:01056812956"
-              className={styles.storeBtn}
-            >
-              <span className={styles.storeBtnIcon}>📞</span>
-              전화
-            </a>
-            <a
-              href="https://map.naver.com/v5/search/부천시 오정구 삼작로 385"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`${styles.storeBtn} ${styles.storeBtnPrimary}`}
-            >
-              <span className={styles.storeBtnIcon}>📍</span>
-              길찾기
-            </a>
-          </div>
-        </div>
-      </div>
+        <button className={styles.cta} disabled={!canSubmit} onClick={handleSubmit}>
+          {submitLabel}
+        </button>
 
-      <StepNavigation canProceed={canProceed} onSubmit={handleSubmit} />
+        <a
+          className={styles.kakaoInquiry}
+          href={STORE.kakaoUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          💬 카카오톡으로 편하게 문의하기
+        </a>
+
+        {/* 매장 위치 */}
+        <p className={`${styles.fieldLabel} ${styles.fieldLabelSection}`}>매장 위치</p>
+        <StoreLocation store={STORE} />
+
+        <a
+          className={styles.precon}
+          href={STORE.preconUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i className={styles.preconIcon} />
+          <span className={styles.preconText}>
+            이동통신 <b>사전승낙서</b> 확인
+            <em>한국정보통신진흥협회(KAIT) 승낙받은 판매점입니다</em>
+          </span>
+          <span className={styles.preconGo}>›</span>
+        </a>
+      </div>
 
       {submitted && (
         <div className={styles.successOverlay} onClick={() => { setSubmitted(false); reset(); }}>
