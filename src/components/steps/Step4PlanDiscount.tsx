@@ -769,7 +769,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
           </Card>
         )}
 
-        {!hasTierPlans && discountType === '선택약정' && (
+        {!hasTierPlans && (
           <div className={`${styles.discountInfo} ${styles.discountInfoStrong}`}>
             다른 요금제를 희망하시는 경우 상담신청을 통해 문의 바랍니다.
           </div>
