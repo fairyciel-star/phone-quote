@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import { useQuoteStore } from './store/useQuoteStore';
 import { useSheetStore } from './store/useSheetStore';
 import { useRebateStore } from './store/useRebateStore';
@@ -48,6 +48,14 @@ function StepContent() {
       return () => clearTimeout(timer);
     }
   }, [currentStep]);
+
+  // 새 스텝은 항상 화면 맨 위부터 보이게 한다.
+  // 그러지 않으면 이전 스텝에서 아래로 스크롤한 위치가 그대로 남아
+  // 상담신청(6스텝) 진입 시 화면 중간부터 보인다.
+  // 페인트 전에 처리해야 스크롤이 튀는 게 보이지 않는다.
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [displayedStep]);
 
   return (
     <div className={fadeClass}>
