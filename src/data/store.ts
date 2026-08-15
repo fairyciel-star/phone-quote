@@ -14,7 +14,7 @@ export const STORE: StoreInfo = {
   name: '동네휴대폰마트',
   hours: '매일 10:00 – 20:00 · 공휴일 11:00 – 19:00',
   addr: '경기 부천시 오정구 삼작로 385 1층 동네휴대폰마트',
-  phone: '010-5681-2956',
+  phone: '010-5627-9993',
   kakaoUrl: 'https://pf.kakao.com/_xmpfxcn',
   preconUrl:
     'https://ictmarket.or.kr:8443/precon/pop_CertIcon.do?PRECON_REQ_ID=PRE0000194989&YN=1',
