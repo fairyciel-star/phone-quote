@@ -298,10 +298,12 @@
   line-height: 1.6;
 }
 
-.discountInfoSub {
-  margin-top: 4px;
-  font-size: 11px;
-  color: var(--color-text-secondary);
+.discountInfoStrong {
+  background: #FEE500;
+  color: #3C1E1E;
+  font-weight: 700;
+  font-size: 14px;
+  border: 1px solid #3C1E1E;
 }
 
 /* === Plan Cards === */
