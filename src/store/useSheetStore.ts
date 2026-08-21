@@ -38,6 +38,13 @@ interface SheetState {
     가입유형: SubscriptionType,
     planTier?: PlanTier
   ) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number; 가격문의?: boolean; isPriceTableData?: boolean };
+  /** 기기 할인액(공통지원금·선택약정 중 유리한 쪽)이 직전 값 대비 상승했는지 여부 */
+  isSubsidyUp: (
+    모델ID: string,
+    통신사: CarrierId,
+    용량: string,
+    가입유형: SubscriptionType,
+  ) => boolean;
   getPhoneBadge: (모델ID: string, 통신사: CarrierId) => string;
   getCardDiscountsForCarrier: (통신사: CarrierId) => Discount[];
   getPlansForCarrier: (통신사: CarrierId) => Plan[];
@@ -99,6 +106,10 @@ export const useSheetStore = create<SheetState>((set, get) => ({
       추가지원금: tier.추가지원금,
       특별지원: tier.특별지원금,
     };
+  },
+
+  isSubsidyUp: (모델ID, 통신사, 용량, 가입유형) => {
+    return usePriceTableStore.getState().isSubsidyUp(모델ID, 통신사, 용량, 가입유형);
   },
 
   getPhoneBadge: (모델ID, 통신사) => {

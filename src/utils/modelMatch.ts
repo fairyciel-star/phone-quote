@@ -31,6 +31,9 @@ function normalizeModelName(name: string): string {
     .replace(/폴드/gi, 'Fold')
     .replace(/플립/gi, 'Flip')
     .replace(/울트라/gi, 'Ultra')
+    // "프로맥스"를 프로/맥스보다 먼저 처리한다.
+    // 따로 두면 "프로"→"Pro", "맥스"→"Max"가 이어 붙어 "ProMax"가 되어 매칭에 실패한다.
+    .replace(/프로\s*맥스/gi, 'Pro Max')
     .replace(/프로/gi, 'Pro')
     .replace(/에어/gi, 'Air')
     .replace(/맥스/gi, 'Max')

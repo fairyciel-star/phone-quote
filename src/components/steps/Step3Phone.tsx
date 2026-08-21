@@ -64,6 +64,7 @@ export function Step3Phone() {
   const sheetLoaded = useSheetStore((s) => s.loaded);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
   const getSelectAgreementSubsidy = useSheetStore((s) => s.getSelectAgreementSubsidy);
+  const isSubsidyUp = useSheetStore((s) => s.isSubsidyUp);
   const kidsPhones = useSheetStore((s) => s.kidsPhones);
   const phoneMasters = useSheetStore((s) => s.phoneMasters);
   const colorStorages = useSheetStore((s) => s.colorStorages);
@@ -316,6 +317,12 @@ export function Step3Phone() {
             })
           )
         : false;
+      // 최저가를 만든 통신사·가입유형 조합의 할인액이 직전 값 대비 올랐는지 확인
+      const bestCondition = result.conditions[0] ?? null;
+      const subsidyUp = sheetLoaded && bestCondition && result.storage
+        ? isSubsidyUp(phone.id, bestCondition.carrierId, result.storage, bestCondition.subscriptionType)
+        : false;
+
       return {
         phone,
         lowestDevicePrice: result.price,
@@ -324,10 +331,11 @@ export function Step3Phone() {
         totalSubsidy: result.totalSubsidy,
         conditions: result.conditions,
         isPriceInquiry,
+        subsidyUp,
       };
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [filteredPhones, sheetLoaded, carrierId, subscriptionType, getRebateAmount]);
+    [filteredPhones, sheetLoaded, carrierId, subscriptionType, getRebateAmount, isSubsidyUp]);
 
   const displayPhones = useMemo(() => {
     // 가격문의·가격 준비중 기기는 정렬 방식과 무관하게 항상 목록 맨 아래로 보낸다.
@@ -553,7 +561,7 @@ export function Step3Phone() {
         )}
 
         <div className={styles.list}>
-          {displayPhones.map(({ phone, retailPrice, lowestDevicePrice, lowestStorage: _ls, isPriceInquiry }) => {
+          {displayPhones.map(({ phone, retailPrice, lowestDevicePrice, lowestStorage: _ls, isPriceInquiry, subsidyUp }) => {
             const isSelected = selectedPhoneId === phone.id;
             const displayedLowestPrice =
               benefitApplied && !isPriceInquiry && retailPrice > 0
@@ -589,8 +597,13 @@ export function Step3Phone() {
                         </>
                       ) : retailPrice > 0 ? (
                         <>
-                          <span className={styles.lowestPriceBadge}>
-                            {benefitApplied ? '💳 혜택 적용가' : '▼ 오늘 최저가'}
+                          <span className={styles.lowestPriceBadgeRow}>
+                            <span className={styles.lowestPriceBadge}>
+                              {benefitApplied ? '💳 혜택 적용가' : '▼ 오늘 최저가'}
+                            </span>
+                            {subsidyUp && (
+                              <span className={styles.subsidyUpBadge}>▲UP</span>
+                            )}
                           </span>
                           <span className={styles.lowestPriceValue}>{formatWon(displayedLowestPrice)}</span>
                           {displayedLowestPrice < 0 && (

@@ -209,6 +209,13 @@
   white-space: nowrap;
 }
 
+.lowestPriceBadgeRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
 .lowestPriceBadge {
   display: inline-block;
   background: var(--color-primary);
@@ -218,7 +225,18 @@
   padding: 2px 8px;
   border-radius: 4px;
   white-space: nowrap;
-  margin-bottom: 2px;
+}
+
+.subsidyUpBadge {
+  display: inline-block;
+  background: #16a34a;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  letter-spacing: -0.3px;
 }
 
 .lowestPriceRetail {
