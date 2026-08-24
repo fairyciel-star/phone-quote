@@ -80,6 +80,12 @@ export function calculateLowestDevicePrice(params: {
     planTier?: PlanTier
   ) => { 출고가: number; 추가지원금: number; 특별지원: number; 가격문의?: boolean };
   sheetLoaded?: boolean;
+  /**
+   * 단가표에 실제로 있는 용량 목록 조회 함수 (선택).
+   * 재고가 없어 시트에서 512GB 행을 지우면 그 용량은 계산에서 빠지고 256GB만 남는다.
+   * 넘기지 않으면 phones.json의 용량 목록을 그대로 쓴다.
+   */
+  getStorages?: (phoneId: string, carrierId: CarrierId) => string[];
   /** Supabase 리베이트 조회 함수 (선택). 반환값은 리베이트 원화 금액. */
   getRebateAmount?: (
     modelId: string,
@@ -100,7 +106,21 @@ export function calculateLowestDevicePrice(params: {
   const matchMap = new Map<string, LowestCondition>();
 
   for (const carrierId of carriers) {
-    for (const storageOption of phone.storage) {
+    // 용량은 단가표를 기준으로 삼는다.
+    // phones.json에만 남아 있는 용량(예: 재고가 없어 시트에서 지운 512GB)을 계산에 넣으면
+    // 시트가 아닌 옛날 출고가·공통지원금으로 유령 가격이 잡혀 최저가가 어긋난다.
+    // 단가표에 이 모델이 아예 없을 때만 phones.json 목록으로 폴백한다.
+    const sheetStorages = sheetLoaded && params.getStorages
+      ? params.getStorages(phone.id, carrierId)
+      : [];
+    const storageOptions = sheetStorages.length > 0
+      ? sheetStorages.map((size) => ({
+          size,
+          price: phone.storage.find((s) => s.size === size)?.price ?? 0,
+        }))
+      : phone.storage;
+
+    for (const storageOption of storageOptions) {
       for (const subType of subscriptionTypes) {
         let 출고가 = storageOption.price;
         let 공통지원금 = phone.공통지원금[carrierId as keyof typeof phone.공통지원금]?.[storageOption.size] ?? 0;

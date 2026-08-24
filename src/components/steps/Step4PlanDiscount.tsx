@@ -76,7 +76,7 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
   // const getSheetAddons = useSheetStore((s) => s.getAddonsForCarrier);
   const getSubsidy = useSheetStore((s) => s.getSubsidy);
   const getStoragesForPhone = useSheetStore((s) => s.getStoragesForPhone);
-  const ptGetSubsidyData = usePriceTableStore((s) => s.getSubsidyData);
+  const ptGetStorages = usePriceTableStore((s) => s.getStorages);
 
   // 기기선택 화면(4스텝) 스위치로 켠 혜택 할인액 — 단가표 탭 S~U열 기준
   const benefitsByCarrier = usePriceTableStore((s) => s.benefits);
@@ -608,13 +608,17 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
                 const allPhoneStorages = selectedPhone
                   ? selectedPhone.storage.map((s) => ({ size: s.size, price: s.price }))
                   : [];
-                // 단가표에 존재하는 용량만 필터링
-                const storages = sheetLoaded && selectedPhoneId && carrierId
-                  ? allPhoneStorages.filter((s) => {
-                      const subType = subscriptionType ?? '번호이동';
-                      const data = ptGetSubsidyData(selectedPhoneId, carrierId as import('../../types').CarrierId, s.size, subType);
-                      return data.출고가 > 0;
-                    })
+                // 용량 버튼은 단가표에 실제로 있는 용량만 보여준다.
+                // 재고가 없어 시트에서 512GB 행을 지우면 256GB만 남고,
+                // phones.json에 없는 용량이 시트에 생기면 바로 나타난다.
+                const sheetStorages = sheetLoaded && selectedPhoneId && carrierId
+                  ? ptGetStorages(selectedPhoneId, carrierId as import('../../types').CarrierId)
+                  : [];
+                const storages = sheetStorages.length > 0
+                  ? sheetStorages.map((size) => ({
+                      size,
+                      price: allPhoneStorages.find((s) => s.size === size)?.price ?? 0,
+                    }))
                   : allPhoneStorages;
                 return storages.length > 0 ? (
                   <div className={styles.storageSelector}>

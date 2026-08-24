@@ -41,6 +41,13 @@ function normalizeStorage(s: string): string {
   return s.replace(/^(\d+)G$/i, '$1GB').replace(/^(\d+)T$/i, '$1TB');
 }
 
+// 용량 정렬용 크기 (예: "256GB" → 256, "1TB" → 1024). 해석 불가한 값은 맨 뒤로 보낸다.
+function storageToGb(size: string): number {
+  const m = size.match(/^(\d+)(GB|TB)$/i);
+  if (!m) return Number.MAX_SAFE_INTEGER;
+  return Number(m[1]) * (m[2].toUpperCase() === 'TB' ? 1024 : 1);
+}
+
 // phoneId + 용량으로 단가표 행을 찾는다 (공통지원금·상승 비교 공용)
 function findRow(rows: PriceTableRow[], phoneId: string, normStorage: string): PriceTableRow | null {
   for (const row of rows) {
@@ -167,6 +174,11 @@ interface PriceTableState {
   clear: (carrier?: CarrierId) => void;
   /** phone.id + 통신사로 단가표에 존재하는지 여부 */
   hasModel: (phoneId: string, carrier: CarrierId) => boolean;
+  /**
+   * phone.id + 통신사로 단가표에 실제로 있는 용량 목록 (용량 오름차순).
+   * 재고가 없어 시트에서 용량 행을 지우면 그 용량은 여기서도 빠진다.
+   */
+  getStorages: (phoneId: string, carrier: CarrierId) => string[];
   /** phone.id + 통신사 + 용량 + 가입유형으로 공통지원금 합계 가격 조회 */
   getSubsidyData: (
     phoneId: string,
@@ -283,6 +295,17 @@ export const usePriceTableStore = create<PriceTableState>()(
           const rowPhoneId = modelNameToPhoneId(rowBase) ?? modelNameToPhoneId(row.model_name);
           return rowPhoneId === phoneId;
         });
+      },
+
+      getStorages: (phoneId, carrier) => {
+        const sizes = new Set<string>();
+        for (const row of get().getRows(carrier)) {
+          if (row.retail_price <= 0) continue;
+          const rowBase = stripStorage(row.model_name);
+          const rowPhoneId = modelNameToPhoneId(rowBase) ?? modelNameToPhoneId(row.model_name);
+          if (rowPhoneId === phoneId) sizes.add(extractStorage(row.model_name));
+        }
+        return [...sizes].sort((a, b) => storageToGb(a) - storageToGb(b));
       },
 
       updateRow: (carrier, idx, field, value) => {

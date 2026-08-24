@@ -168,6 +168,48 @@
     }
   },
   {
+    "id": "galaxy-s25-ultra",
+    "name": "갤럭시 S25 Ultra",
+    "brand": "삼성",
+    "image": "/images/phones/galaxy-s25-ultra/galaxy-s25-ultra.png",
+    "carriers": ["SKT", "KT", "LGU"],
+    "storage": [
+      { "size": "256GB", "price": 1698400 }
+    ],
+    "colors": [
+      { "name": "티타늄 실버블루", "hex": "#A8B4C4", "image": "/images/phones/galaxy-s25-ultra/silver-blue.png" },
+      { "name": "티타늄 블랙", "hex": "#3A3A3C", "image": "/images/phones/galaxy-s25-ultra/black.png" },
+      { "name": "티타늄 화이트실버", "hex": "#E4E4E6", "image": "/images/phones/galaxy-s25-ultra/white-silver.png" },
+      { "name": "티타늄 그레이", "hex": "#6E6E73", "image": "/images/phones/galaxy-s25-ultra/gray.png" }
+    ],
+    "공통지원금": {
+      "SKT": { "256GB": 0 },
+      "KT": { "256GB": 0 },
+      "LGU": { "256GB": 0 }
+    }
+  },
+  {
+    "id": "galaxy-s25",
+    "name": "갤럭시 S25",
+    "brand": "삼성",
+    "image": "/images/phones/galaxy-s25/galaxy-s25.png",
+    "carriers": ["SKT", "KT", "LGU"],
+    "storage": [
+      { "size": "256GB", "price": 1155000 }
+    ],
+    "colors": [
+      { "name": "아이시블루", "hex": "#B9D3E4", "image": "/images/phones/galaxy-s25/icyblue.png" },
+      { "name": "네이비", "hex": "#26303E", "image": "/images/phones/galaxy-s25/navy.png" },
+      { "name": "민트", "hex": "#C9DCC9", "image": "/images/phones/galaxy-s25/mint.png" },
+      { "name": "실버 쉐도우", "hex": "#B6B6B6", "image": "/images/phones/galaxy-s25/silver-shadow.png" }
+    ],
+    "공통지원금": {
+      "SKT": { "256GB": 0 },
+      "KT": { "256GB": 0 },
+      "LGU": { "256GB": 0 }
+    }
+  },
+  {
     "id": "galaxy-s25fe",
     "name": "갤럭시 S25 FE",
     "brand": "삼성",

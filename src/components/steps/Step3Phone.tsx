@@ -96,6 +96,8 @@ export function Step3Phone() {
   const [showKakaoBanner, setShowKakaoBanner] = useState(true);
 
   const hasModelInSheet = usePriceTableStore((s) => s.hasModel);
+  // 용량 목록은 단가표 기준 — 시트에서 512GB 행을 지우면 256GB만 남는다
+  const getStorages = usePriceTableStore((s) => s.getStorages);
 
   const basePhones = carrierId
     ? phones.filter((p) => p.carriers.includes(carrierId))
@@ -171,6 +173,7 @@ export function Step3Phone() {
       sheetLoaded,
       getSubsidy,
       getSelectAgreementSubsidy,
+      getStorages,
       getRebateAmount,
     });
 
@@ -178,8 +181,8 @@ export function Step3Phone() {
     if (!currentResult.hasPrice) return null;
 
     // 현재 통신사 가격문의 여부
-    const currentPriceInquiry = phone.storage.some((s) =>
-      getSubsidy(phone.id, carrierId, s.size, subscriptionType)?.가격문의
+    const currentPriceInquiry = getStorages(phone.id, carrierId).some((size) =>
+      getSubsidy(phone.id, carrierId, size, subscriptionType)?.가격문의
     );
 
     // 타 통신사는 번호이동 기준으로 비교
@@ -193,6 +196,7 @@ export function Step3Phone() {
           sheetLoaded,
           getSubsidy,
           getSelectAgreementSubsidy,
+          getStorages,
           getRebateAmount,
         });
         const altStorage = result.storage ?? phone.storage[0]?.size;
@@ -246,21 +250,28 @@ export function Step3Phone() {
     // (phonesWithData.lowestStorage는 subscriptionType=null 포함 전체 기준일 수 있어 불일치 발생)
     let autoStorage: string | null = null;
     if (phone && carrierId && subscriptionType) {
+      // 용량 후보는 단가표 기준. 재고가 없어 시트에서 지운 용량은 자동 선택되지 않고,
+      // phones.json에 없는 용량이 시트에 새로 생겨도 그대로 잡힌다.
+      const sheetStorages = getStorages(phoneId, carrierId);
+      const candidates = sheetStorages.length > 0
+        ? sheetStorages
+        : phone.storage.map((s) => s.size);
       let bestPrice = Infinity;
-      for (const storageOpt of phone.storage) {
-        const sub = getSubsidy(phoneId, carrierId, storageOpt.size, subscriptionType);
+      for (const size of candidates) {
+        const sub = getSubsidy(phoneId, carrierId, size, subscriptionType);
         if (sub.출고가 > 0) {
           const price = sub.출고가 - sub.공통지원금 - sub.추가지원금 - sub.특별지원;
           if (price < bestPrice) {
             bestPrice = price;
-            autoStorage = storageOpt.size;
+            autoStorage = size;
           }
         }
       }
     }
     if (!autoStorage) {
       const phoneData = phonesWithData.find((d) => d.phone.id === phoneId);
-      autoStorage = phoneData?.lowestStorage ?? phone?.storage[0]?.size ?? null;
+      const sheetFallback = phone && carrierId ? getStorages(phone.id, carrierId)[0] : undefined;
+      autoStorage = phoneData?.lowestStorage ?? sheetFallback ?? phone?.storage[0]?.size ?? null;
     }
     if (autoStorage) {
       setStorage(autoStorage);
@@ -301,16 +312,20 @@ export function Step3Phone() {
         sheetLoaded,
         getSubsidy,
         getSelectAgreementSubsidy,
+        getStorages,
         getRebateAmount,
       });
       // 가격문의 여부: 공통지원금·선택약정 두 경로가 모두 막힌 경우에만 가격문의로 본다.
       // (공통지원금 리베이트가 0이어도 선택약정으로 판매 가능하면 그 가격을 보여준다)
       const subTypes = subscriptionType ? [subscriptionType] : ['번호이동', '기기변경'] as const;
-      const isPriceInquiry = sheetLoaded && carrierId
-        ? phone.storage.every((s) =>
+      const storagesForInquiry = sheetLoaded && carrierId
+        ? getStorages(phone.id, carrierId)
+        : [];
+      const isPriceInquiry = sheetLoaded && carrierId && storagesForInquiry.length > 0
+        ? storagesForInquiry.every((size) =>
             subTypes.every((st) => {
-              const 공통 = getSubsidy(phone.id, carrierId, s.size, st);
-              const 선약 = getSelectAgreementSubsidy(phone.id, carrierId, s.size, st);
+              const 공통 = getSubsidy(phone.id, carrierId, size, st);
+              const 선약 = getSelectAgreementSubsidy(phone.id, carrierId, size, st);
               const 공통판매가능 = 공통.출고가 > 0 && !공통.가격문의;
               const 선약판매가능 = 선약.출고가 > 0 && !선약.가격문의;
               return !공통판매가능 && !선약판매가능;
