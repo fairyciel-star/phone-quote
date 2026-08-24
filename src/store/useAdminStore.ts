@@ -3,7 +3,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const SUBSIDY_OVERRIDE_KEY = 'admin_subsidy_overrides';
 
-export type AdminTab = 'dashboard' | 'price-table' | 'rebates' | 'phones' | 'plans' | 'discounts' | 'sheet-debug' | 'settings';
+export type AdminTab = 'dashboard' | 'visits' | 'price-table' | 'rebates' | 'phones' | 'plans' | 'discounts' | 'sheet-debug' | 'settings';
 
 export interface SubsidyOverride {
   phoneId: string;

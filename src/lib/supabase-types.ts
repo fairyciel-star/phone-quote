@@ -4,57 +4,68 @@ export interface Database {
       phones: {
         Row: PhoneRow;
         Insert: Omit<PhoneRow, 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<PhoneRow, 'model_id'>>;
+        Update: Partial<Omit<PhoneRow, 'model_id'>>;
       };
       phone_variants: {
         Row: PhoneVariantRow;
         Insert: Omit<PhoneVariantRow, 'id'>;
-        Update: Partial<Omit<PhoneVariantRow, 'id'>>;
+        Update: Partial<Omit<PhoneVariantRow, 'id'>>;
       };
       carrier_subsidies: {
         Row: CarrierSubsidyRow;
         Insert: Omit<CarrierSubsidyRow, 'id' | 'updated_at'>;
-        Update: Partial<Omit<CarrierSubsidyRow, 'id'>>;
+        Update: Partial<Omit<CarrierSubsidyRow, 'id'>>;
       };
       installment_subsidies: {
         Row: InstallmentSubsidyRow;
         Insert: Omit<InstallmentSubsidyRow, 'id' | 'updated_at'>;
-        Update: Partial<Omit<InstallmentSubsidyRow, 'id'>>;
+        Update: Partial<Omit<InstallmentSubsidyRow, 'id'>>;
       };
       plans: {
         Row: PlanRow;
         Insert: PlanRow;
-        Update: Partial<PlanRow>;
+        Update: Partial<PlanRow>;
       };
       card_discounts: {
         Row: CardDiscountRow;
         Insert: CardDiscountRow;
-        Update: Partial<CardDiscountRow>;
+        Update: Partial<CardDiscountRow>;
       };
       extra_services: {
         Row: ExtraServiceRow;
         Insert: ExtraServiceRow;
-        Update: Partial<ExtraServiceRow>;
+        Update: Partial<ExtraServiceRow>;
       };
       used_prices: {
         Row: UsedPriceRow;
         Insert: Omit<UsedPriceRow, 'id' | 'updated_at'>;
-        Update: Partial<Omit<UsedPriceRow, 'id'>>;
+        Update: Partial<Omit<UsedPriceRow, 'id'>>;
       };
       stores: {
         Row: StoreRow;
         Insert: Omit<StoreRow, 'id' | 'created_at'>;
-        Update: Partial<Omit<StoreRow, 'id'>>;
+        Update: Partial<Omit<StoreRow, 'id'>>;
       };
       store_rebates: {
         Row: StoreRebateRow;
         Insert: Omit<StoreRebateRow, 'id' | 'updated_at'>;
-        Update: Partial<Omit<StoreRebateRow, 'id'>>;
+        Update: Partial<Omit<StoreRebateRow, 'id'>>;
       };
       price_upload_logs: {
         Row: PriceUploadLogRow;
         Insert: Omit<PriceUploadLogRow, 'id' | 'created_at'>;
-        Update: Partial<Omit<PriceUploadLogRow, 'id'>>;
+        Update: Partial<Omit<PriceUploadLogRow, 'id'>>;
+      };
+      page_visits: {
+        Row: PageVisitRow;
+        Insert: Omit<PageVisitRow, 'id' | 'visited_at'>;
+        Update: Partial<Omit<PageVisitRow, 'id'>>;
+      };
+    };
+    Functions: {
+      visit_stats: {
+        Args: { days?: number };
+        Returns: VisitStatRow[];
       };
     };
   };
@@ -191,4 +202,20 @@ export interface PriceUploadLogRow {
   readonly rows_updated: number;
   readonly uploaded_by: string;
   readonly created_at: string;
+}
+
+export interface PageVisitRow {
+  readonly id: string;
+  readonly visitor_id: string;
+  readonly session_id: string;
+  readonly visited_at: string;
+  readonly referrer: string | null;
+  readonly device: string | null;
+}
+
+/** visit_stats() 함수 반환 행 — day 는 'YYYY-MM-DD' (한국 시간 기준) */
+export interface VisitStatRow {
+  readonly day: string;
+  readonly visits: number;
+  readonly visitors: number;
 }

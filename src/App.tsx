@@ -14,6 +14,7 @@ import { Step3Phone } from './components/steps/Step3Phone';
 import { Step4PlanDiscount } from './components/steps/Step4PlanDiscount';
 import { Step7Consultation } from './components/steps/Step7Consultation';
 import { AdminPage } from './components/admin/AdminPage';
+import { logVisit } from './utils/visitLog';
 
 // 새 단가표 구글 시트 ID (고정값 - env var 불필요)
 const PRICE_SHEET_ID = '1MI7Fn521lWI74Y8IUqKncA5hV-ztd1OwzW4EyAnI9BQ';
@@ -88,6 +89,11 @@ function App() {
     const id = setInterval(() => refreshRebate(), 30_000);
     return () => clearInterval(id);
   }, [refreshRebate]);
+
+  // 방문 기록 — fire-and-forget. 실패해도 앱 동작에 영향이 없다.
+  useEffect(() => {
+    logVisit();
+  }, []);
 
   useEffect(() => {
     const handleHash = () => setHash(window.location.hash);
