@@ -177,11 +177,11 @@ export function Step3Phone() {
       getRebateAmount,
     });
 
-    // 0원 판매도 유효한 가격이므로 price가 아니라 hasPrice로 판단한다
-    if (!currentResult.hasPrice) return null;
-
-    // 현재 통신사 가격문의 여부
-    const currentPriceInquiry = getStorages(phone.id, carrierId).some((size) =>
+    // 현재 조건 가격문의 여부 — 최저가 계산 자체가 안 됐거나(hasPrice=false)
+    // 시트에 가격문의 표시가 있으면 가격문의로 본다.
+    // 여기서 바로 return 하면 번호이동 등 다른 조건에 유효한 가격이 있어도
+    // 비교 패널 자체가 뜨지 않고 다음 스텝으로 넘어가 버린다.
+    const currentPriceInquiry = !currentResult.hasPrice || getStorages(phone.id, carrierId).some((size) =>
       getSubsidy(phone.id, carrierId, size, subscriptionType)?.가격문의
     );
 
@@ -207,12 +207,15 @@ export function Step3Phone() {
           carrierId: altCarrierId as CarrierId,
           price: result.price,
           hasPrice: result.hasPrice,
-          savings: currentResult.price - result.price,
+          // 현재 조건이 가격문의면 비교 기준가가 없어 절감액 계산이 무의미하다
+          savings: currentResult.hasPrice ? currentResult.price - result.price : 0,
           storage: result.storage,
           priceInquiry,
         };
       })
-      .filter((alt) => alt.hasPrice && alt.savings > 0)
+      // 현재 조건이 가격문의면 구매 가능한 대안을 모두 보여주고,
+      // 정상 판매 중이면 기존처럼 더 저렴한 대안만 보여준다
+      .filter((alt) => alt.hasPrice && (!currentResult.hasPrice || alt.savings > 0))
       .sort((a, b) => b.savings - a.savings);
 
     return { currentPrice: currentResult.price, currentPriceInquiry, alternatives };
