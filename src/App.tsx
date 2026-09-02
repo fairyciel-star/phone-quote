@@ -14,6 +14,7 @@ import { Step3Phone } from './components/steps/Step3Phone';
 import { Step4PlanDiscount } from './components/steps/Step4PlanDiscount';
 import { Step7Consultation } from './components/steps/Step7Consultation';
 import { AdminPage } from './components/admin/AdminPage';
+import { usePriceTableAutoRefresh } from './hooks/usePriceTableAutoRefresh';
 import { logVisit } from './utils/visitLog';
 
 // 새 단가표 구글 시트 ID (고정값 - env var 불필요)
@@ -80,6 +81,11 @@ function App() {
       setSheetLoaded();
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 앱으로 복귀했을 때(탭 전환·bfcache 복원) 단가표를 다시 불러온다.
+  // 마운트 effect 는 한 번만 돌기 때문에, 앱을 열어둔 채 오래 방치하면
+  // 그 사이 수정된 시트 내용이 반영되지 않는다.
+  usePriceTableAutoRefresh(PRICE_SHEET_ID);
 
   // 앱 시작 시 리베이트 즉시 로드 → 헤더 날짜가 스텝 1부터 표시됨
   // 공유 스토어를 통해 모든 컴포넌트가 동일한 rebateMap을 참조
