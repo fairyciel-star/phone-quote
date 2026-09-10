@@ -73,11 +73,119 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* 1열 세로 리스트 */
+/* 오늘 베스트 롤러 자리 — 기존 카카오 배너와 같은 여백을 쓴다 */
+.bestSlot {
+  padding: 12px var(--space-md);
+}
+
+/* 1열 세로 리스트: 시리즈 섹션들이 들어간다 */
 .list {
   display: flex;
   flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* ── 시리즈 섹션 ── */
+.seriesHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  text-align: left;
+  background: var(--color-bg);
+  border: none;
+  border-bottom: 1.5px solid var(--color-border);
+  padding: 12px 2px 8px;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  /* 긴 목록을 훑을 때 지금 어느 시리즈 구간인지 계속 보이게 한다.
+     앱 헤더도 sticky라서 그 높이만큼 내려와야 뒤로 숨지 않는다. */
+  position: sticky;
+  top: var(--header-height);
+  z-index: 2;
+}
+
+.seriesHeadSingle {
+  cursor: default;
+  padding-top: 10px;
+  padding-bottom: 7px;
+}
+
+.seriesMark {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--color-border);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.seriesName {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+.seriesCount {
+  font-size: 11.5px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.seriesFrom {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.seriesFrom b {
+  color: var(--color-primary);
+  font-weight: 800;
+}
+
+.seriesChev {
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+  width: 12px;
+  text-align: center;
+  transition: transform 0.18s;
+}
+
+.seriesChevClosed {
+  transform: rotate(-90deg);
+}
+
+.seriesBody {
+  display: flex;
+  flex-direction: column;
   gap: var(--space-md);
+  padding-top: var(--space-sm);
+}
+
+/* 베스트 배너에서 고른 기기를 잠깐 짚어 준다 */
+.phoneHighlighted {
+  border-radius: var(--radius-lg);
+  box-shadow: 0 0 0 2px var(--color-primary);
+  transition: box-shadow 0.25s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seriesChev,
+  .phoneHighlighted {
+    transition: none;
+  }
 }
 
 .phoneCard {

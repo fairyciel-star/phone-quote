@@ -1,7 +1,14 @@
 import { create } from 'zustand';
-import type { CarrierId, ConsultationForm, DiscountType, QuoteState, SubscriptionType } from '../types';
+import type { CarrierId, ConsultationForm, DiscountType, PhoneSeries, QuoteState, SubscriptionType } from '../types';
 
 interface QuoteActions {
+  /**
+   * 기기 목록(Step 4)에서 접어 둔 시리즈.
+   * 비교 패널에서 타 통신사를 골랐다가 뒤로 오면 접힘 상태도 그대로여야 해서
+   * 컴포넌트 로컬 state가 아니라 스토어에 둔다.
+   */
+  collapsedSeries: readonly PhoneSeries[];
+  toggleSeries: (series: PhoneSeries) => void;
   showLanding: boolean;
   enterQuote: () => void;
   showPreorder: boolean;
@@ -68,6 +75,14 @@ export const useQuoteStore = create<QuoteState & QuoteActions>((set) => ({
   addonBenefitApplied: false,
   toggleAddonBenefit: () => set((state) => ({ addonBenefitApplied: !state.addonBenefitApplied })),
 
+  collapsedSeries: [],
+  toggleSeries: (series) =>
+    set((state) => ({
+      collapsedSeries: state.collapsedSeries.includes(series)
+        ? state.collapsedSeries.filter((s) => s !== series)
+        : [...state.collapsedSeries, series],
+    })),
+
   setStep: (step) => set({ currentStep: step }),
 
   startKidsPath: () =>
@@ -87,6 +102,8 @@ export const useQuoteStore = create<QuoteState & QuoteActions>((set) => ({
   setBrand: (brand) =>
     set({
       selectedBrand: brand,
+      // 브랜드가 바뀌면 시리즈 구성 자체가 달라진다
+      collapsedSeries: [],
       selectedPhoneId: null,
       selectedStorage: null,
       selectedColor: null,
@@ -169,5 +186,6 @@ export const useQuoteStore = create<QuoteState & QuoteActions>((set) => ({
       showPreorder: false,
       cardBenefitApplied: false,
       addonBenefitApplied: false,
+      collapsedSeries: [],
     }),
 }));

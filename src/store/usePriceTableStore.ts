@@ -3,8 +3,10 @@ import { persist } from 'zustand/middleware';
 import type { CarrierId, SubscriptionType } from '../types';
 import {
   fetchPriceTable,
+  fetchBestPicks,
   getRowRebate,
   EMPTY_BENEFITS,
+  type BestPickRow,
   type CarrierBenefits,
   type PriceTableRow,
   type PriceTierKr,
@@ -91,6 +93,13 @@ interface SubsidyMark {
   readonly upSince: number | null;
 }
 
+/** 시트에서 고른 오늘의 베스트 한 건 (앱 안에서 쓸 형태로 푼 것) */
+export interface BestPick {
+  readonly phoneId: string;
+  /** 판매량 증가율(%). 0이면 배지를 붙이지 않는다 */
+  readonly salesUpPercent: number;
+}
+
 type SubsidyTracker = Record<string, SubsidyMark>;
 
 function subsidyKey(carrier: CarrierId, modelCode: string, subType: SubscriptionType): string {
@@ -160,6 +169,8 @@ interface PriceTableState {
   lguRows: PriceTableRow[];
   /** 기기 할인액 직전 값 + 상승 시각 (모델·가입유형별) */
   subsidyTracker: SubsidyTracker;
+  /** 시트 '베스트' 탭에서 사람이 직접 고른 오늘의 베스트 (순위 오름차순) */
+  bestPicks: BestPickRow[];
   /** 통신사별 부가서비스·제휴카드 혜택 조건 (단가표 탭 S~U열) */
   benefits: Record<CarrierId, CarrierBenefits>;
   readonly loading: boolean;
@@ -193,6 +204,11 @@ interface PriceTableState {
     storage: string,
     subscriptionType: SubscriptionType,
   ) => boolean;
+  /**
+   * 시트 '베스트' 탭에서 이 통신사에 해당하는 항목을 순위대로 반환한다.
+   * 시트가 비어 있으면 빈 배열 — 호출부는 이때 배너를 아예 렌더하지 않는다.
+   */
+  getBestPicks: (carrier: CarrierId) => BestPick[];
   /** phone.id + 통신사 + 용량 + 가입유형으로 선택약정 합계 가격 조회 */
   getAgreementData: (
     phoneId: string,
@@ -217,6 +233,7 @@ export const usePriceTableStore = create<PriceTableState>()(
       ktRows: [],
       lguRows: [],
       subsidyTracker: {},
+      bestPicks: [],
       benefits: { SKT: EMPTY_BENEFITS, KT: EMPTY_BENEFITS, LGU: EMPTY_BENEFITS },
       loading: false,
       error: null,
@@ -244,10 +261,12 @@ export const usePriceTableStore = create<PriceTableState>()(
       loadAll: async (sheetId) => {
         set({ loading: true, error: null });
         try {
-          const [skt, kt, lgu] = await Promise.allSettled([
+          // 베스트 탭도 같은 시트라 여기서 함께 읽는다 — 앱 복귀 시 자동 갱신에 그대로 얹힌다
+          const [skt, kt, lgu, best] = await Promise.allSettled([
             fetchPriceTable(sheetId, 'SKT'),
             fetchPriceTable(sheetId, 'KT'),
             fetchPriceTable(sheetId, 'LGU'),
+            fetchBestPicks(sheetId),
           ]);
           const prev = get();
           // 불러오기에 성공한 통신사만 직전 값과 비교해 상승 여부를 갱신한다
@@ -268,6 +287,8 @@ export const usePriceTableStore = create<PriceTableState>()(
               LGU: lgu.status === 'fulfilled' ? lgu.value.benefits : prev.benefits.LGU,
             },
             subsidyTracker: tracker,
+            // 베스트 탭을 못 읽으면 직전 목록을 그대로 둔다 (배너가 깜빡이며 사라지지 않게)
+            bestPicks: best.status === 'fulfilled' ? best.value : prev.bestPicks,
             loading: false,
             lastLoaded: new Date().toISOString(),
           });
@@ -362,6 +383,38 @@ export const usePriceTableStore = create<PriceTableState>()(
         return Date.now() - mark.upSince < UP_BADGE_DURATION_MS;
       },
 
+      getBestPicks: (carrier) => {
+        const rows = get().getRows(carrier);
+
+        // 모델코드가 적혀 있으면 단가표 행에서 정확히 찾고, 없으면 모델이름으로 푼다
+        const phoneIdOf = (pick: BestPickRow): string | null => {
+          if (pick.모델코드) {
+            const row = rows.find((r) => r.model_code === pick.모델코드);
+            if (row) {
+              return modelNameToPhoneId(stripStorage(row.model_name))
+                ?? modelNameToPhoneId(row.model_name);
+            }
+          }
+          return pick.모델이름 ? modelNameToPhoneId(pick.모델이름) : null;
+        };
+
+        const picks: BestPick[] = [];
+        const seen = new Set<string>();
+
+        for (const pick of get().bestPicks) {
+          // 통신사가 비어 있으면 전 통신사 공통 항목
+          if (pick.통신사 !== null && pick.통신사 !== carrier) continue;
+
+          const phoneId = phoneIdOf(pick);
+          if (!phoneId || seen.has(phoneId)) continue;
+
+          seen.add(phoneId);
+          picks.push({ phoneId, salesUpPercent: pick.판매량 });
+        }
+
+        return picks;
+      },
+
       getAgreementData: (phoneId, carrier, storage, subscriptionType) => {
         const rows = get().getRows(carrier);
         const normStorage = normalizeStorage(storage);
@@ -399,6 +452,7 @@ export const usePriceTableStore = create<PriceTableState>()(
         ktRows: state.ktRows,
         lguRows: state.lguRows,
         subsidyTracker: state.subsidyTracker,
+        bestPicks: state.bestPicks,
         lastLoaded: state.lastLoaded,
       }),
     },

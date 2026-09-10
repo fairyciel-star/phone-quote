@@ -13,7 +13,7 @@ import {
   type PhoneMasterRow,
   type ColorStorageRow,
 } from '../utils/sheets';
-import { usePriceTableStore } from './usePriceTableStore';
+import { usePriceTableStore, type BestPick } from './usePriceTableStore';
 
 interface SheetState {
   readonly loaded: boolean;
@@ -45,6 +45,8 @@ interface SheetState {
     용량: string,
     가입유형: SubscriptionType,
   ) => boolean;
+  /** 시트 '베스트' 탭에서 고른 오늘의 베스트 (순위 오름차순) */
+  getBestPicks: (통신사: CarrierId) => BestPick[];
   getPhoneBadge: (모델ID: string, 통신사: CarrierId) => string;
   getCardDiscountsForCarrier: (통신사: CarrierId) => Discount[];
   getPlansForCarrier: (통신사: CarrierId) => Plan[];
@@ -110,6 +112,10 @@ export const useSheetStore = create<SheetState>((set, get) => ({
 
   isSubsidyUp: (모델ID, 통신사, 용량, 가입유형) => {
     return usePriceTableStore.getState().isSubsidyUp(모델ID, 통신사, 용량, 가입유형);
+  },
+
+  getBestPicks: (통신사) => {
+    return usePriceTableStore.getState().getBestPicks(통신사);
   },
 
   getPhoneBadge: (모델ID, 통신사) => {

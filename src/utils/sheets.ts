@@ -595,6 +595,74 @@ function parseBenefitBlock(lines: string[]): CarrierBenefits {
   return { 부가서비스: read(addonCol), 제휴카드: read(cardCol) };
 }
 
+// ── 오늘 베스트 (수동 지정 탭) ──
+//
+// 지원금 상승폭으로 자동 선정하면 비교 기준이 브라우저에 쌓여야 해서
+// 신규 방문자에게는 영영 안 보인다. 그래서 시트에서 직접 3개를 고른다.
+
+const BEST_PICK_GID = '409311099';
+
+/** 베스트 탭 한 줄. 시트에 사람이 직접 적는다. */
+export interface BestPickRow {
+  readonly 순위: number;
+  /** 'SKT' | 'KT' | 'LGU', 비어 있으면 전 통신사 공통 */
+  readonly 통신사: CarrierId | null;
+  /** 단가표와 같은 키. 비어 있으면 모델이름으로 매칭한다 */
+  readonly 모델코드: string;
+  readonly 모델이름: string;
+  /** 판매량 증가율(%). 0이면 배지를 붙이지 않는다 */
+  readonly 판매량: number;
+}
+
+function parseCarrierCell(value: string): CarrierId | null {
+  const v = value.trim().toUpperCase().replace(/\s|\+/g, '');
+  if (v === 'SKT' || v === 'SK' || v === 'SK텔레콤') return 'SKT';
+  if (v === 'KT') return 'KT';
+  if (v === 'LGU' || v === 'LG' || v === 'LGU+') return 'LGU';
+  return null;
+}
+
+/** 앞의 +/- 와 % 기호를 떼고 숫자만 (예: "+32%" → 32) */
+function parsePercent(value: string): number {
+  const n = Number(value.replace(/[%+\s,]/g, ''));
+  return Number.isFinite(n) ? n : 0;
+}
+
+/**
+ * 베스트 탭을 읽는다.
+ *
+ * 탭이 비어 있거나(아직 안 채움) 불러오기에 실패해도 예외를 던지지 않고 빈 배열을 준다.
+ * 배너 하나 때문에 단가표 로딩 전체가 무너지면 안 된다.
+ */
+export async function fetchBestPicks(sheetIdOrUrl: string): Promise<BestPickRow[]> {
+  const spreadsheetId = extractSpreadsheetId(sheetIdOrUrl);
+  const url = buildExportCsvUrl(spreadsheetId, BEST_PICK_GID);
+
+  let text: string;
+  try {
+    const res = await fetch(url, { redirect: 'follow' });
+    if (!res.ok) return [];
+    text = await res.text();
+  } catch {
+    return [];
+  }
+
+  return parseCsv(text)
+    // 모델을 특정할 수 없는 줄과 노출을 끈 줄은 버린다
+    .filter((row) => {
+      const hasModel = (row['모델코드'] ?? '').trim() !== '' || (row['모델이름'] ?? '').trim() !== '';
+      return hasModel && (row['노출'] ?? '').trim().toUpperCase() !== 'N';
+    })
+    .map((row) => ({
+      순위: Number(row['순위']) || 0,
+      통신사: parseCarrierCell(row['통신사'] ?? ''),
+      모델코드: (row['모델코드'] ?? '').trim(),
+      모델이름: (row['모델이름'] ?? '').trim(),
+      판매량: parsePercent(row['판매량'] ?? ''),
+    }))
+    .sort((a, b) => a.순위 - b.순위);
+}
+
 export async function fetchPriceTable(
   sheetIdOrUrl: string,
   carrier: CarrierId

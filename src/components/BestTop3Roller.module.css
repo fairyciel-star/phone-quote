@@ -1,0 +1,184 @@
+/* 한 항목의 높이. JS transform이 이 값을 그대로 쓰므로 여기가 유일한 기준이다. */
+.roller {
+  --roll-item-h: 44px;
+
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 10px 12px 9px;
+  box-shadow: var(--shadow-sm);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 7px;
+}
+
+.flame {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.title {
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  color: var(--color-text);
+}
+
+.dots {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-border);
+  transition: all 0.2s;
+}
+
+.dotOn {
+  background: var(--color-primary);
+  width: 13px;
+  border-radius: 3px;
+}
+
+/* 롤링 모드: 한 칸만 보이고 세로로 굴러간다 */
+.view {
+  height: var(--roll-item-h);
+  overflow: hidden;
+  position: relative;
+}
+
+.track {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.48s cubic-bezier(0.35, 0.9, 0.25, 1);
+}
+
+/* 모션 최소화 설정: 굴리지 않고 전부 펼친다 */
+.viewStatic {
+  height: auto;
+  overflow: visible;
+  position: static;
+}
+
+.trackStatic {
+  position: static;
+  transition: none;
+  transform: none !important;
+}
+
+.item {
+  height: var(--roll-item-h);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.item:active {
+  opacity: 0.6;
+}
+
+.rank {
+  width: 21px;
+  height: 21px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.name {
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.delta {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.up {
+  background: var(--color-success);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 3px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.price {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+}
+
+.priceInquiry {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: -0.03em;
+}
+
+.chev {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    transition: none;
+  }
+  .dot {
+    transition: none;
+  }
+}

@@ -13,11 +13,14 @@ import { EMPTY_BENEFITS } from '../../utils/sheets';
 import { useRebateStore } from '../../store/useRebateStore';
 import { usePriceTableStore } from '../../store/usePriceTableStore';
 import styles from './Step3Phone.module.css';
-import KakaoAlertBanner from '../KakaoAlertBanner';
 import BenefitToggleBar from '../BenefitToggleBar';
+import { BestTop3Roller, type BestItem } from '../BestTop3Roller';
+import { groupBySeries } from '../../utils/series';
 
-const KAKAO_CHANNEL_URL = 'https://pf.kakao.com/_xmpfxcn';
-const KAKAO_ALERT_DISMISSED_KEY = 'kakaoAlertDismissed';
+/** 오늘 베스트 배너에 세울 최대 개수 */
+const BEST_LIMIT = 3;
+/** 배너에서 고른 기기를 강조해 두는 시간 */
+const HIGHLIGHT_MS = 1600;
 
 const phones = phonesData as unknown as Phone[];
 
@@ -93,7 +96,14 @@ export function Step3Phone() {
   );
   const [sortByPrice, setSortByPrice] = useState(true);
   const [showComparison, setShowComparison] = useState(false);
-  const [showKakaoBanner, setShowKakaoBanner] = useState(true);
+  // 베스트 배너에서 고른 기기 — 스크롤 + 잠깐 강조에 쓴다
+  const [highlightedPhoneId, setHighlightedPhoneId] = useState<string | null>(null);
+
+  const collapsedSeries = useQuoteStore((s) => s.collapsedSeries);
+  const toggleSeries = useQuoteStore((s) => s.toggleSeries);
+  const getBestPicks = useSheetStore((s) => s.getBestPicks);
+  // 단가표가 다시 로드되면 베스트 목록도 새로 뽑아야 한다 (앱 복귀 시 자동 갱신 포함)
+  const priceTableLoadedAt = usePriceTableStore((s) => s.lastLoaded);
 
   const hasModelInSheet = usePriceTableStore((s) => s.hasModel);
   // 용량 목록은 단가표 기준 — 시트에서 512GB 행을 지우면 256GB만 남는다
@@ -107,10 +117,6 @@ export function Step3Phone() {
   const visiblePhones = sheetLoaded && carrierId
     ? basePhones.filter((p) => hasModelInSheet(p.id, carrierId))
     : basePhones;
-
-  const filteredPhones = brandFilter === '전체'
-    ? visiblePhones
-    : visiblePhones.filter((p) => p.brand === brandFilter);
 
   const getDisplayPrice = (phone: Phone, storageSize: string): number => {
     if (sheetLoaded) {
@@ -306,8 +312,10 @@ export function Step3Phone() {
     setStep(currentStep + 1);
   };
 
+  // 브랜드 필터를 타기 전 목록 전체로 계산한다. 오늘 베스트는 Step 3에서 고른 브랜드와
+  // 무관하게 시트에 적힌 그대로 세우므로, 아이폰 가격도 미리 있어야 한다.
   const phonesWithData = useMemo(() =>
-    filteredPhones.map((phone) => {
+    visiblePhones.map((phone) => {
       const result = calculateLowestDevicePrice({
         phone,
         carriers: carrierId ? [carrierId] : phone.carriers,
@@ -353,19 +361,105 @@ export function Step3Phone() {
       };
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [filteredPhones, sheetLoaded, carrierId, subscriptionType, getRebateAmount, isSubsidyUp]);
+    [visiblePhones, sheetLoaded, carrierId, subscriptionType, getRebateAmount, isSubsidyUp]);
 
   const displayPhones = useMemo(() => {
+    // 목록에는 고른 브랜드만 남긴다 (베스트 배너는 이 필터를 타지 않는다)
+    const inBrand = brandFilter === '전체'
+      ? phonesWithData
+      : phonesWithData.filter((d) => d.phone.brand === brandFilter);
     // 가격문의·가격 준비중 기기는 정렬 방식과 무관하게 항상 목록 맨 아래로 보낸다.
     // (최저가가 0으로 계산돼 오히려 맨 위로 올라오던 문제)
     const 가격없음 = (p: typeof phonesWithData[number]) =>
       p.isPriceInquiry || p.retailPrice <= 0 ? 1 : 0;
-    return [...phonesWithData].sort(
+    return [...inBrand].sort(
       (a, b) =>
         가격없음(a) - 가격없음(b) ||
         (sortByPrice ? a.lowestDevicePrice - b.lowestDevicePrice : 0),
     );
-  }, [phonesWithData, sortByPrice]);
+  }, [phonesWithData, sortByPrice, brandFilter]);
+
+  // 화면에 실제로 보일 가격 (혜택 스위치가 켜져 있으면 할인 반영)
+  const displayedPriceOf = (p: typeof phonesWithData[number]): number =>
+    benefitApplied && !p.isPriceInquiry && p.retailPrice > 0
+      ? applyBenefit(p.lowestDevicePrice)
+      : p.lowestDevicePrice;
+
+  /**
+   * 오늘 베스트 — 구글시트 '베스트' 탭에서 사람이 직접 고른 순서 그대로.
+   *
+   * 지원금 상승폭으로 자동 선정하지 않는 이유: 비교 기준이 브라우저에 쌓여야 해서
+   * 신규 방문자에게는 영영 안 보인다. 광고판으로 쓰려면 시트 지정이 맞다.
+   */
+  const bestItems: readonly BestItem[] = useMemo(() => {
+    if (!sheetLoaded || !carrierId) return [];
+
+    // 브랜드 필터를 타지 않는다 — 삼성 목록을 보고 있어도 시트에 아이폰이 있으면 세운다
+    const shown = new Map(phonesWithData.map((d) => [d.phone.id, d]));
+    const items: BestItem[] = [];
+
+    for (const pick of getBestPicks(carrierId)) {
+      const data = shown.get(pick.phoneId);
+      // 이 통신사 단가표에 없거나 가격이 아직 없는 기기는 세우지 않는다
+      if (!data || data.retailPrice <= 0) continue;
+
+      items.push({
+        phoneId: data.phone.id,
+        name: data.phone.name,
+        salesUpPercent: pick.salesUpPercent,
+        price: displayedPriceOf(data),
+        priceInquiry: data.isPriceInquiry,
+      });
+      if (items.length === BEST_LIMIT) break;
+    }
+
+    return items;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phonesWithData, sheetLoaded, carrierId, benefitDiscount, priceTableLoadedAt]);
+
+  // 시리즈별로 묶는다. 섹션 순서는 각 시리즈의 자기 최저가 오름차순 (utils/series.ts 참고)
+  const seriesGroups = useMemo(
+    () =>
+      groupBySeries(
+        displayPhones,
+        (d) => d.phone.series,
+        (d) => (d.isPriceInquiry || d.retailPrice <= 0 ? null : displayedPriceOf(d)),
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [displayPhones, benefitDiscount],
+  );
+
+  // 베스트 배너에서 고른 기기로 스크롤하고 잠깐 강조한다
+  useEffect(() => {
+    if (!highlightedPhoneId) return;
+    document
+      .getElementById(`phone-card-${highlightedPhoneId}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const timer = window.setTimeout(() => setHighlightedPhoneId(null), HIGHLIGHT_MS);
+    return () => window.clearTimeout(timer);
+  }, [highlightedPhoneId]);
+
+  const handleBestSelect = (phoneId: string) => {
+    hapticMedium();
+    const target = phones.find((p) => p.id === phoneId);
+    if (!target) return;
+
+    // 베스트는 시트 기준이라 삼성 목록에서도 아이폰이 뜬다.
+    // 다른 브랜드 기기를 눌렀다면 목록을 그쪽으로 바꿔야 스크롤할 카드가 생긴다.
+    if (brandFilter !== '전체' && brandFilter !== target.brand) {
+      setBrandFilter(target.brand as BrandFilter);
+    }
+    // 접힌 섹션 안에 있으면 먼저 펼쳐야 스크롤할 대상이 생긴다
+    if (collapsedSeries.includes(target.series)) {
+      toggleSeries(target.series);
+    }
+    setHighlightedPhoneId(phoneId);
+  };
+
+  const handleSeriesToggle = (series: Phone['series']) => {
+    hapticMedium();
+    toggleSeries(series);
+  };
 
   const currentCarrierName = carriersData.find((c) => c.id === carrierId)?.name ?? carrierId ?? '';
 
@@ -518,17 +612,6 @@ export function Step3Phone() {
     );
   }
 
-  const handleKakaoConfirm = () => {
-    window.open(KAKAO_CHANNEL_URL, '_blank', 'noopener,noreferrer');
-    setShowKakaoBanner(false);
-    localStorage.setItem(KAKAO_ALERT_DISMISSED_KEY, 'true');
-  };
-
-  const handleKakaoClose = () => {
-    setShowKakaoBanner(false);
-    localStorage.setItem(KAKAO_ALERT_DISMISSED_KEY, 'true');
-  };
-
   const handleCardBenefitToggle = () => {
     hapticMedium();
     toggleCardBenefit();
@@ -541,11 +624,11 @@ export function Step3Phone() {
 
   return (
     <>
-      <KakaoAlertBanner
-        visible={showKakaoBanner}
-        onConfirm={handleKakaoConfirm}
-        onClose={handleKakaoClose}
-      />
+      {bestItems.length > 0 && (
+        <div className={styles.bestSlot}>
+          <BestTop3Roller items={bestItems} onSelect={handleBestSelect} />
+        </div>
+      )}
       <BenefitToggleBar
         cardOn={cardBenefitApplied}
         onCardToggle={handleCardBenefitToggle}
@@ -564,7 +647,9 @@ export function Step3Phone() {
           </button>
         </div>
 
-        {!selectedBrand && (
+        {/* Step 3에서 브랜드를 골랐어도, 베스트 배너를 눌러 다른 브랜드로 넘어왔다면
+            되돌아갈 수단이 필요하다 */}
+        {(!selectedBrand || brandFilter !== selectedBrand) && (
           <div className={styles.brandFilter}>
             {(['전체', '삼성', 'Apple'] as const).map((brand) => (
               <button
@@ -579,148 +664,195 @@ export function Step3Phone() {
         )}
 
         <div className={styles.list}>
-          {displayPhones.map(({ phone, retailPrice, lowestDevicePrice, lowestStorage: _ls, isPriceInquiry, subsidyUp }) => {
-            const isSelected = selectedPhoneId === phone.id;
-            const displayedLowestPrice =
-              benefitApplied && !isPriceInquiry && retailPrice > 0
-                ? applyBenefit(lowestDevicePrice)
-                : lowestDevicePrice;
+          {seriesGroups.map((group) => {
+            // 모델이 하나뿐인 섹션은 헤더가 카드보다 무거워 보인다 — 접기를 끄고 높이를 줄인다
+            const isSingle = group.items.length === 1;
+            const isCollapsed = !isSingle && collapsedSeries.includes(group.series);
             return (
-              <div key={phone.id}>
-                <Card
-                  selected={isSelected}
-                  onClick={() => handleSelectPhone(phone.id)}
-                  className={styles.phoneCard}
+              // section이 sticky 헤더의 기준 블록 — 자기 구간을 벗어나면 헤더도 같이 밀려난다
+              <section key={group.series}>
+                <button
+                  type="button"
+                  className={`${styles.seriesHead} ${isSingle ? styles.seriesHeadSingle : ''}`}
+                  onClick={isSingle ? undefined : () => handleSeriesToggle(group.series)}
+                  disabled={isSingle}
+                  aria-expanded={isSingle ? undefined : !isCollapsed}
                 >
-                  <div className={styles.phoneRow}>
-                    <div className={styles.phoneImage}>
-                      <img
-                        src={phone.image}
-                        alt={phone.name}
-                        className={styles.phoneImg}
-                      />
-                    </div>
-                    <div className={styles.phoneInfo}>
-                      <span className={styles.phoneBrand}>{phone.brand}</span>
-                      <div className={styles.phoneNameRow}>
-                        <span className={styles.phoneName}>{phone.name}</span>
-                      </div>
-                    </div>
-                    <div className={styles.lowestPrice}>
-                      {isPriceInquiry ? (
-                        <>
-                          <span className={styles.lowestPriceBadge}>▼ 오늘 최저가</span>
-                          <span className={styles.lowestPriceValue} style={{ fontSize: '18px' }}>가격문의</span>
-                          <span className={styles.lowestPriceRetail}>{formatWon(retailPrice)}</span>
-                        </>
-                      ) : retailPrice > 0 ? (
-                        <>
-                          <span className={styles.lowestPriceBadgeRow}>
-                            <span className={styles.lowestPriceBadge}>
-                              {benefitApplied ? '💳 혜택 적용가' : '▼ 오늘 최저가'}
-                            </span>
-                            {subsidyUp && (
-                              <span className={styles.subsidyUpBadge}>▲UP</span>
-                            )}
-                          </span>
-                          <span className={styles.lowestPriceValue}>{formatWon(displayedLowestPrice)}</span>
-                          {displayedLowestPrice < 0 && (
-                            <span className={styles.paybackNote}>페이백으로 돌려드립니다</span>
-                          )}
-                          <span className={styles.lowestPriceRetail}>{formatWon(retailPrice)}</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className={styles.lowestPriceLabel}>오늘 최저가</span>
-                          <span className={styles.lowestPriceNone}>가격 준비중</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </Card>
+                  <span className={styles.seriesMark}>{group.meta.mark}</span>
+                  <span className={styles.seriesName}>{group.meta.label}</span>
+                  <span className={styles.seriesCount}>{group.items.length}종</span>
+                  <span className={styles.seriesFrom}>
+                    {group.lowestPrice === null ? (
+                      '가격문의'
+                    ) : (
+                      <>
+                        최저 <b>{formatWon(group.lowestPrice)}</b>~
+                      </>
+                    )}
+                  </span>
+                  {!isSingle && (
+                    <span
+                      className={`${styles.seriesChev} ${isCollapsed ? styles.seriesChevClosed : ''}`}
+                      aria-hidden="true"
+                    >
+                      ▼
+                    </span>
+                  )}
+                </button>
 
-                {/* 타 통신사 최저가 비교 패널 */}
-                {isSelected && showComparison && comparisonData && comparisonData.alternatives.length > 0 && (
-                  <div className={styles.comparisonPanel}>
-                    <div className={styles.comparisonHeader}>
-                      <span className={styles.comparisonIcon}>💡</span>
-                      <div className={styles.comparisonHeaderText}>
-                        <span className={styles.comparisonTitle}>
-                          {comparisonData.alternatives.some((a) => a.savings > 0)
-                            ? '번호이동 시 더 저렴해요'
-                            : '통신사별 가격 비교'}
-                        </span>
-                        <span className={styles.comparisonSub}>
-                          현재 {currentCarrierName} {subscriptionType}{' '}
-                          {comparisonData.currentPriceInquiry
-                            ? '가격문의'
-                            : formatWon(applyBenefit(comparisonData.currentPrice))}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className={styles.alternativeList}>
-                      {comparisonData.alternatives.map((alt) => {
-                        const carrier = carriersData.find((c) => c.id === alt.carrierId);
-                        return (
-                          <button
-                            key={alt.carrierId}
-                            className={styles.alternativeRow}
-                            onClick={() => handleSelectAlternative(alt.carrierId, alt.storage)}
+                {!isCollapsed && (
+                  <div className={styles.seriesBody}>
+                    {group.items.map(({ phone, retailPrice, lowestDevicePrice, isPriceInquiry, subsidyUp }) => {
+                      const isSelected = selectedPhoneId === phone.id;
+                      const displayedLowestPrice =
+                        benefitApplied && !isPriceInquiry && retailPrice > 0
+                          ? applyBenefit(lowestDevicePrice)
+                          : lowestDevicePrice;
+                      return (
+                        <div
+                          key={phone.id}
+                          id={`phone-card-${phone.id}`}
+                          className={highlightedPhoneId === phone.id ? styles.phoneHighlighted : undefined}
+                        >
+                          <Card
+                            selected={isSelected}
+                            onClick={() => handleSelectPhone(phone.id)}
+                            className={styles.phoneCard}
                           >
-                            <img
-                              src={`/images/${alt.carrierId}.png`}
-                              alt={carrier?.name ?? alt.carrierId}
-                              className={styles.altCarrierLogo}
-                            />
-                            <div className={styles.altInfo}>
-                              <span className={styles.altCarrierName}>
-                                {carrier?.name ?? alt.carrierId} 번호이동
-                              </span>
-                              <span className={styles.altPrice}>
-                                {alt.priceInquiry
-                                  ? '가격문의'
-                                  : formatWon(applyBenefit(alt.price))}
-                              </span>
+                            <div className={styles.phoneRow}>
+                              <div className={styles.phoneImage}>
+                                <img
+                                  src={phone.image}
+                                  alt={phone.name}
+                                  className={styles.phoneImg}
+                                />
+                              </div>
+                              <div className={styles.phoneInfo}>
+                                <span className={styles.phoneBrand}>{phone.brand}</span>
+                                <div className={styles.phoneNameRow}>
+                                  <span className={styles.phoneName}>{phone.name}</span>
+                                </div>
+                              </div>
+                              <div className={styles.lowestPrice}>
+                                {isPriceInquiry ? (
+                                  <>
+                                    <span className={styles.lowestPriceBadge}>▼ 오늘 최저가</span>
+                                    <span className={styles.lowestPriceValue} style={{ fontSize: '18px' }}>가격문의</span>
+                                    <span className={styles.lowestPriceRetail}>{formatWon(retailPrice)}</span>
+                                  </>
+                                ) : retailPrice > 0 ? (
+                                  <>
+                                    <span className={styles.lowestPriceBadgeRow}>
+                                      <span className={styles.lowestPriceBadge}>
+                                        {benefitApplied ? '💳 혜택 적용가' : '▼ 오늘 최저가'}
+                                      </span>
+                                      {subsidyUp && (
+                                        <span className={styles.subsidyUpBadge}>▲UP</span>
+                                      )}
+                                    </span>
+                                    <span className={styles.lowestPriceValue}>{formatWon(displayedLowestPrice)}</span>
+                                    {displayedLowestPrice < 0 && (
+                                      <span className={styles.paybackNote}>페이백으로 돌려드립니다</span>
+                                    )}
+                                    <span className={styles.lowestPriceRetail}>{formatWon(retailPrice)}</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className={styles.lowestPriceLabel}>오늘 최저가</span>
+                                    <span className={styles.lowestPriceNone}>가격 준비중</span>
+                                  </>
+                                )}
+                              </div>
                             </div>
-                            <div className={styles.altRight}>
-                              {alt.savings > 0 && (
-                                <span className={styles.savingsBadge}>
-                                  -{formatWon(alt.savings)} ▼
-                                </span>
-                              )}
-                              <span className={styles.selectLabel}>선택 →</span>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
+                          </Card>
 
-                    <button className={styles.alternativeRow} onClick={handleProceedWithCurrent}>
-                      {carrierId && (
-                        <img
-                          src={`/images/${carrierId}.png`}
-                          alt={currentCarrierName}
-                          className={styles.altCarrierLogo}
-                        />
-                      )}
-                      <div className={styles.altInfo}>
-                        <span className={styles.altCarrierName}>
-                          {currentCarrierName} {subscriptionType}
-                        </span>
-                        <span className={styles.altPrice}>
-                          {comparisonData.currentPriceInquiry
-                            ? '가격문의'
-                            : formatWon(applyBenefit(comparisonData.currentPrice))}
-                        </span>
-                      </div>
-                      <div className={styles.altRight}>
-                        <span className={styles.selectLabel}>선택 →</span>
-                      </div>
-                    </button>
+                          {/* 타 통신사 최저가 비교 패널 */}
+                          {isSelected && showComparison && comparisonData && comparisonData.alternatives.length > 0 && (
+                            <div className={styles.comparisonPanel}>
+                              <div className={styles.comparisonHeader}>
+                                <span className={styles.comparisonIcon}>💡</span>
+                                <div className={styles.comparisonHeaderText}>
+                                  <span className={styles.comparisonTitle}>
+                                    {comparisonData.alternatives.some((a) => a.savings > 0)
+                                      ? '번호이동 시 더 저렴해요'
+                                      : '통신사별 가격 비교'}
+                                  </span>
+                                  <span className={styles.comparisonSub}>
+                                    현재 {currentCarrierName} {subscriptionType}{' '}
+                                    {comparisonData.currentPriceInquiry
+                                      ? '가격문의'
+                                      : formatWon(applyBenefit(comparisonData.currentPrice))}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className={styles.alternativeList}>
+                                {comparisonData.alternatives.map((alt) => {
+                                  const carrier = carriersData.find((c) => c.id === alt.carrierId);
+                                  return (
+                                    <button
+                                      key={alt.carrierId}
+                                      className={styles.alternativeRow}
+                                      onClick={() => handleSelectAlternative(alt.carrierId, alt.storage)}
+                                    >
+                                      <img
+                                        src={`/images/${alt.carrierId}.png`}
+                                        alt={carrier?.name ?? alt.carrierId}
+                                        className={styles.altCarrierLogo}
+                                      />
+                                      <div className={styles.altInfo}>
+                                        <span className={styles.altCarrierName}>
+                                          {carrier?.name ?? alt.carrierId} 번호이동
+                                        </span>
+                                        <span className={styles.altPrice}>
+                                          {alt.priceInquiry
+                                            ? '가격문의'
+                                            : formatWon(applyBenefit(alt.price))}
+                                        </span>
+                                      </div>
+                                      <div className={styles.altRight}>
+                                        {alt.savings > 0 && (
+                                          <span className={styles.savingsBadge}>
+                                            -{formatWon(alt.savings)} ▼
+                                          </span>
+                                        )}
+                                        <span className={styles.selectLabel}>선택 →</span>
+                                      </div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+
+                              <button className={styles.alternativeRow} onClick={handleProceedWithCurrent}>
+                                {carrierId && (
+                                  <img
+                                    src={`/images/${carrierId}.png`}
+                                    alt={currentCarrierName}
+                                    className={styles.altCarrierLogo}
+                                  />
+                                )}
+                                <div className={styles.altInfo}>
+                                  <span className={styles.altCarrierName}>
+                                    {currentCarrierName} {subscriptionType}
+                                  </span>
+                                  <span className={styles.altPrice}>
+                                    {comparisonData.currentPriceInquiry
+                                      ? '가격문의'
+                                      : formatWon(applyBenefit(comparisonData.currentPrice))}
+                                  </span>
+                                </div>
+                                <div className={styles.altRight}>
+                                  <span className={styles.selectLabel}>선택 →</span>
+                                </div>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
-              </div>
+              </section>
             );
           })}
         </div>

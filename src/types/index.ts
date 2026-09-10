@@ -24,10 +24,17 @@ export interface PhoneSubsidy {
   readonly [storage: string]: number;
 }
 
+/**
+ * 기기 목록(Step 4)에서 묶는 시리즈.
+ * 브랜드는 Step 3에서 이미 갈리므로 삼성용·Apple용 값이 한 화면에 섞이지 않는다.
+ */
+export type PhoneSeries = 'S' | '폴더블' | '실속형' | 'Pro' | '기본' | '보급형';
+
 export interface Phone {
   readonly id: string;
   readonly name: string;
   readonly brand: string;
+  readonly series: PhoneSeries;
   readonly image: string;
   readonly carriers: readonly CarrierId[];
   readonly storage: readonly PhoneStorage[];

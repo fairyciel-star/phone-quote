@@ -1,8 +1,42 @@
+import { useCallback, useLayoutEffect, useRef } from 'react';
 import { useQuoteStore } from '../../store/useQuoteStore';
 import { usePriceTableStore } from '../../store/usePriceTableStore';
 import styles from './Header.module.css';
 
 const NAV_STEPS = [1, 2, 3, 4, 5];
+
+/**
+ * 헤더 높이를 --header-height로 내보낸다.
+ *
+ * 기기 목록(Step 4)의 시리즈 헤더가 이 값만큼 내려온 지점에 달라붙어야
+ * sticky 헤더 뒤로 숨지 않는다. 헤더 높이는 글꼴·패딩에 따라 달라지므로
+ * 상수로 박아 두면 언젠가 어긋난다 — 실제 높이를 재서 넘긴다.
+ */
+function useHeaderHeightVar(): (node: HTMLElement | null) => void {
+  const observerRef = useRef<ResizeObserver | null>(null);
+
+  useLayoutEffect(() => {
+    return () => observerRef.current?.disconnect();
+  }, []);
+
+  return useCallback((node: HTMLElement | null) => {
+    observerRef.current?.disconnect();
+    if (!node) return;
+
+    const publish = () => {
+      document.documentElement.style.setProperty(
+        '--header-height',
+        `${Math.round(node.getBoundingClientRect().height)}px`,
+      );
+    };
+    publish();
+
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(publish);
+    observer.observe(node);
+    observerRef.current = observer;
+  }, []);
+}
 
 function formatPriceDate(isoStr: string | null): string {
   if (!isoStr) return '';
@@ -12,6 +46,7 @@ function formatPriceDate(isoStr: string | null): string {
 }
 
 export function Header() {
+  const headerRef = useHeaderHeightVar();
   const reset = useQuoteStore((s) => s.reset);
   const currentStep = useQuoteStore((s) => s.currentStep);
   const setStep = useQuoteStore((s) => s.setStep);
@@ -35,7 +70,7 @@ export function Header() {
 
   if (NAV_STEPS.includes(currentStep)) {
     return (
-      <header className={styles.header}>
+      <header className={styles.header} ref={headerRef}>
         <button
           className={styles.navBackBtn}
           onClick={handleBack}
@@ -56,7 +91,7 @@ export function Header() {
   // 상담신청(6단계)은 하단 네비게이션 없이 본문에 신청 버튼이 있으므로
   // 뒤로가기를 헤더에서 제공한다.
   return (
-    <header className={styles.header}>
+    <header className={styles.header} ref={headerRef}>
       {currentStep > 1 && (
         <button className={styles.navBackBtn} onClick={handleBack}>
           ←

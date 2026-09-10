@@ -14,7 +14,7 @@ import { detectDevice, findMatchingUsedPhone } from '../../utils/detectDevice';
 import { formatWon } from '../../utils/format';
 import styles from './Step4PlanDiscount.module.css';
 import summaryStyles from './Step6Summary.module.css';
-import { KakaoChannelBanner } from '../ui/KakaoChannelBanner';
+import KakaoAlertBanner from '../KakaoAlertBanner';
 import { getRebate } from '../../lib/supabase-rebate';
 import { useRebateStore } from '../../store/useRebateStore';
 import { useCarrierMarginStore } from '../../store/useCarrierMarginStore';
@@ -1177,9 +1177,8 @@ const setDiscountType = useQuoteStore((s) => s.setDiscountType);
           </>
         )}
       </div>
-      <div style={{ padding: '0 var(--space-lg)' }}>
-        <KakaoChannelBanner />
-      </div>
+      {/* 최종 견적을 다 본 직후가 가격 알림을 권할 자리다 (4스텝에서 옮겨 옴) */}
+      <KakaoAlertBanner />
       <StepNavigation
         canProceed={selectedPlanId !== null}
         priceDisplay={quote ? { 출고가: quote.출고가, 할부원금: quote.할부원금 - gradePrice, 가격문의: isPriceInquiry } : undefined}

@@ -37,6 +37,9 @@
   --space-2xl: 48px;
 
   --font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+
+  /* Header가 마운트되면서 실제 높이로 덮어쓴다 (components/layout/Header.tsx) */
+  --header-height: 73px;
 }
 
 *,

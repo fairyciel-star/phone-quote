@@ -3,6 +3,7 @@
     "id": "galaxy-zfold8-ultra",
     "name": "갤럭시 Z Fold 8 Ultra",
     "brand": "삼성",
+    "series": "폴더블",
     "image": "/images/phones/zfold8u/대표.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
@@ -23,6 +24,7 @@
     "id": "galaxy-zfold8",
     "name": "갤럭시 Z Fold 8",
     "brand": "삼성",
+    "series": "폴더블",
     "image": "/images/phones/zfold8/대표.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
@@ -43,6 +45,7 @@
     "id": "galaxy-zflip8",
     "name": "갤럭시 Z Flip 8",
     "brand": "삼성",
+    "series": "폴더블",
     "image": "/images/phones/zflip8/대표.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
@@ -63,6 +66,7 @@
     "id": "galaxy-s26-ultra",
     "name": "갤럭시 S26 Ultra",
     "brand": "삼성",
+    "series": "S",
     "image": "/images/phones/galaxy-s26-ultra/galaxy-s26-ultra.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
@@ -85,6 +89,7 @@
     "id": "galaxy-s26-plus",
     "name": "갤럭시 S26+",
     "brand": "삼성",
+    "series": "S",
     "image": "/images/phones/s26-plus/galaxy-s26-plus.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
@@ -107,6 +112,7 @@
     "id": "galaxy-s26",
     "name": "갤럭시 S26",
     "brand": "삼성",
+    "series": "S",
     "image": "/images/phones/s26/galaxy-s26-cobalt-violet.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
@@ -129,6 +135,7 @@
     "id": "galaxy-zfold7",
     "name": "갤럭시 Z Fold 7",
     "brand": "삼성",
+    "series": "폴더블",
     "image": "/images/phones/galaxy-zfold7/galaxy-zfold7.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
@@ -150,6 +157,7 @@
     "id": "galaxy-zflip7",
     "name": "갤럭시 Z Flip 7",
     "brand": "삼성",
+    "series": "폴더블",
     "image": "/images/phones/galaxy-zflip7/galaxy-zflip7.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
@@ -171,6 +179,7 @@
     "id": "galaxy-s25-ultra",
     "name": "갤럭시 S25 Ultra",
     "brand": "삼성",
+    "series": "S",
     "image": "/images/phones/s25ultra/대표.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
@@ -192,6 +201,7 @@
     "id": "galaxy-s25",
     "name": "갤럭시 S25",
     "brand": "삼성",
+    "series": "S",
     "image": "/images/phones/s25/대표.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
@@ -213,6 +223,7 @@
     "id": "galaxy-s25fe",
     "name": "갤럭시 S25 FE",
     "brand": "삼성",
+    "series": "실속형",
     "image": "/images/phones/galaxy-s25fe/galaxy-s25fe.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
@@ -234,6 +245,7 @@
     "id": "galaxy-s25-edge",
     "name": "갤럭시 S25엣지",
     "brand": "삼성",
+    "series": "S",
     "image": "/images/phones/s25-엣지/메인.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
@@ -255,6 +267,7 @@
     "id": "iphone-17-pro-max",
     "name": "iPhone 17 Pro Max",
     "brand": "Apple",
+    "series": "Pro",
     "image": "/images/phones/iphone-17-pro/iphone-17-pro.webp",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
@@ -276,6 +289,7 @@
     "id": "iphone-17-pro",
     "name": "iPhone 17 Pro",
     "brand": "Apple",
+    "series": "Pro",
     "image": "/images/phones/iphone-17-pro/iphone-17-pro.webp",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
@@ -297,6 +311,7 @@
     "id": "iphone-17-air",
     "name": "iPhone 17 Air",
     "brand": "Apple",
+    "series": "기본",
     "image": "/images/phones/iphone-17-air/iphone-17-air.webp",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
@@ -319,6 +334,7 @@
     "id": "iphone-17",
     "name": "iPhone 17",
     "brand": "Apple",
+    "series": "기본",
     "image": "/images/phones/iphone-17/iphone-17.webp",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
@@ -342,6 +358,7 @@
     "id": "iphone-17-se",
     "name": "iPhone 17 SE",
     "brand": "Apple",
+    "series": "보급형",
     "image": "/images/phones/iphone-17-se/iphone-17e.png",
     "carriers": ["SKT", "KT", "LGU"],
     "storage": [
