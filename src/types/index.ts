@@ -27,8 +27,11 @@ export interface PhoneSubsidy {
 /**
  * 기기 목록(Step 4)에서 묶는 시리즈.
  * 브랜드는 Step 3에서 이미 갈리므로 삼성용·Apple용 값이 한 화면에 섞이지 않는다.
+ *
+ * '사전예약'은 phones.json에 적는 값이 아니다. 단가표 R열이 "사전예약"인 모델을
+ * 목록에서 맨 위 별도 섹션으로 올릴 때 런타임에 붙인다 (utils/series.ts 참고).
  */
-export type PhoneSeries = 'S' | '폴더블' | '실속형' | 'Pro' | '기본' | '보급형';
+export type PhoneSeries = 'S' | '폴더블' | '실속형' | 'Pro' | '기본' | '보급형' | '사전예약';
 
 export interface Phone {
   readonly id: string;

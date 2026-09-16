@@ -420,6 +420,7 @@ export interface PriceTableRow {
   readonly agreement_mnp_price: number;    // 선택약정 MNP 합계 실구매가 (원)
   readonly agreement_change_price: number; // 선택약정 기변 합계 실구매가 (원)
   readonly price_inquiry: boolean;         // R열 "가격문의" 여부
+  readonly preorder: boolean;              // R열 "사전예약" 여부
   // 리베이트 탭에서 사용하는 확장 필드 (optional)
   readonly plan_tier?: string;
   readonly subsidy_mnp?: number;
@@ -458,9 +459,11 @@ function parsePrice(val: string): number {
 //   col5~7  = 공통지원금 리베이트 (010신규 / MNP / 기변), 만원 단위
 //   col8~10 = 선택약정 리베이트   (010신규 / MNP / 기변), 만원 단위
 //   col13=공통 MNP합계, col14=공통 기변합계, col15=선택약정 MNP합계, col16=선택약정 기변합계
-//   col17(R열)=가격문의
+//   col17(R열)=기타 — "가격문의" 또는 "사전예약"
 //
 // 리베이트가 0이면 그 조건으로는 판매할 수 없다는 뜻이므로 가격문의로 안내한다.
+// "사전예약"은 아직 개통이 시작되지 않은 모델이다. 가격은 그대로 보여주되
+// 목록에서 사전예약 섹션으로 따로 묶고 "오늘 최저가" 대신 "사전예약"을 붙인다.
 function parsePriceRow(cols: string[], carrier: CarrierId): PriceTableRow {
   return {
     carrier,
@@ -480,6 +483,7 @@ function parsePriceRow(cols: string[], carrier: CarrierId): PriceTableRow {
     agreement_mnp_price: parsePrice(cols[15] ?? ''),
     agreement_change_price: parsePrice(cols[16] ?? ''),
     price_inquiry: cols[17]?.trim() === '가격문의',
+    preorder: cols[17]?.trim() === '사전예약',
   };
 }
 

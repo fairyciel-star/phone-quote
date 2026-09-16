@@ -335,6 +335,11 @@
   white-space: nowrap;
 }
 
+/* 사전예약은 아직 개통 전이라 "오늘 최저가" 빨강과 구분되는 색을 쓴다 */
+.preorderBadge {
+  background: #1D4ED8;
+}
+
 .subsidyUpBadge {
   display: inline-block;
   background: #16a34a;

@@ -4,9 +4,16 @@ import type { PhoneSeries } from '../types';
 export interface SeriesMeta {
   readonly label: string;
   readonly mark: string;
+  /**
+   * 최저가와 무관하게 목록 맨 위에 고정한다.
+   * 사전예약은 아직 개통 전이라 값이 비싼데, 가격순으로 두면 맨 아래로 내려가
+   * "새로 나온 기기를 먼저 보여준다"는 목적을 못 한다.
+   */
+  readonly pinTop?: boolean;
 }
 
 export const SERIES_META: Readonly<Record<PhoneSeries, SeriesMeta>> = {
+  사전예약: { label: '사전예약', mark: '예약', pinTop: true },
   S: { label: 'S 시리즈', mark: 'S' },
   폴더블: { label: '폴더블', mark: 'Z' },
   실속형: { label: '실속형', mark: 'FE' },
@@ -51,6 +58,8 @@ function resolveMeta(series: PhoneSeries): SeriesMeta {
  * 여전히 화면 맨 위 섹션에 남는다 — 그룹핑 때문에 최저가가 아래로 밀리면
  * "오늘의 시세"라는 앱의 약속이 깨진다.
  *
+ * 예외는 pinTop 시리즈(사전예약)다. 신제품 홍보가 목적이라 가격순 규칙보다 앞선다.
+ *
  * 가격을 못 구한 항목(가격문의·준비중)은 정렬 기준에서 빼되 그룹에는 남긴다.
  * 이미 상위에서 목록 맨 아래로 정렬해 두었으므로 순서는 입력 순서를 그대로 따른다.
  */
@@ -85,8 +94,10 @@ export function groupBySeries<T>(
     });
   }
 
-  // 가격을 아는 시리즈가 먼저, 전부 가격문의인 시리즈는 맨 뒤로
+  // 고정 시리즈가 맨 앞, 그다음 가격을 아는 시리즈, 전부 가격문의인 시리즈는 맨 뒤로
+  const pinRank = (g: SeriesGroup<T>): number => (g.meta.pinTop ? 0 : 1);
   return groups.sort((a, b) => {
+    if (pinRank(a) !== pinRank(b)) return pinRank(a) - pinRank(b);
     if (a.lowestPrice === null) return b.lowestPrice === null ? 0 : 1;
     if (b.lowestPrice === null) return -1;
     return a.lowestPrice - b.lowestPrice;

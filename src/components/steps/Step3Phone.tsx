@@ -4,7 +4,7 @@ import { useSheetStore } from '../../store/useSheetStore';
 import { Card } from '../ui/Card';
 import phonesData from '../../data/phones.json';
 import carriersData from '../../data/carriers.json';
-import type { Phone, SubscriptionType, DiscountType } from '../../types';
+import type { Phone, PhoneSeries, SubscriptionType, DiscountType } from '../../types';
 import type { CarrierId } from '../../types';
 import { formatWon } from '../../utils/format';
 import { hapticMedium } from '../../utils/haptic';
@@ -108,6 +108,8 @@ export function Step3Phone() {
   const hasModelInSheet = usePriceTableStore((s) => s.hasModel);
   // 용량 목록은 단가표 기준 — 시트에서 512GB 행을 지우면 256GB만 남는다
   const getStorages = usePriceTableStore((s) => s.getStorages);
+  // 단가표 R열 "사전예약" 모델 — 맨 위 사전예약 섹션으로 따로 묶는다
+  const isPreorderModel = usePriceTableStore((s) => s.isPreorder);
 
   const basePhones = carrierId
     ? phones.filter((p) => p.carriers.includes(carrierId))
@@ -358,10 +360,11 @@ export function Step3Phone() {
         conditions: result.conditions,
         isPriceInquiry,
         subsidyUp,
+        isPreorder: sheetLoaded && !!carrierId && isPreorderModel(phone.id, carrierId),
       };
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [visiblePhones, sheetLoaded, carrierId, subscriptionType, getRebateAmount, isSubsidyUp]);
+    [visiblePhones, sheetLoaded, carrierId, subscriptionType, getRebateAmount, isSubsidyUp, priceTableLoadedAt]);
 
   const displayPhones = useMemo(() => {
     // 목록에는 고른 브랜드만 남긴다 (베스트 배너는 이 필터를 타지 않는다)
@@ -384,6 +387,14 @@ export function Step3Phone() {
     benefitApplied && !p.isPriceInquiry && p.retailPrice > 0
       ? applyBenefit(p.lowestDevicePrice)
       : p.lowestDevicePrice;
+
+  /**
+   * 목록에서 이 기기가 들어갈 섹션.
+   * 사전예약은 phones.json의 시리즈를 덮어쓴다 — 단가표 R열만 고치면 개통 시작 후
+   * 코드 수정 없이 원래 시리즈(Pro 등)로 돌아가게 하기 위함이다.
+   */
+  const seriesOf = (p: typeof phonesWithData[number]): PhoneSeries =>
+    p.isPreorder ? '사전예약' : p.phone.series;
 
   /**
    * 오늘 베스트 — 구글시트 '베스트' 탭에서 사람이 직접 고른 순서 그대로.
@@ -422,7 +433,7 @@ export function Step3Phone() {
     () =>
       groupBySeries(
         displayPhones,
-        (d) => d.phone.series,
+        seriesOf,
         (d) => (d.isPriceInquiry || d.retailPrice <= 0 ? null : displayedPriceOf(d)),
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -441,17 +452,20 @@ export function Step3Phone() {
 
   const handleBestSelect = (phoneId: string) => {
     hapticMedium();
-    const target = phones.find((p) => p.id === phoneId);
-    if (!target) return;
+    const data = phonesWithData.find((d) => d.phone.id === phoneId);
+    if (!data) return;
+    const target = data.phone;
 
     // 베스트는 시트 기준이라 삼성 목록에서도 아이폰이 뜬다.
     // 다른 브랜드 기기를 눌렀다면 목록을 그쪽으로 바꿔야 스크롤할 카드가 생긴다.
     if (brandFilter !== '전체' && brandFilter !== target.brand) {
       setBrandFilter(target.brand as BrandFilter);
     }
-    // 접힌 섹션 안에 있으면 먼저 펼쳐야 스크롤할 대상이 생긴다
-    if (collapsedSeries.includes(target.series)) {
-      toggleSeries(target.series);
+    // 접힌 섹션 안에 있으면 먼저 펼쳐야 스크롤할 대상이 생긴다.
+    // phone.series가 아니라 실제로 묶인 섹션을 봐야 한다 — 사전예약 기기는 다른 섹션에 있다.
+    const section = seriesOf(data);
+    if (collapsedSeries.includes(section)) {
+      toggleSeries(section);
     }
     setHighlightedPhoneId(phoneId);
   };
@@ -702,7 +716,7 @@ export function Step3Phone() {
 
                 {!isCollapsed && (
                   <div className={styles.seriesBody}>
-                    {group.items.map(({ phone, retailPrice, lowestDevicePrice, isPriceInquiry, subsidyUp }) => {
+                    {group.items.map(({ phone, retailPrice, lowestDevicePrice, isPriceInquiry, subsidyUp, isPreorder }) => {
                       const isSelected = selectedPhoneId === phone.id;
                       const displayedLowestPrice =
                         benefitApplied && !isPriceInquiry && retailPrice > 0
@@ -743,10 +757,18 @@ export function Step3Phone() {
                                 ) : retailPrice > 0 ? (
                                   <>
                                     <span className={styles.lowestPriceBadgeRow}>
-                                      <span className={styles.lowestPriceBadge}>
-                                        {benefitApplied ? '💳 혜택 적용가' : '▼ 오늘 최저가'}
+                                      {/* 사전예약은 아직 개통 전이라 "오늘 최저가"가 성립하지 않는다.
+                                          가격은 그대로 보여주되 라벨만 사전예약으로 바꾼다. */}
+                                      <span
+                                        className={`${styles.lowestPriceBadge} ${isPreorder ? styles.preorderBadge : ''}`}
+                                      >
+                                        {isPreorder
+                                          ? (benefitApplied ? '💳 사전예약' : '사전예약')
+                                          : benefitApplied
+                                            ? '💳 혜택 적용가'
+                                            : '▼ 오늘 최저가'}
                                       </span>
-                                      {subsidyUp && (
+                                      {subsidyUp && !isPreorder && (
                                         <span className={styles.subsidyUpBadge}>▲UP</span>
                                       )}
                                     </span>

@@ -197,6 +197,11 @@ interface PriceTableState {
     storage: string,
     subscriptionType: SubscriptionType,
   ) => { 출고가: number; 공통지원금: number; 추가지원금: number; 특별지원: number; 가격문의: boolean };
+  /**
+   * phone.id + 통신사로 사전예약 모델인지 여부 (단가표 R열 "사전예약").
+   * 사전예약은 모델 단위로 걸리므로 용량은 보지 않는다 — 한 용량이라도 표시돼 있으면 사전예약이다.
+   */
+  isPreorder: (phoneId: string, carrier: CarrierId) => boolean;
   /** phone.id + 통신사 + 용량 + 가입유형으로 기기 할인액이 직전 값 대비 상승했는지 여부 */
   isSubsidyUp: (
     phoneId: string,
@@ -371,6 +376,15 @@ export const usePriceTableStore = create<PriceTableState>()(
         }
 
         return { 출고가: 0, 공통지원금: 0, 추가지원금: 0, 특별지원: 0, 가격문의: false, isPriceTableData: false as const };
+      },
+
+      isPreorder: (phoneId, carrier) => {
+        return get().getRows(carrier).some((row) => {
+          if (!row.preorder) return false;
+          const rowBase = stripStorage(row.model_name);
+          const rowPhoneId = modelNameToPhoneId(rowBase) ?? modelNameToPhoneId(row.model_name);
+          return rowPhoneId === phoneId;
+        });
       },
 
       isSubsidyUp: (phoneId, carrier, storage, subscriptionType) => {
