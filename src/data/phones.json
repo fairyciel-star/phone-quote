@@ -264,6 +264,50 @@
     }
   },
   {
+    "id": "iphone-18-pro-max",
+    "name": "iPhone 18 Pro Max",
+    "brand": "Apple",
+    "series": "Pro",
+    "image": "/images/phones/iphone-18-max/대표.jpg",
+    "carriers": ["SKT", "KT", "LGU"],
+    "storage": [
+      { "size": "256GB", "price": 2200000 }
+    ],
+    "colors": [
+      { "name": "블랙", "hex": "#222224", "image": "/images/phones/iphone-18-max/블랙.png" },
+      { "name": "실버", "hex": "#DCDCDC", "image": "/images/phones/iphone-18-max/실버.png" },
+      { "name": "글레이셔", "hex": "#AEBBCC", "image": "/images/phones/iphone-18-max/글레이셔.png" },
+      { "name": "버건디", "hex": "#5C2B35", "image": "/images/phones/iphone-18-max/버건디.png" }
+    ],
+    "공통지원금": {
+      "SKT": { "256GB": 220000 },
+      "KT": { "256GB": 200000 },
+      "LGU": { "256GB": 200000 }
+    }
+  },
+  {
+    "id": "iphone-18-pro",
+    "name": "iPhone 18 Pro",
+    "brand": "Apple",
+    "series": "Pro",
+    "image": "/images/phones/iphone-18-pro/대표.jpg",
+    "carriers": ["SKT", "KT", "LGU"],
+    "storage": [
+      { "size": "256GB", "price": 1991000 }
+    ],
+    "colors": [
+      { "name": "블랙", "hex": "#222224", "image": "/images/phones/iphone-18-pro/블랙.png" },
+      { "name": "실버", "hex": "#DCDCDC", "image": "/images/phones/iphone-18-pro/실버.png" },
+      { "name": "글레이셔", "hex": "#AEBBCC", "image": "/images/phones/iphone-18-pro/글레이셔.png" },
+      { "name": "버건디", "hex": "#5C2B35", "image": "/images/phones/iphone-18-pro/버건디.png" }
+    ],
+    "공통지원금": {
+      "SKT": { "256GB": 450000 },
+      "KT": { "256GB": 450000 },
+      "LGU": { "256GB": 450000 }
+    }
+  },
+  {
     "id": "iphone-17-pro-max",
     "name": "iPhone 17 Pro Max",
     "brand": "Apple",
